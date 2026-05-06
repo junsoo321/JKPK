@@ -1,4 +1,4 @@
-﻿#include <SDL.h>
+#include <SDL.h>
 #include "Constants.h"
 #include "MapSystem.h"
 #include "Player.hpp"
@@ -42,6 +42,9 @@ int main(int argc, char* argv[]) {
         UpdateAndDrawProjectiles(renderer);
         UpdateAndDrawEnemies(renderer, player.x, player.y);
         CheckEnemyCollision(bullets);
+        if (CheckCollision(&player, bullets)) {
+            isRunning = false;
+        }
 
         DrawMap(renderer);
         DrawPlayer(renderer, &player);
