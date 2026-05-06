@@ -9,27 +9,27 @@
 ### 1. 프로젝트 이름을 우클릭하고 **[속성(Properties)]**창을 엽니다.
 <br><br>
 ### 2. 헤더 파일 연결 (Include)
-C/C++ > 일반 > 추가 포함 디렉터리(Additional Include Directories)<br>
-압축을 푼 SDL2 폴더 내부의 include 폴더 경로 ($(ProjectDir)External\SDL2\include) 추가
+**C/C++ > 일반 > 추가 포함 디렉터리(Additional Include Directories)**<br>
+압축을 푼 SDL2 폴더 내부의 include 폴더 경로 **($(ProjectDir)External\SDL2\include)** 추가
 <br><br>
 
 ### 3.라이브러리 경로 설정:
-링커 > 일반 > 추가 라이브러리 디렉터리(Additional Library Directories)<br>
-SDL2 폴더 내부의 lib\x64 폴더 경로 ($(ProjectDir)External\SDL2\lib\x64) 추가
+**링커 > 일반 > 추가 라이브러리 디렉터리(Additional Library Directories)**<br>
+SDL2 폴더 내부의 lib\x64 폴더 경로 **($(ProjectDir)External\SDL2\lib\x64)** 추가
 <br><br>
 
 ### 4.라이브러리 파일 지정:
-링커 > 입력 > 추가 종속성(Additional Dependencies)<br>
+**링커 > 입력 > 추가 종속성(Additional Dependencies)**<br>
 SDL2.lib; SDL2main.lib; 입력 (맨 앞에 추가)
 <br><br>
 
 ### 5.시스템 설정:
-링커 > 시스템 > 하위 시스템<br>
+**링커 > 시스템 > 하위 시스템**<br>
 **창(/SUBSYSTEM:WINDOWS)** 설정
 <br><br>
 
 ## 3. 실행 환경 구성 (중요)
-압축 푼 폴더의 SDL2/lib/x64/SDL2.dll 파일을 복사하여 .exe 실행 파일이 생성되는 $(ProjectDir)/x64/Debug 폴더에 붙여넣어야 합니다.
+압축 푼 폴더의 SDL2/lib/x64/SDL2.dll 파일을 복사하여 .exe 실행 파일이 생성되는 **($(ProjectDir)/x64/Debug)** 폴더에 붙여넣어야 합니다.
 <br><br>
 ## 4. 설치 확인 테스트 코드
 [테스트 코드]를 main.cpp에 넣고 빌드했을때 창이 떴다가 바로 꺼진다면 설치 성공입니다.
