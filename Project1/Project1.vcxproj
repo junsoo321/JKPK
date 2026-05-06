@@ -19,23 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Enemy.c" />
-    <ClCompile Include="src\ImageManager.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\MapData.c" />
-    <ClCompile Include="src\MapSystem.c" />
-    <ClCompile Include="src\Player.cpp" />
-    <ClCompile Include="src\Projectile.cpp" />
+    <ClCompile Include="Enemy.c" />
+    <ClCompile Include="ImageManager.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MapData.c" />
+    <ClCompile Include="MapSystem.c" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Projectile.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\utils\Constants.h" />
-    <ClInclude Include="src\utils\Enemy.h" />
-    <ClInclude Include="src\utils\ImageManager.hpp" />
-    <ClInclude Include="src\utils\MapData.h" />
-    <ClInclude Include="src\utils\MapSystem.h" />
-    <ClInclude Include="src\utils\Player.hpp" />
-    <ClInclude Include="src\utils\Projectile.hpp" />
-    <ClInclude Include="src\utils\SDL.h" />
+    <ClInclude Include="Constants.h" />
+    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="ImageManager.hpp" />
+    <ClInclude Include="MapData.h" />
+    <ClInclude Include="MapSystem.h" />
+    <ClInclude Include="Player.hpp" />
+    <ClInclude Include="Projectile.hpp" />
+    <ClInclude Include="SDL.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

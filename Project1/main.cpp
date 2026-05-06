@@ -1,4 +1,4 @@
-#include <SDL.h>
+ï»¿#include <SDL.h>
 #include "Constants.h"
 #include "MapSystem.h"
 #include "Player.hpp"
@@ -7,20 +7,20 @@
 #include "Enemy.h"
 
 int main(int argc, char* argv[]) {
-    //SDL ÃÊ±âÈ­ ¹× Ã¢ »ı¼º ÄÚµå
+    //SDL ì´ˆê¸°í™” ë° ì°½ ìƒì„± ì½”ë“œ
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window* window = SDL_CreateWindow("Isaac Project - Procedural",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    //ÃÊ±âÈ­
-    InitMap();                 //¸Ê ÃÊ±âÈ­
-    LoadAllImages(renderer);   //ÀÌ¹ÌÁö ¸Å´ÏÀú ÃÊ±âÈ­
+    //ì´ˆê¸°í™”
+    InitMap();                 //ë§µ ì´ˆê¸°í™”
+    LoadAllImages(renderer);   //ì´ë¯¸ì§€ ë§¤ë‹ˆì € ì´ˆê¸°í™”
 
-    PlayerData player;         //ÇÃ·¹ÀÌ¾î ±¸Á¶Ã¼ º¯¼ö ¼±¾ğ
-    InitPlayer(&player);       //ÃÊ±â°ª ÇÒ´ç ÇÔ¼ö È£Ãâ
+    PlayerData player;         //í”Œë ˆì´ì–´ êµ¬ì¡°ì²´ ë³€ìˆ˜ ì„ ì–¸
+    InitPlayer(&player);       //ì´ˆê¸°ê°’ í• ë‹¹ í•¨ìˆ˜ í˜¸ì¶œ
 
-    bool isRunning = true;     //°ÔÀÓ ½ÇÇà ¿©ºÎ ÇÃ·¡±×
+    bool isRunning = true;     //ê²Œì„ ì‹¤í–‰ ì—¬ë¶€ í”Œë˜ê·¸
     SDL_Event event;
 
     while (isRunning) {

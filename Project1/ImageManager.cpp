@@ -1,8 +1,8 @@
-#include "ImageManager.hpp"
-#include <SDL_image.h> // SDL_image ¶óÀÌºê·¯¸® ÇÊ¿ä
+ï»¿#include "ImageManager.hpp"
+#include <SDL_image.h> // SDL_image ë¼ì´ë¸ŒëŸ¬ë¦¬ í•„ìš”
 #include <stdio.h>
 
-// Àü¿ª º¯¼ö Á¤ÀÇ
+// ì „ì—­ ë³€ìˆ˜ ì •ì˜
 SDL_Texture* gPlayerTexture = nullptr;
 SDL_Texture* gWallTexture = nullptr;
 SDL_Texture* gFloorTexture = nullptr;
@@ -11,14 +11,14 @@ SDL_Texture* gProjectileTexture = nullptr;
 SDL_Texture* gEnemyProjectileTexture = nullptr;
 
 void LoadAllImages(SDL_Renderer* renderer) {
-    // 1. SDL_image ÃÊ±âÈ­ (PNG ·Îµå ¼³Á¤)
+    // 1. SDL_image ì´ˆê¸°í™” (PNG ë¡œë“œ ì„¤ì •)
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
         return;
     }
 
-    // 2. ÀÌ¹ÌÁö ·Îµå ÇÔ¼ö (³»ºÎ À¯Æ¿¸®Æ¼)
+    // 2. ì´ë¯¸ì§€ ë¡œë“œ í•¨ìˆ˜ (ë‚´ë¶€ ìœ í‹¸ë¦¬í‹°)
     auto LoadTexture = [&](const char* path) -> SDL_Texture* {
         SDL_Texture* newTexture = IMG_LoadTexture(renderer, path);
         if (newTexture == nullptr) {
@@ -27,8 +27,8 @@ void LoadAllImages(SDL_Renderer* renderer) {
         return newTexture;
         };
 
-    // 3. ½ÇÁ¦ ÆÄÀÏ ·Îµå (°æ·Î¿Í ÆÄÀÏ¸íÀº º»ÀÎÀÇ È¯°æ¿¡ ¸Â°Ô ¼öÁ¤ÇÏ¼¼¿ä)
-    gProjectileTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/attack.png"); // Åõ»çÃ¼ ÀÌ¹ÌÁö ·Îµå
+    // 3. ì‹¤ì œ íŒŒì¼ ë¡œë“œ (ê²½ë¡œì™€ íŒŒì¼ëª…ì€ ë³¸ì¸ì˜ í™˜ê²½ì— ë§ê²Œ ìˆ˜ì •í•˜ì„¸ìš”)
+    gProjectileTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/attack.png"); // íˆ¬ì‚¬ì²´ ì´ë¯¸ì§€ ë¡œë“œ
     gPlayerTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/enemy.png");
     gEnemyTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/player.png");
     gEnemyProjectileTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/attack.png");
@@ -37,13 +37,13 @@ void LoadAllImages(SDL_Renderer* renderer) {
 }
 
 void FreeAllImages() {
-    // ¸Ş¸ğ¸® ÇØÁ¦ (¾ÈÀüÇÏ°Ô nullptr Ã¼Å© ÈÄ ÇØÁ¦)
+    // ë©”ëª¨ë¦¬ í•´ì œ (ì•ˆì „í•˜ê²Œ nullptr ì²´í¬ í›„ í•´ì œ)
     if (gPlayerTexture)     SDL_DestroyTexture(gPlayerTexture);
     if (gWallTexture)       SDL_DestroyTexture(gWallTexture);
     if (gFloorTexture)      SDL_DestroyTexture(gFloorTexture);
-    if  (gEnemyTexture)      SDL_DestroyTexture(gEnemyTexture);
+    if (gEnemyTexture)      SDL_DestroyTexture(gEnemyTexture);
     if (gProjectileTexture) SDL_DestroyTexture(gProjectileTexture);
     if (gEnemyProjectileTexture) SDL_DestroyTexture(gEnemyProjectileTexture);
 
-    IMG_Quit(); // SDL_image Á¾·á
+    IMG_Quit(); // SDL_image ì¢…ë£Œ
 }
