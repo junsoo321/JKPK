@@ -7,12 +7,12 @@
 압축을 풀면 include 폴더와 lib 폴더가 나옵니다. 이 폴더들을 프로젝트 폴더 내 External/SDL2 위치에 압축 해제합니다.
 
 
-## 2. Visual Studio 프로젝트 설정
+## 2. Visual Studio 프로젝트 설정<br>
 
 ### 1. 프로젝트 이름을 우클릭하고 **[속성(Properties)]**창을 엽니다.
    (상단 설정이 기본: All Configurations / 플랫폼: x64인지 확인하세요.)
 
-
+<br><br>
 ### 2. 헤더 파일 연결 (Include)
 C/C++ > 일반 > 추가 포함 디렉터리(Additional Include Directories)<br>
 
