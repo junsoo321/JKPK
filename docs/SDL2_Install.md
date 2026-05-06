@@ -26,7 +26,7 @@ SDL2.lib; SDL2main.lib; 입력 (맨 앞에 추가)
 
 ### 5.시스템 설정:
 **링커 > 시스템 > 하위 시스템**<br>
-**창(/SUBSYSTEM:WINDOWS)** 설정
+**콘솔(/SUBSYSTEM:CONSOLE)** 설정
 <br><br>
 
 ## 3. 실행 환경 구성 (중요)
