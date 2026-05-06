@@ -9,4 +9,4 @@
 
 ---
 
-## [SDL2 설치 가이드](docs/SDL2.md)
+## [SDL2 설치 가이드](docs/SDL2_Install.md)
