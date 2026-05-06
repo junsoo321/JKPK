@@ -7,7 +7,8 @@
 <br><br>
 ## 2. Visual Studio 프로젝트 설정<br>
 ### 1. 프로젝트 이름을 우클릭하고 **[속성(Properties)]**창을 엽니다.
-<br><br>
+<br>
+
 ### 2. 헤더 파일 연결 (Include)
 **C/C++ > 일반 > 추가 포함 디렉터리(Additional Include Directories)**<br>
 압축을 푼 SDL2 폴더 내부의 include 폴더 경로 **($(ProjectDir)External\SDL2\include)** 추가
