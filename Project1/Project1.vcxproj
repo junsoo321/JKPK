@@ -25,7 +25,7 @@
     <ClCompile Include="src\MapData.c" />
     <ClCompile Include="src\MapSystem.c" />
     <ClCompile Include="src\Player.cpp" />
-    <ClCompile Include="src\Projectile.c" />
+    <ClCompile Include="src\Projectile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\utils\Constants.h" />
@@ -34,7 +34,7 @@
     <ClInclude Include="src\utils\MapData.h" />
     <ClInclude Include="src\utils\MapSystem.h" />
     <ClInclude Include="src\utils\Player.hpp" />
-    <ClInclude Include="src\utils\Projectile.h" />
+    <ClInclude Include="src\utils\Projectile.hpp" />
     <ClInclude Include="src\utils\SDL.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -125,12 +125,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\junso\source\repos\Project1\Project1\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\junso\source\repos\Project1\SDL2-devel-2.32.10-VC\SDL2-2.32.10\include;C:\Users\junso\source\repos\Project1\Project1\src\utils;C:\Users\junso\source\repos\Project1\Project1\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\junso\source\repos\Project1\SDL2-devel-2.32.10-VC\SDL2-2.32.10\lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

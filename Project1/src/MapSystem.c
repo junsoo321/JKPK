@@ -1,7 +1,7 @@
 #include "MapSystem.h"
 #include "MapData.h" 
 #include "Constants.h"
-#include "Projectile.h"
+#include "Projectile.hpp"
 #include "Enemy.h"
 #include <stdlib.h>
 #include <time.h>

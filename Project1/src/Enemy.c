@@ -1,6 +1,6 @@
 #include "Enemy.h"
 #include "MapSystem.h"
-#include "Projectile.h"
+#include "Projectile.hpp"
 #include "MapData.h"
 #include <stdlib.h>
 #include <math.h>

@@ -1,23 +1,49 @@
 #include "ImageManager.hpp"
+#include <SDL_image.h> // SDL_image 라이브러리 필요
 #include <stdio.h>
-//이미지 불러오기 및 변수에 할당하는 .cpp파일, SDL 함수 구조를 몰라서 Gemini로 임시 생성함
 
-//!!! 외부에서 사용할 수 있도록 변수를 정의합니다.
+// 전역 변수 정의
 SDL_Texture* gPlayerTexture = nullptr;
 SDL_Texture* gWallTexture = nullptr;
 SDL_Texture* gFloorTexture = nullptr;
+SDL_Texture* gEnemyTexture = nullptr;
+SDL_Texture* gProjectileTexture = nullptr;
+SDL_Texture* gEnemyProjectileTexture = nullptr;
 
 void LoadAllImages(SDL_Renderer* renderer) {
-    //!!! [중요] 현재는 실제 파일이 없으므로 nullptr 상태입니다.
-    //!!! 나중에 이미지가 준비되면 SDL_CreateTextureFromSurface 등을 사용해 교체하세요.
+    // 1. SDL_image 초기화 (PNG 로드 설정)
+    int imgFlags = IMG_INIT_PNG;
+    if (!(IMG_Init(imgFlags) & imgFlags)) {
+        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+        return;
+    }
 
-    // 예시: gPlayerTexture = IMG_LoadTexture(renderer, "assets/player.png");
-    printf("Images Manager: Ready to load images.\n");
+    // 2. 이미지 로드 함수 (내부 유틸리티)
+    auto LoadTexture = [&](const char* path) -> SDL_Texture* {
+        SDL_Texture* newTexture = IMG_LoadTexture(renderer, path);
+        if (newTexture == nullptr) {
+            printf("Unable to load image %s! SDL_image Error: %s\n", path, IMG_GetError());
+        }
+        return newTexture;
+        };
+
+    // 3. 실제 파일 로드 (경로와 파일명은 본인의 환경에 맞게 수정하세요)
+    gProjectileTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/attack.png"); // 투사체 이미지 로드
+    gPlayerTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/enemy.png");
+    gEnemyTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/player.png");
+    gEnemyProjectileTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/attack.png");
+
+    printf("Images Manager: All images loaded successfully.\n");
 }
 
 void FreeAllImages() {
-    //!!! 사용한 메모리를 해제합니다.
-    if (gPlayerTexture) SDL_DestroyTexture(gPlayerTexture);
-    if (gWallTexture) SDL_DestroyTexture(gWallTexture);
-    if (gFloorTexture) SDL_DestroyTexture(gFloorTexture);
+    // 메모리 해제 (안전하게 nullptr 체크 후 해제)
+    if (gPlayerTexture)     SDL_DestroyTexture(gPlayerTexture);
+    if (gWallTexture)       SDL_DestroyTexture(gWallTexture);
+    if (gFloorTexture)      SDL_DestroyTexture(gFloorTexture);
+    if  (gEnemyTexture)      SDL_DestroyTexture(gEnemyTexture);
+    if (gProjectileTexture) SDL_DestroyTexture(gProjectileTexture);
+    if (gEnemyProjectileTexture) SDL_DestroyTexture(gEnemyProjectileTexture);
+
+    IMG_Quit(); // SDL_image 종료
 }

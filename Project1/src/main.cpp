@@ -3,7 +3,7 @@
 #include "MapSystem.h"
 #include "Player.hpp"
 #include "ImageManager.hpp"
-#include "Projectile.h"
+#include "Projectile.hpp"
 #include "Enemy.h"
 
 int main(int argc, char* argv[]) {

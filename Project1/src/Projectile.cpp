@@ -1,5 +1,6 @@
-#include "Projectile.h"
+#include "Projectile.hpp"
 #include "MapSystem.h" //IsWall
+#include "Imagemanager.hpp"
 #include <math.h>
 
 Projectile bullets[MAX_PROJECTILES];    //투사체 정보 저장 배열
@@ -78,15 +79,30 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer) {
                 continue;
             }
 
-            if (bullets[i].owner == 0) { //플레이어 탄환 : 노란색
-                SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+            SDL_Rect bRect = { (int)bullets[i].x, (int)bullets[i].y, PROJECTILE_SIZE, PROJECTILE_SIZE };
+
+            SDL_Texture* targetTexture = nullptr;
+            if (bullets[i].owner == 0) { //플레이어
+                targetTexture = gProjectileTexture;
             }
-            else { //몹 탄환 : 빨간색
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            else { //몹
+                targetTexture = gEnemyProjectileTexture; //몹 전용 텍스처
             }
 
-            SDL_Rect bRect = { (int)bullets[i].x, (int)bullets[i].y, PROJECTILE_SIZE, PROJECTILE_SIZE }; //투사체 출력 기준 좌표(투사체 크기 적용)
-            SDL_RenderFillRect(renderer, &bRect); //투사체 출력
+            if (targetTexture != nullptr) {
+                //날아가는 방향 계산 (라디안 -> 도 변환)
+                double angle = atan2(bullets[i].dirY, bullets[i].dirX) * (180.0 / M_PI);
+
+                //이미지 출력
+                SDL_RenderCopyEx(renderer, targetTexture, NULL, &bRect, angle, NULL, SDL_FLIP_NONE);
+            }
+            else {
+                //이미지 로드 실패 시 백업용 사각형
+                if (bullets[i].owner == 0) SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); //노란색
+                else SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); //빨간색
+
+                SDL_RenderFillRect(renderer, &bRect);
+            }
         }
     }
 }

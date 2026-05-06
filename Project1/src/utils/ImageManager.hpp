@@ -9,7 +9,9 @@
 extern SDL_Texture* gPlayerTexture; //!!! 플레이어 외형 이미지 변수
 extern SDL_Texture* gWallTexture;   //!!! 벽 타일 외형 이미지 변수
 extern SDL_Texture* gFloorTexture;  //!!! 바닥 타일 외형 이미지 변수
-
+extern SDL_Texture* gEnemyTexture;
+extern SDL_Texture* gProjectileTexture;
+extern SDL_Texture* gEnemyProjectileTexture;
 //!!! 이미지들을 불러오고 메모리에서 해제하는 함수들입니다.
 void LoadAllImages(SDL_Renderer* renderer);
 void FreeAllImages();

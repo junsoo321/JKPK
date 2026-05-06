@@ -1,6 +1,7 @@
 #include "Player.hpp"
 #include "MapSystem.h"
 #include "ImageManager.hpp"
+#include <stdio.h>
 
 void InitPlayer(PlayerData* p) {
     p->x = SCREEN_WIDTH / 2.0f;  //시작 X (화면 중앙)
@@ -70,12 +71,14 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState) {
     //이동 한 좌표 기준 플레이어 출력을 위한 좌표 저장
     p->drawRect.x = (int)p->x;
     p->drawRect.y = (int)p->y;
+    p->drawRect.w = PLAYER_SIZE;
+    p->drawRect.h = PLAYER_SIZE;
 }
 
 void DrawPlayer(SDL_Renderer* renderer, PlayerData* p) {
+
     if (gPlayerTexture != nullptr) {
-        //이미지가 로드되어 있다면 이미지 출력
-        SDL_RenderCopy(renderer, gPlayerTexture, NULL, &p->drawRect);
+        int result = SDL_RenderCopy(renderer, gPlayerTexture, NULL, &p->drawRect);
     }
     else {
         //이미지가 없다면 임시로 노란색 사각형 출력
