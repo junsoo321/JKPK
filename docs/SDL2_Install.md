@@ -1,16 +1,13 @@
 # SDL2 환경 설정 가이드 (Visual Studio 2022 x64)<br><br>
 
-
 ## 1. 라이브러리 다운로드
 [SDL2 공식 GitHub](https://github.com/libsdl-org/SDL/releases)에 접속합니다.<br>
 **SDL2-devel-2.x.x-VC.zip (Visual C++용)** 파일을 다운로드합니다.<br>
 압축을 풀면 include 폴더와 lib 폴더가 나옵니다. (해당 폴더를 프로젝트 폴더로 이동시킵니다. **경로에 한글이 없는지 확인**)
-
 <br><br>
 ## 2. Visual Studio 프로젝트 설정<br>
 ### 1. 프로젝트 이름을 우클릭하고 **[속성(Properties)]**창을 엽니다.
 <br><br>
-
 ### 2. 헤더 파일 연결 (Include)
 C/C++ > 일반 > 추가 포함 디렉터리(Additional Include Directories)<br>
 압축을 푼 SDL2 폴더 내부의 include 폴더 경로 ($(ProjectDir)External\SDL2\include) 추가
