@@ -1,4 +1,4 @@
-# SDL2 환경 설정 가이드 (Visual Studio 2022 x64)<br><br>
+# SDL2 설치 가이드 (Visual Studio 2022 x64)<br><br>
 
 ## 1. 라이브러리 다운로드
 [SDL2 공식 GitHub](https://github.com/libsdl-org/SDL/releases)에 접속합니다.<br>
