@@ -1,4 +1,4 @@
-﻿#include "Player.hpp"
+#include "Player.hpp"
 #include "MapSystem.h"
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
