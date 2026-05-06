@@ -10,5 +10,5 @@
 ---
 
 ## [SDL2 설치 가이드](docs/SDL2_Install.md)
-<br><br>
-## [SDL2
+<br>
+## [SDL2_image 설치 가이드](docs/SDL2_image_Install.md)
