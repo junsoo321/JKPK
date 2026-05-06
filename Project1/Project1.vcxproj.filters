@@ -55,9 +55,6 @@
     <ClInclude Include="src\utils\Player.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\Projectile.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils\Projectile.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>

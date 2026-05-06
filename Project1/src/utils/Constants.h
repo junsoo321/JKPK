@@ -32,6 +32,7 @@
 #define MAX_ENEMIES_PER_ROOM 5  // 맵 당 생성 가능한 최대 몹 수
 #define ENEMY_SPEED 1.0f        // 몹 이동 속도
 #define ENEMY_SIZE 30           // 몹 크기
+#define ENEMY_ATK 10			// 몹 공격력
 //최소, 최대 공격속도 범위 내의 랜덤 순간에 공격
 #define ENEMY_ATTACK_MIN 1500	// 몹 최소 공격속도 (ms)
 #define ENEMY_ATTACK_MAX 4000	// 몹 최대 공격속도 (ms)

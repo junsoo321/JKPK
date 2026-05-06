@@ -1,7 +1,8 @@
 ﻿#include "Player.hpp"
 #include "MapSystem.h"
 #include "ImageManager.hpp"
-#include <stdio.h>
+#include "Projectile.hpp"
+#include <iostream>
 
 void InitPlayer(PlayerData* p) {
     p->x = SCREEN_WIDTH / 2.0f;  //시작 X (화면 중앙)
@@ -86,4 +87,23 @@ void DrawPlayer(SDL_Renderer* renderer, PlayerData* p) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
         SDL_RenderFillRect(renderer, &player_rect);
     }
+}
+
+bool CheckCollision(PlayerData* p, void* bulletArray) {
+    Projectile* bullets = (Projectile*)bulletArray;
+    for (int b = 0; b < MAX_PROJECTILES; b++) {
+        if (!bullets[b].active) continue; //투사체가 비활성화 상태일 경우
+
+        if (bullets[b].owner == 0) continue; //플레이어가 생성한 투사체일 경우 충돌 체크 x
+
+        // 단순 사각형 충돌 (AABB 알고리즘)
+        if (bullets[b].x < p->x + ENEMY_SIZE && bullets[b].x + PROJECTILE_SIZE > p->x && bullets[b].y < p->y + ENEMY_SIZE && bullets[b].y + PROJECTILE_SIZE > p->y) { //히트박스와 투사체가 충돌했을 경우
+            p->hp -= ENEMY_ATK; // 체력 감소
+            std::cout << "Player HP : "<< (p->hp) << std::endl;
+            if (p->hp <= 0)
+                return true;
+            bullets[b].active = false;        // 투사체 제거
+        }
+    }
+    return false;
 }
