@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 // 전체 상수 관리
 
 //화면 크기 관련 설정값		***현재 800*600 기준으로 하드코딩 되어 있음***
@@ -25,7 +25,7 @@
 
 //플레이어 설정
 #define PLAYER_SIZE 30
-#define PLAYER_SPEED 0.1f
+#define PLAYER_SPEED 0.15f
 #define PLAYER_HP 100
 
 //몹(enemy) 설정

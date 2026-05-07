@@ -1,4 +1,4 @@
-#include <SDL.h>
+﻿#include <SDL.h>
 #include "Constants.h"
 #include "MapSystem.h"
 #include "Player.hpp"
@@ -9,8 +9,7 @@
 int main(int argc, char* argv[]) {
     //SDL 초기화 및 창 생성 코드
     SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window* window = SDL_CreateWindow("Isaac Project - Procedural",
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+    SDL_Window* window = SDL_CreateWindow("Game Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     //초기화
