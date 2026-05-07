@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <SDL.h>
 #include <stdbool.h>
@@ -24,11 +24,14 @@ extern "C" {
     //맵 이동 시 현재 존재하는 몹들의 정보(위치, 개수, 마지막 공격시간, 다음 공격시간)를 저장하는 함수
     void SaveEnemiesForRoom(int roomX, int roomY);
 
-    //몹들이 맵 밖으로 나가거나 벽을 통과하는것을 방지하는 함수
-    void CheckEnemyCollision(void* projectileArray);
+    //몹 벽 충돌 체크 함수
+    bool CanMove(float nextX, float nextY);
 
     //몹 출력 및 업데이트(이동,공격) 함수
     void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY);
+
+    //투사체 충돌 체크 함수
+    void CheckEnemyCollision(void* projectileArray);
 
 #ifdef __cplusplus //C++에서 이 헤더를 포함해도 C 언어 함수 이름을 그대로 사용할 수 있도록 설정
 }

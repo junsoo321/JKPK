@@ -1,6 +1,6 @@
 ﻿#include "ImageManager.hpp"
 #include <SDL_image.h> // SDL_image 라이브러리 필요
-#include <stdio.h>
+#include <iostream>
 
 // 전역 변수 정의
 SDL_Texture* gPlayerTexture = nullptr;
@@ -14,7 +14,7 @@ void LoadAllImages(SDL_Renderer* renderer) {
     // 1. SDL_image 초기화 (PNG 로드 설정)
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
-        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+        std::cout << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError() << std::endl;
         return;
     }
 
@@ -22,7 +22,7 @@ void LoadAllImages(SDL_Renderer* renderer) {
     auto LoadTexture = [&](const char* path) -> SDL_Texture* {
         SDL_Texture* newTexture = IMG_LoadTexture(renderer, path);
         if (newTexture == nullptr) {
-            printf("Unable to load image %s! SDL_image Error: %s\n", path, IMG_GetError());
+            std::cout << "Unable to load image % s!SDL_image Error : " << IMG_GetError() << std::endl;
         }
         return newTexture;
         };
@@ -33,7 +33,7 @@ void LoadAllImages(SDL_Renderer* renderer) {
     gEnemyTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/player.png");
     gEnemyProjectileTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/attack.png");
 
-    printf("Images Manager: All images loaded successfully.\n");
+    std::cout << "Images Manager: All images loaded successfully." << std::endl;
 }
 
 void FreeAllImages() {
