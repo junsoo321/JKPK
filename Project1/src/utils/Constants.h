@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 // 전체 상수 관리
 
 //화면 크기 관련 설정값		***현재 800*600 기준으로 하드코딩 되어 있음***
@@ -16,23 +16,23 @@
 #define MAX_ROOMS_X 5  //가로 최대 개수
 #define MAX_ROOMS_Y 5  //세로 최대 개수
 
+//플레이어 설정
+#define PLAYER_SIZE 30
+#define PLAYER_SPEED 0.15f
+#define PLAYER_HP 100
 
-//투사체 관련 설정
+//플레이어 투사체 관련 설정
 #define MAX_PROJECTILES 100		//한번에 존재 가능한 총 투사체 개수
 #define PROJECTILE_SPEED 0.1f	//투사체 속도(날아가는 속도)
 #define PROJECTILE_SIZE 8		//투사체 크기
 #define FIRE_DELAY 500			//공격속도 (ms)
-
-//플레이어 설정
-#define PLAYER_SIZE 30
-#define PLAYER_SPEED 0.1f
-#define PLAYER_HP 100
 
 //몹(enemy) 설정
 #define MAX_ENEMIES_PER_ROOM 5  // 맵 당 생성 가능한 최대 몹 수
 #define ENEMY_SPEED 1.0f        // 몹 이동 속도
 #define ENEMY_SIZE 30           // 몹 크기
 #define ENEMY_ATK 10			// 몹 공격력
+
 //최소, 최대 공격속도 범위 내의 랜덤 순간에 공격
 #define ENEMY_ATTACK_MIN 1500	// 몹 최소 공격속도 (ms)
 #define ENEMY_ATTACK_MAX 4000	// 몹 최대 공격속도 (ms)
