@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+#include <string.h>
 
 int worldMap[MAP_ROWS][MAP_COLS]; //현재 맵의 상태 데이터
 
@@ -36,11 +37,11 @@ void InitMap() {
             //기본 바닥 설정
             int tile = 0;
 
-            //월드 테두리 생성
-            if (r == 0 && currentRoomY == 0) tile = 1;
-            if (r == MAP_ROWS - 1 && currentRoomY == MAX_ROOMS_Y - 1) tile = 1;
-            if (c == 0 && currentRoomX == 0) tile = 1;
-            if (c == MAP_COLS - 1 && currentRoomX == MAX_ROOMS_X - 1) tile = 1;
+            //월드 테두리 생성 (2: 가장자리 벽)
+            if (r == 0 && currentRoomY == 0) tile = 2;
+            if (r == MAP_ROWS - 1 && currentRoomY == MAX_ROOMS_Y - 1) tile = 2;
+            if (c == 0 && currentRoomX == 0) tile = 2;
+            if (c == MAP_COLS - 1 && currentRoomX == MAX_ROOMS_X - 1) tile = 2;
 
             //맵 패턴 생성
             if (r > 0 && r < MAP_ROWS - 1 && c > 0 && c < MAP_COLS - 1) {
@@ -61,21 +62,58 @@ int IsWall(float x, float y) {
     int col = (int)(x / TILE_SIZE);
     int row = (int)(y / TILE_SIZE);
 
-    return worldMap[row][col]; //해당 tile 값이 1이면 이동불가, 0이면 이동가능
+    return worldMap[row][col] != 0; //1(내부 장애물) 또는 2(가장자리 벽)이면 이동불가
 }
 
 //맵 그리기 함수
 //위에서 만든 지도(worldMap)를 가지고 실제 그림 출력
-void DrawMap(SDL_Renderer* renderer) {
+void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, SDL_Texture* borderTex) {
+    // 배경 이미지 전체 화면에 렌더링
+    if (mapBg) {
+        SDL_RenderCopy(renderer, mapBg, NULL, NULL);
+    }
+
+    // 이미 렌더링한 타일 추적 (인접 타일을 하나의 이미지로 합치기 위함)
+    bool processed[MAP_ROWS][MAP_COLS];
+    memset(processed, 0, sizeof(processed));
+
     for (int r = 0; r < MAP_ROWS; r++) {
         for (int c = 0; c < MAP_COLS; c++) {
-            if (worldMap[r][c] == 1) {
-                //구역 크기에 맞춰 사각형 위치 계산
-                SDL_Rect wallRect = { c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE };
+            int tileType = worldMap[r][c];
+            if (tileType == 0 || processed[r][c]) continue;
 
-                //벽 색상: 회색 (100, 100, 100)
-                SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
-                SDL_RenderFillRect(renderer, &wallRect);
+            // 오른쪽으로 최대 너비 확장 (같은 타일 타입만)
+            int w = 1;
+            while (c + w < MAP_COLS && worldMap[r][c + w] == tileType && !processed[r][c + w])
+                w++;
+
+            // 아래쪽으로 최대 높이 확장 (같은 너비·같은 타입의 벽 타일이 연속될 때만)
+            int h = 1;
+            while (r + h < MAP_ROWS) {
+                int ok = 1;
+                for (int k = 0; k < w; k++) {
+                    if (worldMap[r + h][c + k] != tileType || processed[r + h][c + k]) {
+                        ok = 0; break;
+                    }
+                }
+                if (!ok) break;
+                h++;
+            }
+
+            // 사용한 타일 전부 처리 완료 표시
+            for (int dr = 0; dr < h; dr++)
+                for (int dc = 0; dc < w; dc++)
+                    processed[r + dr][c + dc] = true;
+
+            // 타일 타입에 따라 텍스처 선택 (1: 내부 장애물, 2: 가장자리 벽)
+            SDL_Rect rect = { c * TILE_SIZE, r * TILE_SIZE, w * TILE_SIZE, h * TILE_SIZE };
+            SDL_Texture* tex = (tileType == 2) ? borderTex : wallTex;
+            if (tex) {
+                SDL_RenderCopy(renderer, tex, NULL, &rect);
+            }
+            else {
+                SDL_SetRenderDrawColor(renderer, 80, 80, 80, 255);
+                SDL_RenderFillRect(renderer, &rect);
             }
         }
     }

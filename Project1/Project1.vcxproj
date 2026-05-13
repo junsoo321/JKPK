@@ -28,14 +28,19 @@
     <ClCompile Include="src\Projectile.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\utils\Constants.h" />
-    <ClInclude Include="src\utils\Enemy.h" />
-    <ClInclude Include="src\utils\ImageManager.hpp" />
-    <ClInclude Include="src\utils\MapData.h" />
-    <ClInclude Include="src\utils\MapSystem.h" />
-    <ClInclude Include="src\utils\Player.hpp" />
-    <ClInclude Include="src\utils\Projectile.hpp" />
-    <ClInclude Include="src\utils\SDL.h" />
+    <ClInclude Include="include\Constants.h" />
+    <ClInclude Include="include\Enemy.h" />
+    <ClInclude Include="include\ImageManager.hpp" />
+    <ClInclude Include="include\MapData.h" />
+    <ClInclude Include="include\MapSystem.h" />
+    <ClInclude Include="include\Player.hpp" />
+    <ClInclude Include="include\Projectile.hpp" />
+    <ClInclude Include="include\SDL.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\attack.png" />
+    <Image Include="assets\enemy.png" />
+    <Image Include="assets\Player.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -135,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/utils;include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;3rdParty/include;</AdditionalIncludeDirectories>
       <LanguageStandard>Default</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
@@ -143,7 +148,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;shell32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>lib/x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>3rdParty/lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

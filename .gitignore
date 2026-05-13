@@ -1,10 +1,9 @@
 x64/
+.vs/
+.claude/
 *.vcxproj.user
 *.db
 *.opendb
-.vs/
 SDL2.dll
 SDL2_image.dll
-SDL2-devel-2.32.10-VC/
-Project1/include
-Project1/lib
+Project1/3rdParty

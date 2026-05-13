@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <SDL.h>
 #include <stdbool.h>
@@ -28,7 +28,7 @@ extern "C" {
     bool CanMove(float nextX, float nextY);
 
     //몹 출력 및 업데이트(이동,공격) 함수
-    void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY);
+    void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, SDL_Texture* enemyTexture, float deltaTime);
 
     //투사체 충돌 체크 함수
     void CheckEnemyCollision(void* projectileArray);

@@ -1,4 +1,4 @@
-#include "Enemy.h"
+﻿#include "Enemy.h"
 #include "MapSystem.h"
 #include "Projectile.hpp"
 #include "MapData.h"
@@ -60,7 +60,7 @@ bool CanMove(float nextX, float nextY) {
     int gridBottom = (int)(nextY + ENEMY_SIZE) / TILE_SIZE;
 
     // 몹 히트박스의 네 모서리 중 하나라도 벽에 걸리면 이동 불가
-    if (worldMap[gridY][gridX] == 1 || worldMap[gridY][gridRight] == 1 || worldMap[gridBottom][gridX] == 1 || worldMap[gridBottom][gridRight] == 1) {
+    if (worldMap[gridY][gridX] != 0 || worldMap[gridY][gridRight] != 0 || worldMap[gridBottom][gridX] != 0 || worldMap[gridBottom][gridRight] != 0) {
         return false;
     }
 
@@ -68,15 +68,14 @@ bool CanMove(float nextX, float nextY) {
 }
 
 //몹 출력 및 업데이트(이동,공격) 함수
-void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY) {
+void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, SDL_Texture* enemyTexture, float deltaTime) {
     for (int i = 0; i < MAX_ENEMIES_PER_ROOM; i++) {
         if (!currentEnemies[i].active) continue;    //몹이 비활성 상태일 경우
 
         //이동 로직
-        //이동속도로에 의해서만 이동할 경우, 이동 시간이 되자마자 움직이므로, 너무 단조로워짐
         if (rand() % 100 < 10) { // 10% 확률로 새로운 방향으로 이동 시도
-            float moveX = (float)((rand() % 3) - 1) * ENEMY_SPEED;  //(rand() % 3) - 1)의 값은 -1,0,1중 하나가 랜덤하게 나옴, 즉, 왼쪽으로이동, 유지, 오른쪽으로 이동 중 하나가 랜덤하게 나옴
-            float moveY = (float)((rand() % 3) - 1) * ENEMY_SPEED;  //위로이동, 유지, 아래로 이동 중 하나가 랜덤하게 나옴
+            float moveX = (float)((rand() % 3) - 1) * ENEMY_SPEED * deltaTime;
+            float moveY = (float)((rand() % 3) - 1) * ENEMY_SPEED * deltaTime;
 
             //이동할 좌표 생성
             float nextX = currentEnemies[i].x + moveX;
@@ -99,8 +98,13 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY) 
 
         //출력 로직
         SDL_Rect enemyRect = { (int)currentEnemies[i].x, (int)currentEnemies[i].y, ENEMY_SIZE, ENEMY_SIZE }; //객체의 원 좌표(왼쪽아래) 기준 크기만큼 구역 설정
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // 기본 빨간색
-        SDL_RenderFillRect(renderer, &enemyRect); //객체(몹) 생성
+        if (enemyTexture) {
+            SDL_RenderCopy(renderer, enemyTexture, NULL, &enemyRect);
+        }
+        else {
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            SDL_RenderFillRect(renderer, &enemyRect);
+        }
     }
 }
 

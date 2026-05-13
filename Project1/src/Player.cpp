@@ -12,16 +12,18 @@ void InitPlayer(PlayerData* p) {
 }
 
 //플레이어 이동 함수
-void UpdatePlayer(PlayerData* p, const Uint8* keyboardState) {
+void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     //현재 위치(좌표)저장
     float nextX = p->x;
     float nextY = p->y;
 
+    float move = p->speed * deltaTime;
+
     //키보드 입력 받기, 이동할 좌표 저장
-    if (keyboardState[SDL_SCANCODE_W] || keyboardState[SDL_SCANCODE_UP])    nextY -= p->speed; //w, 위
-    if (keyboardState[SDL_SCANCODE_S] || keyboardState[SDL_SCANCODE_DOWN])  nextY += p->speed; //s, 아래
-    if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  nextX -= p->speed; //a, 좌
-    if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) nextX += p->speed; //d, 우
+    if (keyboardState[SDL_SCANCODE_W] || keyboardState[SDL_SCANCODE_UP])    nextY -= move; //w, 위
+    if (keyboardState[SDL_SCANCODE_S] || keyboardState[SDL_SCANCODE_DOWN])  nextY += move; //s, 아래
+    if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  nextX -= move; //a, 좌
+    if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) nextX += move; //d, 우
 
     //맵 이동 판정 (벽 충돌 보다 먼저(10픽셀) 처리)
 

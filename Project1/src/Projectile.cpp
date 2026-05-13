@@ -1,6 +1,6 @@
 ﻿#include "Projectile.hpp"
 #include "MapSystem.h" //IsWall
-#include "Imagemanager.hpp"
+#include "ImageManager.hpp"
 #include <math.h>
 
 Projectile bullets[MAX_PROJECTILES];    //투사체 정보 저장 배열
@@ -68,11 +68,11 @@ void FireEnemyProjectile(float startX, float startY, float targetX, float target
 }
 
 //투사체 출력 및 충돌 판정 체크 함수
-void UpdateAndDrawProjectiles(SDL_Renderer* renderer) {
+void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime) {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (bullets[i].active) { //활성화된 투사체
-            bullets[i].x += bullets[i].dirX * PROJECTILE_SPEED; //단위벡터에 speed를 곱해 일정속도로 이동
-            bullets[i].y += bullets[i].dirY * PROJECTILE_SPEED;
+            bullets[i].x += bullets[i].dirX * PROJECTILE_SPEED * deltaTime;
+            bullets[i].y += bullets[i].dirY * PROJECTILE_SPEED * deltaTime;
 
             if (bullets[i].x < 0 || bullets[i].x > SCREEN_WIDTH || bullets[i].y < 0 || bullets[i].y > SCREEN_HEIGHT || IsWall(bullets[i].x, bullets[i].y)) { //맵 끝 또는 장애물(벽)과의 충돌 처리
                 bullets[i].active = false; //투사체 비활성화

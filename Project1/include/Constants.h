@@ -5,7 +5,7 @@
 #define SCREEN_WIDTH 800	//가로 해상도
 #define SCREEN_HEIGHT 600	//세로 해상도
 
-#define TILE_SIZE 40	//화면을 분할할 구역의 크기 (40의 의미 : 구역 1개 = 40x40 픽셀)
+#define TILE_SIZE 10	//화면을 분할할 구역의 크기 (10의 의미 : 구역 1개 = 10x10 픽셀)
 
 //위에서 설정한 화면 해상도와 구역 크기를 바탕으로 구역의 총 개수를 정함
 #define MAP_ROWS (SCREEN_HEIGHT/TILE_SIZE)	//세로 구역 개수 (세로 해상도 / 구역 크기)
@@ -18,18 +18,18 @@
 
 //플레이어 설정
 #define PLAYER_SIZE 30
-#define PLAYER_SPEED 0.15f
+#define PLAYER_SPEED 0.15f		//이동 속도 (픽셀/ms)
 #define PLAYER_HP 100
 
 //플레이어 투사체 관련 설정
 #define MAX_PROJECTILES 100		//한번에 존재 가능한 총 투사체 개수
-#define PROJECTILE_SPEED 0.1f	//투사체 속도(날아가는 속도)
+#define PROJECTILE_SPEED 0.4f	//투사체 속도 (픽셀/ms)
 #define PROJECTILE_SIZE 8		//투사체 크기
 #define FIRE_DELAY 500			//공격속도 (ms)
 
 //몹(enemy) 설정
 #define MAX_ENEMIES_PER_ROOM 5  // 맵 당 생성 가능한 최대 몹 수
-#define ENEMY_SPEED 1.0f        // 몹 이동 속도
+#define ENEMY_SPEED 0.08f       // 몹 이동 속도 (픽셀/ms)
 #define ENEMY_SIZE 30           // 몹 크기
 #define ENEMY_ATK 10			// 몹 공격력
 

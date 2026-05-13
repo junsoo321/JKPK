@@ -6,11 +6,12 @@
 #include "Projectile.hpp"
 #include "Enemy.h"
 
-int main(int argc, char* argv[]) {
+auto main(int argc, char* argv[]) -> int
+{
     //SDL 초기화 및 창 생성 코드
     SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window* window = SDL_CreateWindow("Game Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Window*     window   = SDL_CreateWindow("Game Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+    SDL_Renderer*   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     //초기화
     InitMap();                 //맵 초기화
@@ -21,8 +22,13 @@ int main(int argc, char* argv[]) {
 
     bool isRunning = true;     //게임 실행 여부 플래그
     SDL_Event event;
+    Uint32 lastTime = SDL_GetTicks();
 
     while (isRunning) {
+        Uint32 currentTime = SDL_GetTicks();
+        float deltaTime = (float)(currentTime - lastTime);
+        lastTime = currentTime;
+
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) isRunning = false;
             if (event.type == SDL_KEYDOWN) {
@@ -33,19 +39,20 @@ int main(int argc, char* argv[]) {
         }
 
         const Uint8* state = SDL_GetKeyboardState(NULL);
-        UpdatePlayer(&player, state);
+        UpdatePlayer(&player, state, deltaTime);
 
         SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
         SDL_RenderClear(renderer);
 
-        UpdateAndDrawProjectiles(renderer);
-        UpdateAndDrawEnemies(renderer, player.x, player.y);
+        DrawMap(renderer, gMapTexture, gWallTexture, gBorderTexture);
+
+        UpdateAndDrawProjectiles(renderer, deltaTime);
+        UpdateAndDrawEnemies(renderer, player.x, player.y, gEnemyTexture, deltaTime);
         CheckEnemyCollision(bullets);
         if (CheckCollision(&player, bullets)) {
             isRunning = false;
         }
 
-        DrawMap(renderer);
         DrawPlayer(renderer, &player);
         DrawMiniMap(renderer);
 

@@ -8,7 +8,7 @@ extern "C" {
 
 	void InitMap();	 //랜덤하게 맵 패턴을 가져와서 맵을 생성하는 함수
 	int IsWall(float x, float y);			//벽 충돌 체크 함수
-	void DrawMap(SDL_Renderer* renderer);	//맵 그리기 함수
+	void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, SDL_Texture* borderTex);	//맵 그리기 함수
 
 	//현재 플레이어가 위치한 맵의 좌표
 	extern int currentRoomX;
