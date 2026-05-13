@@ -5,8 +5,6 @@ x64/
 .vs/
 SDL2.dll
 SDL2_image.dll
-<<<<<<< HEAD
 SDL2-devel-2.32.10-VC/
-=======
-SDL2-devel-2.32.10-VC/
->>>>>>> 0f5597ca3a1535c120fd825767f6f74a6b55d4fb
+Project1/include
+Project1/lib
