@@ -9,6 +9,7 @@ SDL_Texture* gFloorTexture = nullptr;
 SDL_Texture* gEnemyTexture = nullptr;
 SDL_Texture* gProjectileTexture = nullptr;
 SDL_Texture* gEnemyProjectileTexture = nullptr;
+SDL_Texture* gBossTexture = nullptr;
 
 void LoadAllImages(SDL_Renderer* renderer) {
     // 1. SDL_image 초기화 (PNG 로드 설정)
@@ -29,10 +30,10 @@ void LoadAllImages(SDL_Renderer* renderer) {
 
     // 3. 실제 파일 로드 (경로와 파일명은 본인의 환경에 맞게 수정하세요)
     gProjectileTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/attack.png"); // 투사체 이미지 로드
-    gPlayerTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/enemy.png");
+    gPlayerTexture = LoadTexture("C:/Users/Main/source/repos/Project1/Project1/assets/enemy.png");
     gEnemyTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/player.png");
     gEnemyProjectileTexture = LoadTexture("C:/Users/junso/source/repos/Project1/Project1/assets/attack.png");
-
+    gBossTexture = LoadTexture("C:/Users/Main/source/repos/Project1/Project1/assets/enemy.png");
     std::cout << "Images Manager: All images loaded successfully." << std::endl;
 }
 
