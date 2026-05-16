@@ -17,10 +17,10 @@ struct PlayerData {
 #ifdef __cplusplus
 extern "C" {
 #endif
-    void InitPlayer(PlayerData* p);     //플레이어 초기값 설정
-    void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime);   //입력에 따른 이동,맵이동,테두리 벽 충돌 처리
-    void DrawPlayer(SDL_Renderer* renderer, PlayerData* p); //좌표에 플레이어(히트박스) 출력
-    bool CheckCollision(PlayerData* p, void* bulletArray);
+    void InitPlayer(PlayerData* p);
+    void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime);
+    void DrawPlayer(SDL_Renderer* renderer, PlayerData* p);
+    bool CheckCollision(PlayerData* p, void* bulletArray, void* bossData);
 
 #ifdef __cplusplus
 }

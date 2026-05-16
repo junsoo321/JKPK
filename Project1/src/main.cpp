@@ -35,20 +35,19 @@ int main(int argc, char* argv[]) {
     bool isRunning = true;
     SDL_Event event;
 
-    // 시간 관리 변수
+    //시간 관리 변수
     Uint32 lastTime = SDL_GetTicks();
-    float fireTimer = 0.0f; // 플레이어 공격 연사력 제어용 타이머
+    float fireTimer = 0.0f; //플레이어 공격 연사력 제어용 타이머
 
     while (isRunning) {
-        // 1. DeltaTime 계산 (이전 프레임과 현재 프레임 사이의 시간 간격)
+        //DeltaTime 계산 (이전 프레임과 현재 프레임 사이의 시간 간격)
         Uint32 currentTime = SDL_GetTicks();
-        float deltaTime = (currentTime - lastTime) / 1000.0f; // 밀리초를 초 단위로 변환
+        float deltaTime = (currentTime - lastTime) / 1000.0f; //밀리초를 초 단위로 변환
         lastTime = currentTime;
 
-        // 프레임 드랍이 심할 때(예: 렉) 물체가 벽을 뚫는 것을 방지하기 위해 최대값 제한
         if (deltaTime > 0.05f) deltaTime = 0.05f;
 
-        // 2. 이벤트 처리
+        //키보드 입력 처리
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) isRunning = false;
 
@@ -70,9 +69,9 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // 3. 로직 업데이트 (모두 deltaTime을 곱하여 프레임에 독립적으로 변경)
+        //로직 업데이트 (모두 deltaTime을 곱하여 프레임에 독립적으로 변경)
 
-        // 화면 흔들림 감쇠
+        //화면 흔들림 감쇠
         if (gShakeAmount > 0) {
             gShakeAmount -= SHAKE_DECAY * deltaTime;
             if (gShakeAmount < 0) gShakeAmount = 0;
@@ -80,25 +79,25 @@ int main(int argc, char* argv[]) {
 
         const Uint8* keyState = SDL_GetKeyboardState(NULL);
 
-        // 플레이어 이동 (이동 속도 * deltaTime)
+        //플레이어 이동
         UpdatePlayer(&player, keyState, deltaTime);
 
-        // 플레이어 공격 연사력 제어
+        //플레이어 공격 연사력 제어
         fireTimer += deltaTime;
         if (keyState[SDL_SCANCODE_SPACE] && fireTimer >= FIRE_DELAY) {
             FireProjectile(player.x, player.y, deltaTime);
-            fireTimer = 0.0f; // 타이머 초기화
+            fireTimer = 0.0f; //타이머 초기화
         }
 
         if (isBossFight) {
             UpdateBoss(&mainBoss, &player, deltaTime);
 
-            // 보스 피격 연출 타이머 업데이트
+            //보스 피격 연출 타이머 업데이트
             if (mainBoss.hitTimer > 0) {
                 mainBoss.hitTimer -= deltaTime;
             }
 
-            // 투사체 충돌 로직
+            //투사체 충돌 로직
             for (int i = 0; i < MAX_PROJECTILES; i++) {
                 if (bullets[i].active && bullets[i].owner == 0) {
                     SDL_Rect bRect = { (int)bullets[i].x, (int)bullets[i].y, PROJECTILE_SIZE, PROJECTILE_SIZE };
@@ -106,15 +105,15 @@ int main(int argc, char* argv[]) {
                         mainBoss.hp -= PLAYER_BULLET_DAMAGE;
                         if (mainBoss.hp < 0) mainBoss.hp = 0;
                         mainBoss.visualHp = (float)mainBoss.hp;
-                        mainBoss.hitTimer = 0.1f; // 피격 연출 지속시간
+                        mainBoss.hitTimer = 0.1f; //피격 연출 지속시간
                         bullets[i].active = false;
                     }
                 }
             }
         }
 
-        // 피격 무적 시간 체크 (SDL_GetTicks 기반)
-        if (CheckCollision(&player, bullets)) {
+        //피격 무적 시간 체크 (SDL_GetTicks 기반)
+        if (CheckCollision(&player, bullets, &mainBoss)) {
             Uint32 now = SDL_GetTicks();
             if (!player.isInvincible || now > player.invincibleEndTime) {
                 player.hp -= 10;
@@ -123,7 +122,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // 4. 렌더링 파트
+        //렌더링 파트
         int offsetX = 0, offsetY = 0;
         if (gShakeAmount > 0) {
             offsetX = (rand() % (int)(gShakeAmount * 2 + 1)) - (int)gShakeAmount;
@@ -138,7 +137,7 @@ int main(int argc, char* argv[]) {
 
         DrawMap(renderer);
 
-        // 투사체 이동 및 그리기 (내부 로직에 deltaTime 반영 필요)
+        //투사체 이동 및 그리기
         UpdateAndDrawProjectiles(renderer, deltaTime);
 
         if (isBossFight) {

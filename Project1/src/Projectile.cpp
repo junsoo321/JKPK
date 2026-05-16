@@ -6,26 +6,26 @@
 Projectile bullets[MAX_PROJECTILES];
 static Uint32 lastFireTime = 0;
 
+//투사체 초기화
 void InitProjectiles() {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         bullets[i].active = false;
     }
 }
 
+//플레이어용 투사체 발사 처리 함수
 void FireProjectile(float startX, float startY, float deltaTime) {
     Uint32 currentTime = SDL_GetTicks();
-
-    // [시간 기반] FIRE_DELAY가 '초' 단위라면 (Uint32)(FIRE_DELAY * 1000.0f)로 비교
-    // 만약 Constants.h에 FIRE_DELAY가 ms 단위(예: 150)라면 그대로 사용
-    if (currentTime - lastFireTime < (Uint32)FIRE_DELAY) return;
+    if (currentTime - lastFireTime < (Uint32)FIRE_DELAY) return; //투사체 발사 딜레이 적용
 
     int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
+    SDL_GetMouseState(&mouseX, &mouseY); //마우스 위치로
 
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!bullets[i].active) {
             bullets[i].active = true;
-            bullets[i].owner = 0;
+            bullets[i].owner = 0; //발사대상
+            bullets[i].type = 0; //특수기믹(초록 투사체) x
 
             bullets[i].x = startX + (PLAYER_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
             bullets[i].y = startY + (PLAYER_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -34,7 +34,7 @@ void FireProjectile(float startX, float startY, float deltaTime) {
             float diffY = (float)mouseY - bullets[i].y;
             float distance = sqrtf(diffX * diffX + diffY * diffY);
 
-            if (distance < 0.1f) distance = 0.1f; // 0 나누기 방지
+            if (distance < 0.1f) distance = 0.1f;
 
             bullets[i].dirX = diffX / distance;
             bullets[i].dirY = diffY / distance;
@@ -45,11 +45,13 @@ void FireProjectile(float startX, float startY, float deltaTime) {
     }
 }
 
+//몹 투사체 발사 처리 함수 (발사 위치(플레이어좌표), 발사 대상(owner)외 동일
 void FireEnemyProjectile(float startX, float startY, float targetX, float targetY) {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!bullets[i].active) {
             bullets[i].active = true;
-            bullets[i].owner = 1;
+            bullets[i].owner = 1;   //발사 대상
+            bullets[i].type = 0;
 
             bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
             bullets[i].y = startY + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -71,33 +73,86 @@ void FireEnemyProjectile(float startX, float startY, float targetX, float target
     }
 }
 
+//보스용 3페이즈 기믹 투사체 발사 함수
+void FireProjectile_PHASE3(float startX, float startY, float targetX, float targetY, float speed) {
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
+        if (!bullets[i].active) {
+            bullets[i].active = true;
+            bullets[i].owner = 1;
+            bullets[i].type = 1; //초록색 대형 투사체 타입 지정
+
+            bullets[i].x = startX;
+            bullets[i].y = startY;
+
+            float diffX = targetX - startX;
+            float diffY = targetY - startY;
+            float distance = sqrtf(diffX * diffX + diffY * diffY);
+
+            if (distance < 0.1f) {
+                bullets[i].dirX = 0;
+                bullets[i].dirY = 1;
+            }
+            else {
+                bullets[i].dirX = diffX / distance;
+                bullets[i].dirY = diffY / distance;
+            }
+            break;
+        }
+    }
+}
+
+//투사체 업데이트
 void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime) {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (bullets[i].active) {
-            // [핵심 수정] 초당 이동 거리(PROJECTILE_SPEED)에 deltaTime을 곱함
-            // 이제 PROJECTILE_SPEED가 500.0f라면 1초에 500픽셀을 이동합니다.
-            bullets[i].x += bullets[i].dirX * PROJECTILE_SPEED * deltaTime;
-            bullets[i].y += bullets[i].dirY * PROJECTILE_SPEED * deltaTime;
+            //타입에 따른 이동 속도 및 크기 차등 적용
+            float currentSpeed = (bullets[i].type == 1) ? 150.0f : PROJECTILE_SPEED;
+            int currentSize = (bullets[i].type == 1) ? (PROJECTILE_SIZE * 2) : PROJECTILE_SIZE;
 
-            // 맵 경계 및 벽 충돌 처리
-            if (bullets[i].x < 0 || bullets[i].x > SCREEN_WIDTH ||
-                bullets[i].y < 0 || bullets[i].y > SCREEN_HEIGHT ||
-                IsWall(bullets[i].x, bullets[i].y)) {
+            bullets[i].x += bullets[i].dirX * currentSpeed * deltaTime;
+            bullets[i].y += bullets[i].dirY * currentSpeed * deltaTime;
+
+            //화면을 아예 벗어나거나 벽에 부딪히면 소멸
+            float margin = (bullets[i].type == 1) ? 50.0f : 0.0f;
+
+            //화면 이탈 검사
+            if (bullets[i].x < -margin || bullets[i].x > SCREEN_WIDTH + margin ||
+                bullets[i].y < -margin || bullets[i].y > SCREEN_HEIGHT + margin) {
                 bullets[i].active = false;
                 continue;
             }
 
-            SDL_Rect bRect = { (int)bullets[i].x, (int)bullets[i].y, PROJECTILE_SIZE, PROJECTILE_SIZE };
-            SDL_Texture* targetTexture = (bullets[i].owner == 0) ? gProjectileTexture : gEnemyProjectileTexture;
+            //벽 충돌 검사(단 초록투사체는 제외)
+            if (bullets[i].type != 1 && IsWall(bullets[i].x, bullets[i].y)) {
+                bullets[i].active = false;
+                continue;
+            }
 
-            if (targetTexture != nullptr) {
-                double angle = atan2(bullets[i].dirY, bullets[i].dirX) * (180.0 / M_PI);
-                SDL_RenderCopyEx(renderer, targetTexture, NULL, &bRect, angle, NULL, SDL_FLIP_NONE);
+            SDL_Rect bRect = { (int)bullets[i].x, (int)bullets[i].y, currentSize, currentSize };
+            double angle = atan2(bullets[i].dirY, bullets[i].dirX) * (180.0 / M_PI);
+
+            if (bullets[i].type == 1) { //초록 투사체
+                if (gEnemyProjectileTexture != nullptr) {
+                    SDL_SetTextureColorMod(gEnemyProjectileTexture, 0, 255, 0);
+                    SDL_RenderCopyEx(renderer, gEnemyProjectileTexture, NULL, &bRect, angle, NULL, SDL_FLIP_NONE);
+                    SDL_SetTextureColorMod(gEnemyProjectileTexture, 255, 255, 255);
+                }
+                else {
+                    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+                    SDL_RenderFillRect(renderer, &bRect);
+                }
             }
             else {
-                if (bullets[i].owner == 0) SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-                else SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-                SDL_RenderFillRect(renderer, &bRect);
+                //기존 일반 투사체 렌더링 로직
+                SDL_Texture* targetTexture = (bullets[i].owner == 0) ? gProjectileTexture : gEnemyProjectileTexture;
+                if (targetTexture != nullptr) {
+                    SDL_RenderCopyEx(renderer, targetTexture, NULL, &bRect, angle, NULL, SDL_FLIP_NONE);
+                }
+                else {
+                    if (bullets[i].owner == 0) SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+                    else SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                    SDL_RenderFillRect(renderer, &bRect);
+                }
             }
         }
     }
