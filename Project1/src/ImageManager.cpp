@@ -13,6 +13,7 @@ SDL_Texture* gProjectileTexture = nullptr;
 SDL_Texture* gEnemyProjectileTexture = nullptr;
 SDL_Texture* gMapTexture = nullptr;
 SDL_Texture* gBorderTexture = nullptr;
+SDL_Texture* gBossTexture = nullptr;
 
 // ImageManager.hpp 상위 디렉터리의 assets/ 폴더를 기준으로 경로 반환
 static auto AssetPath(const char* filename) -> std::string
@@ -64,6 +65,9 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     gMapTexture             = LoadTexture(AssetPath("map_main.png"));
     gBorderTexture          = LoadTexture(AssetPath("border.png"));
 
+    gBossTexture = LoadTexture(AssetPath("enemy.png"));
+
+    // 3. 실제 파일 로드 (경로와 파일명은 본인의 환경에 맞게 수정하세요)
     std::cout << "Images Manager: All images loaded successfully." << std::endl;
 }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Boss.cpp" />
+    <ClCompile Include="src\BossPattern.cpp" />
     <ClCompile Include="src\Enemy.c" />
     <ClCompile Include="src\ImageManager.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -28,6 +30,8 @@
     <ClCompile Include="src\Projectile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Boss.hpp" />
+    <ClInclude Include="include\BossPattern.hpp" />
     <ClInclude Include="include\Constants.h" />
     <ClInclude Include="include\Enemy.h" />
     <ClInclude Include="include\ImageManager.hpp" />
@@ -36,11 +40,6 @@
     <ClInclude Include="include\Player.hpp" />
     <ClInclude Include="include\Projectile.hpp" />
     <ClInclude Include="include\SDL.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="assets\attack.png" />
-    <Image Include="assets\enemy.png" />
-    <Image Include="assets\Player.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -53,26 +52,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -140,15 +139,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>include;3rdParty/include;</AdditionalIncludeDirectories>
-      <LanguageStandard>Default</LanguageStandard>
-      <LanguageStandard_C>Default</LanguageStandard_C>
+      <AdditionalIncludeDirectories>C:\Users\Main\source\repos\Project1\SDL2-devel-2.32.10-VC\SDL2-2.32.10\include;C:\Users\Main\source\repos\Project1\Project1\include;C:\Users\Main\source\repos\Project1\Project1\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;shell32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>3rdParty/lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\Main\source\repos\Project1\SDL2-devel-2.32.10-VC\SDL2-2.32.10\lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

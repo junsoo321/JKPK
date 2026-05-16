@@ -16,8 +16,6 @@ extern SDL_Texture* gProjectileTexture;
 extern SDL_Texture* gEnemyProjectileTexture;
 extern SDL_Texture* gMapTexture;    //!!! 맵 배경 이미지 변수
 extern SDL_Texture* gBorderTexture; //!!! 가장자리 벽 이미지 변수
-
-//!!! 이미지들을 불러오고 메모리에서 해제하는 함수들입니다.
-//! 
+extern SDL_Texture* gBossTexture;
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();

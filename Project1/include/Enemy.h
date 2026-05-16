@@ -7,7 +7,7 @@
 //몹 구조체 정의
 typedef struct {
     float x, y;
-    float speed;
+    float speed, dirX, dirY;
     bool active;
     //공격 시점은 개별 측정이 아닌 SDL_GetTicks() 기준으로 결정
     Uint32 lastAttackTime; // 마지막으로 공격한 시각

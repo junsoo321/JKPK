@@ -14,29 +14,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Enemy.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImageManager.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\main.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MapData.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MapSystem.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Player.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Projectile.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="src\utils\Constants.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -61,5 +38,40 @@
     <ClInclude Include="src\utils\SDL.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="src\utils\Boss.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\BossPattern.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Enemy.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImageManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MapData.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MapSystem.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Player.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Projectile.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BossPattern.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Boss.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
