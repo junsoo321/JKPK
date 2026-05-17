@@ -24,6 +24,7 @@
 //플레이어 설정
 #define PLAYER_SIZE 30
 #define PLAYER_SPEED 300.0f
+#define PLAYER_FRICTION 8.0f  //마찰 계수 (초당 감속률, 높을수록 빨리 멈춤)
 #define PLAYER_HP 100
 #define PLAYER_BULLET_DAMAGE 50
 #define BOSS_PLAYER_INVINCIBLE_TIME 1000
@@ -33,6 +34,7 @@
 #define PROJECTILE_SPEED 600.0f	//투사체 속도(날아가는 속도)
 #define PROJECTILE_SIZE 8		//투사체 크기
 #define FIRE_DELAY 0.1f			//공격속도 (ms)
+#define PROJECTILE_SPIN_SPEED 360.0f //투사체 회전 속도 (도/초)
 
 //몹(enemy) 설정
 #define MAX_ENEMIES_PER_ROOM 5  //맵 당 생성 가능한 최대 몹 수

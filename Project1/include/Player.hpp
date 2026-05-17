@@ -7,7 +7,9 @@
 struct PlayerData {
     float x;     //위치 좌표
     float y;
-    float speed; //이동속도
+    float vx;    //현재 속도 (X축)
+    float vy;    //현재 속도 (Y축)
+    float speed; //최대 이동속도
     int hp;      //체력
     bool isInvincible;     // 무적 상태 여부
     Uint32 invincibleEndTime; // 무적 종료 시각 (SDL_GetTicks 기준)

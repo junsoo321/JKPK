@@ -6,12 +6,14 @@
 #include <iostream>
 
 void InitPlayer(PlayerData* p) {
-    p->x = SCREEN_WIDTH / 2.0f;  //시작 X (화면 중앙)
-    p->y = SCREEN_HEIGHT / 2.0f; //시작 Y (화면 중앙)
-    p->speed = PLAYER_SPEED;    //이동 속도
-    p->hp = PLAYER_HP;          //체력
-    p->isInvincible = false;      //시작시 무적 off
-    p->invincibleEndTime = 0;     //종료 시간 초기화
+    p->x = SCREEN_WIDTH / 2.0f;
+    p->y = SCREEN_HEIGHT / 2.0f;
+    p->vx = 0.0f;
+    p->vy = 0.0f;
+    p->speed = PLAYER_SPEED;
+    p->hp = PLAYER_HP;
+    p->isInvincible = false;
+    p->invincibleEndTime = 0;
 }
 
 //플레이어 이동 함수
@@ -23,22 +25,28 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
         p->isInvincible = false;
     }
 
-    float nextX = p->x;
-    float nextY = p->y;
-    float move = p->speed * deltaTime;
+    //키 입력: 키를 누르면 즉시 최대 속도, 떼면 마찰로 서서히 감속
+    float friction = 1.0f - PLAYER_FRICTION * deltaTime;
+    if (friction < 0.0f) friction = 0.0f;
 
-    //키보드 입력 받기, 이동할 좌표 저장
-    if (keyboardState[SDL_SCANCODE_W] || keyboardState[SDL_SCANCODE_UP])    nextY -= move; //w, 위
-    if (keyboardState[SDL_SCANCODE_S] || keyboardState[SDL_SCANCODE_DOWN])  nextY += move; //s, 아래
-    if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  nextX -= move; //a, 좌
-    if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) nextX += move; //d, 우
+    float targetVx = 0.0f, targetVy = 0.0f;
+    if (keyboardState[SDL_SCANCODE_W] || keyboardState[SDL_SCANCODE_UP])    targetVy -= p->speed;
+    if (keyboardState[SDL_SCANCODE_S] || keyboardState[SDL_SCANCODE_DOWN])  targetVy += p->speed;
+    if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  targetVx -= p->speed;
+    if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) targetVx += p->speed;
+
+    p->vx = (targetVx != 0.0f) ? targetVx : p->vx * friction;
+    p->vy = (targetVy != 0.0f) ? targetVy : p->vy * friction;
+
+    float nextX = p->x + p->vx * deltaTime;
+    float nextY = p->y + p->vy * deltaTime;
 
     //맵 이동 판정 (화면 경계 체크)
     //오른쪽 끝
     if (nextX > SCREEN_WIDTH - 35) {
         if (currentRoomX < MAX_ROOMS_X - 1) {
             MoveToNextRoom(3);
-            p->x = 50;
+            p->x = 50; p->vx = 0.0f; p->vy = 0.0f;
             return;
         }
     }
@@ -46,7 +54,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     else if (nextX < 5) {
         if (currentRoomX > 0) {
             MoveToNextRoom(2);
-            p->x = SCREEN_WIDTH - 80;
+            p->x = SCREEN_WIDTH - 80; p->vx = 0.0f; p->vy = 0.0f;
             return;
         }
     }
@@ -54,7 +62,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     else if (nextY < 5) {
         if (currentRoomY > 0) {
             MoveToNextRoom(0);
-            p->y = SCREEN_HEIGHT - 80;
+            p->y = SCREEN_HEIGHT - 80; p->vx = 0.0f; p->vy = 0.0f;
             return;
         }
     }
@@ -62,22 +70,19 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     else if (nextY > SCREEN_HEIGHT - 35) {
         if (currentRoomY < MAX_ROOMS_Y - 1) {
             MoveToNextRoom(1);
-            p->y = 50;
+            p->y = 50; p->vx = 0.0f; p->vy = 0.0f;
             return;
         }
     }
 
-    //벽 충돌 검사
-    bool canMove = true;
-    if (IsWall(nextX, nextY) || IsWall(nextX + 28, nextY) ||
-        IsWall(nextX, nextY + 28) || IsWall(nextX + 28, nextY + 28)) {
-        canMove = false;
-    }
+    //벽 충돌 검사 (X, Y 축 독립 처리 → 벽면 슬라이딩 가능)
+    bool blockX = IsWall(nextX, p->y)      || IsWall(nextX + 28, p->y) ||
+                  IsWall(nextX, p->y + 28) || IsWall(nextX + 28, p->y + 28);
+    bool blockY = IsWall(p->x, nextY)      || IsWall(p->x + 28, nextY) ||
+                  IsWall(p->x, nextY + 28) || IsWall(p->x + 28, nextY + 28);
 
-    if (canMove) {
-        p->x = nextX;
-        p->y = nextY;
-    }
+    if (!blockX) p->x = nextX; else p->vx = 0.0f;
+    if (!blockY) p->y = nextY; else p->vy = 0.0f;
 
     //렌더링용 사각형 업데이트
     p->drawRect.x = (int)p->x;

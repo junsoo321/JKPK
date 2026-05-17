@@ -26,6 +26,7 @@ void FireProjectile(float startX, float startY, float deltaTime) {
             bullets[i].active = true;
             bullets[i].owner = 0; //발사대상
             bullets[i].type = 0; //특수기믹(초록 투사체) x
+            bullets[i].angle = 0.0f;
 
             bullets[i].x = startX + (PLAYER_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
             bullets[i].y = startY + (PLAYER_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -52,6 +53,7 @@ void FireEnemyProjectile(float startX, float startY, float targetX, float target
             bullets[i].active = true;
             bullets[i].owner = 1;   //발사 대상
             bullets[i].type = 0;
+            bullets[i].angle = 0.0f;
 
             bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
             bullets[i].y = startY + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -80,6 +82,7 @@ void FireProjectile_PHASE3(float startX, float startY, float targetX, float targ
             bullets[i].active = true;
             bullets[i].owner = 1;
             bullets[i].type = 1; //초록색 대형 투사체 타입 지정
+            bullets[i].angle = 0.0f;
 
             bullets[i].x = startX;
             bullets[i].y = startY;
@@ -128,8 +131,11 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime) {
                 continue;
             }
 
+            bullets[i].angle += PROJECTILE_SPIN_SPEED * deltaTime;
+            if (bullets[i].angle >= 360.0f) bullets[i].angle -= 360.0f;
+
             SDL_Rect bRect = { (int)bullets[i].x, (int)bullets[i].y, currentSize, currentSize };
-            double angle = atan2(bullets[i].dirY, bullets[i].dirX) * (180.0 / M_PI);
+            double angle = (double)bullets[i].angle;
 
             if (bullets[i].type == 1) { //초록 투사체
                 if (gEnemyProjectileTexture != nullptr) {

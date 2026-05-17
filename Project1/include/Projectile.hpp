@@ -8,6 +8,7 @@
 typedef struct {
     float x, y;
     float dirX, dirY;
+    float angle; //회전 각도 (도 단위)
     bool active;
     int owner; //발사 대상 정보 (플레이어 : 0, 몹 : 1)
     int type;
