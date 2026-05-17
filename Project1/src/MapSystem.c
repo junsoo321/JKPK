@@ -9,6 +9,7 @@
 #include <string.h>
 
 int worldMap[MAP_ROWS][MAP_COLS]; //현재 맵의 상태 데이터
+int bossMapLayout[MAP_ROWS][MAP_COLS]; //보스 맵 collision 데이터
 
 int worldData[MAX_ROOMS_X][MAX_ROOMS_Y][MAP_ROWS][MAP_COLS]; //전체 월드의 상태 데이터
 bool visited[MAX_ROOMS_X][MAX_ROOMS_Y] = { false }; //이미 생성된(방문했던) 맵인지 확인하는 배열
@@ -70,7 +71,7 @@ int IsWall(float x, float y) {
 
 //맵 그리기 함수
 //위에서 만든 지도(worldMap)를 가지고 실제 그림 출력
-void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, SDL_Texture* borderTex) {
+void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex) {
     // 배경 이미지 전체 화면에 렌더링
     if (mapBg) {
         SDL_RenderCopy(renderer, mapBg, NULL, NULL);
@@ -176,6 +177,34 @@ int GetDoorCenter(int direction) {
     }
 
     return count > 0 ? sum / count : -1;
+}
+
+// 발 히트박스가 해당 방향 가장자리의 yellow 타일(type 3)에 실제로 닿았는지 확인
+// direction: 0=상, 1=하, 2=좌, 3=우
+// x1~x2, y1~y2: 발 히트박스 범위 (픽셀)
+int IsTouchingEdgeDoor(int direction, float x1, float x2, float y1, float y2) {
+    if (direction == 0) { // 상단: 발 상단 행이 yellow인지
+        int row = (int)(y1 / TILE_SIZE);
+        if (row > 6) return 0;
+        for (int c = (int)(x1 / TILE_SIZE); c <= (int)(x2 / TILE_SIZE); c++)
+            if (c >= 0 && c < MAP_COLS && row >= 0 && worldMap[row][c] == 3) return 1;
+    } else if (direction == 1) { // 하단: 발 하단 행
+        int row = (int)(y2 / TILE_SIZE);
+        if (row < MAP_ROWS - 7) return 0;
+        for (int c = (int)(x1 / TILE_SIZE); c <= (int)(x2 / TILE_SIZE); c++)
+            if (c >= 0 && c < MAP_COLS && row < MAP_ROWS && worldMap[row][c] == 3) return 1;
+    } else if (direction == 2) { // 좌단: 발 좌측 열
+        int col = (int)(x1 / TILE_SIZE);
+        if (col > 6) return 0;
+        for (int r = (int)(y1 / TILE_SIZE); r <= (int)(y2 / TILE_SIZE); r++)
+            if (r >= 0 && r < MAP_ROWS && col >= 0 && worldMap[r][col] == 3) return 1;
+    } else { // 우단: 발 우측 열
+        int col = (int)(x2 / TILE_SIZE);
+        if (col < MAP_COLS - 7) return 0;
+        for (int r = (int)(y1 / TILE_SIZE); r <= (int)(y2 / TILE_SIZE); r++)
+            if (r >= 0 && r < MAP_ROWS && col < MAP_COLS && worldMap[r][col] == 3) return 1;
+    }
+    return 0;
 }
 
 // 플레이어 히트박스(pos1~pos2) 범위가 해당 방향 가장자리의 문(type 3) 타일과 겹치는지 확인

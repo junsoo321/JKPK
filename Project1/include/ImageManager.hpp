@@ -17,12 +17,18 @@ extern SDL_Texture* gFloorTexture;  //!!! 바닥 타일 외형 이미지 변수
 extern SDL_Texture* gEnemyTexture;
 extern SDL_Texture* gProjectileTexture;
 extern SDL_Texture* gEnemyProjectileTexture;
+extern SDL_Texture* gBossProjectileTex1;
+extern SDL_Texture* gBossProjectileTex2;
 extern SDL_Texture* gMapTexture;    //!!! 맵 배경 이미지 변수
-extern SDL_Texture* gBorderTexture; //!!! 가장자리 벽 이미지 변수
 extern SDL_Texture* gBossTexture;
+extern SDL_Texture* gBossMapTexture; // map/map_boss.png
+extern SDL_Texture* gHeartFullTex;
+extern SDL_Texture* gHeartHalfTex;
+extern SDL_Texture* gHeartEmptyTex;
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();
 
-// assets/map_collision_N.png (80x60px) 파일을 읽어 mapLayouts[N] 덮어쓰기
+// assets/map_collision_N.png 파일을 읽어 mapLayouts[N] 덮어쓰기
+// assets/map_boss_collision.png 파일을 읽어 bossMapLayout 덮어쓰기
 // 파일이 없으면 기존 하드코딩 데이터 유지
 void LoadCollisionMapsFromImages();

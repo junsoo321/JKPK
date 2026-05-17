@@ -48,12 +48,15 @@ void FireProjectile(float startX, float startY, float deltaTime) {
 
 //몹 투사체 발사 처리 함수 (발사 위치(플레이어좌표), 발사 대상(owner)외 동일
 void FireEnemyProjectile(float startX, float startY, float targetX, float targetY) {
+    static int bossTexToggle = 0;
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!bullets[i].active) {
             bullets[i].active = true;
             bullets[i].owner = 1;   //발사 대상
             bullets[i].type = 0;
             bullets[i].angle = 0.0f;
+            bullets[i].texIndex = bossTexToggle;
+            bossTexToggle = 1 - bossTexToggle;
 
             bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
             bullets[i].y = startY + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -149,8 +152,15 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime) {
                 }
             }
             else {
-                //기존 일반 투사체 렌더링 로직
-                SDL_Texture* targetTexture = (bullets[i].owner == 0) ? gProjectileTexture : gEnemyProjectileTexture;
+                SDL_Texture* targetTexture = nullptr;
+                if (bullets[i].owner == 0) {
+                    targetTexture = gProjectileTexture;
+                }
+                else {
+                    //보스 투사체: texIndex에 따라 두 이미지 교대 사용
+                    targetTexture = (bullets[i].texIndex == 0) ? gBossProjectileTex1 : gBossProjectileTex2;
+                    if (targetTexture == nullptr) targetTexture = gEnemyProjectileTexture;
+                }
                 if (targetTexture != nullptr) {
                     SDL_RenderCopyEx(renderer, targetTexture, NULL, &bRect, angle, NULL, SDL_FLIP_NONE);
                 }

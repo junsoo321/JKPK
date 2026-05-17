@@ -16,8 +16,17 @@ void LoadEnemiesForRoom(int roomX, int roomY) {
         for (int i = 0; i < MAX_ENEMIES_PER_ROOM; i++) {
             if (i < count) {
                 currentEnemies[i].active = true;
-                currentEnemies[i].x = (float)(rand() % (SCREEN_WIDTH - 100) + 50);
-                currentEnemies[i].y = (float)(rand() % (SCREEN_HEIGHT - 100) + 50);
+
+                // 장애물이 없는 위치가 나올 때까지 재시도 (최대 100회)
+                float spawnX, spawnY;
+                int attempts = 0;
+                do {
+                    spawnX = (float)(rand() % (SCREEN_WIDTH  - 100) + 50);
+                    spawnY = (float)(rand() % (SCREEN_HEIGHT - 100) + 50);
+                    attempts++;
+                } while (!CanMove(spawnX, spawnY) && attempts < 100);
+                currentEnemies[i].x = spawnX;
+                currentEnemies[i].y = spawnY;
                 currentEnemies[i].speed = ENEMY_SPEED; // Constants.h에서 초당 픽셀(예: 150.0f)로 설정
                 currentEnemies[i].lastAttackTime = SDL_GetTicks();
                 currentEnemies[i].nextAttackDelay = ENEMY_ATTACK_MIN + (rand() % (ENEMY_ATTACK_MAX - ENEMY_ATTACK_MIN));

@@ -10,8 +10,9 @@ typedef struct {
     float dirX, dirY;
     float angle; //회전 각도 (도 단위)
     bool active;
-    int owner; //발사 대상 정보 (플레이어 : 0, 몹 : 1)
+    int owner;    //발사 대상 정보 (플레이어 : 0, 몹 : 1)
     int type;
+    int texIndex; //보스 투사체 텍스처 인덱스 (0 또는 1, 교대 사용)
 } Projectile;
 
 #ifdef __cplusplus

@@ -1,5 +1,6 @@
 ﻿#include "ImageManager.hpp"
 #include "MapData.h"
+#include "Constants.h"
 
 #include <SDL_image.h>
 #include <iostream>
@@ -15,9 +16,14 @@ SDL_Texture* gFloorTexture = nullptr;
 SDL_Texture* gEnemyTexture = nullptr;
 SDL_Texture* gProjectileTexture = nullptr;
 SDL_Texture* gEnemyProjectileTexture = nullptr;
+SDL_Texture* gBossProjectileTex1 = nullptr;
+SDL_Texture* gBossProjectileTex2 = nullptr;
 SDL_Texture* gMapTexture = nullptr;
-SDL_Texture* gBorderTexture = nullptr;
 SDL_Texture* gBossTexture = nullptr;
+SDL_Texture* gBossMapTexture = nullptr;
+SDL_Texture* gHeartFullTex  = nullptr;
+SDL_Texture* gHeartHalfTex  = nullptr;
+SDL_Texture* gHeartEmptyTex = nullptr;
 
 // ImageManager.hpp 상위 디렉터리의 assets/ 폴더를 기준으로 경로 반환
 static auto AssetPath(const char* filename) -> std::string
@@ -66,63 +72,77 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
 
     gEnemyTexture           = LoadTexture(AssetPath("enemy.png"));
     gEnemyProjectileTexture = LoadTexture(AssetPath("attack.png"));
+    gBossProjectileTex1     = LoadTexture(AssetPath("attack_boss_001.png"));
+    gBossProjectileTex2     = LoadTexture(AssetPath("attack_boss_002.png"));
 
     gWallTexture            = LoadTexture(AssetPath("map/obstacle_book.png"));
 
     gMapTexture             = LoadTexture(AssetPath("map/map_main.png"));
-    gBorderTexture          = LoadTexture(AssetPath("border.png"));
 
-    gBossTexture = LoadTexture(AssetPath("enemy.png"));
+    gBossTexture            = LoadTexture(AssetPath("boss.png"));
+    gBossMapTexture         = LoadTexture(AssetPath("map/map_boss.png"));
+
+    gHeartFullTex           = LoadTexture(AssetPath("display/heart_full.png"));
+    gHeartHalfTex           = LoadTexture(AssetPath("display/heart_half.png"));
+    gHeartEmptyTex          = LoadTexture(AssetPath("display/heart_empty.png"));
 
 }
 
+// 색상 픽셀 → 타일값 변환 공통 함수
+static int ColorToTile(Uint8 red, Uint8 green, Uint8 blue) {
+    if (red > 200 && green < 50  && blue > 200) return 1; // 마젠타 → 외곽벽
+    if (red < 50  && green > 200 && blue > 200) return 2; // 시안   → 장애물
+    if (red > 200 && green > 200 && blue < 50 ) return 3; // 노랑   → 문
+    return 0;
+}
+
+static void SampleCollisionImage(SDL_Surface* img, int out[][MAP_COLS]) {
+    SDL_LockSurface(img);
+    Uint32* pixels = (Uint32*)img->pixels;
+    int pitch = img->pitch / 4;
+    float scaleX = (float)img->w / SCREEN_WIDTH;
+    float scaleY = (float)img->h / SCREEN_HEIGHT;
+
+    for (int r = 1; r < MAP_ROWS - 1; r++) {
+        for (int c = 1; c < MAP_COLS - 1; c++) {
+            int imgC = (int)((c * TILE_SIZE + TILE_SIZE / 2) * scaleX);
+            int imgR = (int)((r * TILE_SIZE + TILE_SIZE / 2) * scaleY);
+            if (imgC >= img->w) imgC = img->w - 1;
+            if (imgR >= img->h) imgR = img->h - 1;
+
+            Uint32 pixel = pixels[imgR * pitch + imgC];
+            Uint8 red, green, blue, alpha;
+            SDL_GetRGBA(pixel, img->format, &red, &green, &blue, &alpha);
+            out[r][c] = ColorToTile(red, green, blue);
+        }
+    }
+    SDL_UnlockSurface(img);
+}
+
 void LoadCollisionMapsFromImages() {
+    // 일반 맵 패턴 로드
     for (int p = 0; p < MAX_PATTERNS; p++) {
         std::string path = AssetPath(("map/map_collision_" + std::to_string(p) + ".png").c_str());
-
         SDL_Surface* surf = IMG_Load(path.c_str());
         if (!surf) continue;
-
-        // 픽셀 접근을 위해 RGBA32로 변환
         SDL_Surface* img = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
         SDL_FreeSurface(surf);
         if (!img) continue;
+        SampleCollisionImage(img, mapLayouts[p]);
+        SDL_FreeSurface(img);
+    }
 
-        SDL_LockSurface(img);
-        Uint32* pixels = (Uint32*)img->pixels;
-        int pitch = img->pitch / 4;
-
-        // 이미지 해상도에 관계없이 타일 위치를 비율로 환산해서 샘플링
-        float scaleX = (float)img->w / SCREEN_WIDTH;
-        float scaleY = (float)img->h / SCREEN_HEIGHT;
-
-        for (int r = 1; r < MAP_ROWS - 1; r++) {
-            for (int c = 1; c < MAP_COLS - 1; c++) {
-                int imgC = (int)((c * TILE_SIZE + TILE_SIZE / 2) * scaleX);
-                int imgR = (int)((r * TILE_SIZE + TILE_SIZE / 2) * scaleY);
-                if (imgC >= img->w) imgC = img->w - 1;
-                if (imgR >= img->h) imgR = img->h - 1;
-
-                Uint32 pixel = pixels[imgR * pitch + imgC];
-                Uint8 red, green, blue, alpha;
-                SDL_GetRGBA(pixel, img->format, &red, &green, &blue, &alpha);
-
-                // 마젠타(255,0,255) → 1: 외곽벽(투명 장애물)
-                // 시안  (0,255,255) → 2: 맵 장애물(텍스처 렌더링)
-                // 노랑  (255,255,0) → 3: 문 통로(이동 가능)
-                bool isMagenta = (red > 200 && green < 50  && blue > 200);
-                bool isCyan    = (red < 50  && green > 200 && blue > 200);
-                bool isYellow  = (red > 200 && green > 200 && blue < 50 );
-
-                if      (isMagenta) mapLayouts[p][r][c] = 1;
-                else if (isCyan)    mapLayouts[p][r][c] = 2;
-                else if (isYellow)  mapLayouts[p][r][c] = 3;
-                else                mapLayouts[p][r][c] = 0;
+    // 보스 맵 collision 로드
+    {
+        SDL_Surface* surf = IMG_Load(AssetPath("map/map_boss_collision.png").c_str());
+        if (surf) {
+            SDL_Surface* img = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
+            SDL_FreeSurface(surf);
+            if (img) {
+                SampleCollisionImage(img, bossMapLayout);
+                SDL_FreeSurface(img);
             }
         }
-
-        SDL_UnlockSurface(img);
-        SDL_FreeSurface(img);
     }
 }
 
@@ -137,8 +157,13 @@ void FreeAllImages() {
     if (gEnemyTexture)      SDL_DestroyTexture(gEnemyTexture);
     if (gProjectileTexture) SDL_DestroyTexture(gProjectileTexture);
     if (gEnemyProjectileTexture) SDL_DestroyTexture(gEnemyProjectileTexture);
+    if (gBossProjectileTex1)     SDL_DestroyTexture(gBossProjectileTex1);
+    if (gBossProjectileTex2)     SDL_DestroyTexture(gBossProjectileTex2);
     if (gMapTexture)        SDL_DestroyTexture(gMapTexture);
-    if (gBorderTexture)     SDL_DestroyTexture(gBorderTexture);
+    if (gBossMapTexture)    SDL_DestroyTexture(gBossMapTexture);
+    if (gHeartFullTex)      SDL_DestroyTexture(gHeartFullTex);
+    if (gHeartHalfTex)      SDL_DestroyTexture(gHeartHalfTex);
+    if (gHeartEmptyTex)     SDL_DestroyTexture(gHeartEmptyTex);
 
     IMG_Quit(); // SDL_image 종료
 }

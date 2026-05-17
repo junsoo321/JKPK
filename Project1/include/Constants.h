@@ -2,11 +2,12 @@
 // 전체 상수 관리
 
 //화면 크기 관련 설정값		***현재 800*600 기준으로 하드코딩 되어 있음***
-#define SCREEN_WIDTH 800	//가로 해상도
-#define SCREEN_HEIGHT 600	//세로 해상도
-#define BG_COLOR_R 30           // 배경색 (Red)
-#define BG_COLOR_G 30           // 배경색 (Green)
-#define BG_COLOR_B 35           // 배경색 (Blue)
+
+#define SCREEN_WIDTH 800	//	가로 해상도
+#define SCREEN_HEIGHT 600	//	세로 해상도
+#define BG_COLOR_R 30       //	배경색 (Red)
+#define BG_COLOR_G 30       //	배경색 (Green)
+#define BG_COLOR_B 35       //	배경색 (Blue)
 
 #define TILE_SIZE 10	//화면을 분할할 구역의 크기 (10의 의미 : 구역 1개 = 10x10 픽셀)
 
@@ -16,34 +17,36 @@
 
 
 //랜덤 맵 생성 시 전체 맵 개수의 최대값
-#define MAX_ROOMS_X 5  //가로 최대 개수
-#define MAX_ROOMS_Y 5  //세로 최대 개수
-#define BOSS_ROOM_X 5           //보스방의 월드 맵 X 좌표
-#define BOSS_ROOM_Y 5           //보스방의 월드 맵 Y 좌표
+#define MAX_ROOMS_X 5	//가로 최대 개수
+#define MAX_ROOMS_Y 5	//세로 최대 개수
+#define BOSS_ROOM_X 5	//보스방의 월드 맵 X 좌표
+#define BOSS_ROOM_Y 5	//보스방의 월드 맵 Y 좌표
 
 //플레이어 설정
-#define PLAYER_SIZE 30
-#define CHAR_FRAME_SIZE 32  // 스프라이트 시트 한 프레임 크기 (px)
-#define PLAYER_SPEED 300.0f
-#define PLAYER_FRICTION 8.0f  //마찰 계수 (초당 감속률, 높을수록 빨리 멈춤)
-#define PLAYER_FOOT_OFFSET 20 //발 히트박스 시작 Y 오프셋 (스프라이트 상단 기준, px) — 벽 옆면 두께에 맞게 조정
-#define DOOR_SIZE 60          //출입문 개구부 크기 (px)
-#define DOOR_THICKNESS 20     //출입문 두께 (px, 표시용)
+#define PLAYER_SIZE 36				//	히트박스 크기 — 실제 캐릭터 도트 영역(3x 기준 36×42)에 맞춤
+#define CHAR_FRAME_SIZE 32			//	스프라이트 시트 한 프레임 크기 (px)
+#define PLAYER_RENDER_OFFSET_X 30	//	스프라이트를 히트박스 기준으로 좌측으로 당기는 오프셋 (10px * 3)
+#define PLAYER_RENDER_OFFSET_Y 27	//	스프라이트를 히트박스 기준으로 위쪽으로 당기는 오프셋 (9px * 3)
+#define PLAYER_SPEED 200.0f
+#define PLAYER_FRICTION 8.0f
+#define PLAYER_FOOT_OFFSET 20		//	발 히트박스 시작 Y 오프셋 (히트박스 상단 기준)
+#define DOOR_SIZE 60				//	출입문 개구부 크기 (px)
+#define DOOR_THICKNESS 20			//	출입문 두께 (px, 표시용)
 #define PLAYER_HP 100
 #define PLAYER_BULLET_DAMAGE 50
 #define BOSS_PLAYER_INVINCIBLE_TIME 1000
 
 //플레이어 투사체 관련 설정
-#define MAX_PROJECTILES 5000		//한번에 존재 가능한 총 투사체 개수
-#define PROJECTILE_SPEED 600.0f	//투사체 속도(날아가는 속도)
-#define PROJECTILE_SIZE 32		//투사체 크기
-#define FIRE_DELAY 0.1f			//공격속도 (ms)
-#define PROJECTILE_SPIN_SPEED 360.0f //투사체 회전 속도 (도/초)
+#define MAX_PROJECTILES 5000			//	한번에 존재 가능한 총 투사체 개수
+#define PROJECTILE_SPEED 400.0f			//	투사체 속도(날아가는 속도)
+#define PROJECTILE_SIZE 32				//	투사체 크기
+#define FIRE_DELAY 0.1f					//	공격속도 (ms)
+#define PROJECTILE_SPIN_SPEED 360.0f	//	투사체 회전 속도 (도/초)
 
 //몹(enemy) 설정
 #define MAX_ENEMIES_PER_ROOM 5  //맵 당 생성 가능한 최대 몹 수
 #define ENEMY_SPEED 1.0f        //몹 이동 속도
-#define ENEMY_SIZE 30           //몹 크기
+#define ENEMY_SIZE 60           //몹 크기
 #define ENEMY_ATK 10			//몹 공격력
 
 //최소, 최대 공격속도 범위 내의 랜덤 순간에 공격
@@ -51,7 +54,7 @@
 #define ENEMY_ATTACK_MAX 4000	//몹 최대 공격속도 (ms)
 
 
-#define BOSS_SIZE 120            //보스 기본 크기
+#define BOSS_SIZE 240            //보스 기본 크기
 #define BOSS_MAX_HP 3000         //보스 최대 체력
 #define BOSS_INTRO_TIME 2.0f     //등장 애니메이션 시간(초)
 #define BOSS_MOVE_INTERVAL 3.0f  //1페이즈 텔레포트 간격(초)

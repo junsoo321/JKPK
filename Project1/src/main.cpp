@@ -1,6 +1,7 @@
 ﻿#include <SDL.h>
 #include "Constants.h"
 #include "MapSystem.h"
+#include "MapData.h"
 #include "Player.hpp"
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
@@ -8,12 +9,6 @@
 #include "Boss.hpp"
 #include <stdio.h>
 #include <stdlib.h>
-
-extern "C" {
-    extern int worldMap[MAP_ROWS][MAP_COLS];
-    extern int currentRoomX;
-    extern int currentRoomY;
-}
 
 int bossMap[MAP_ROWS][MAP_COLS];
 float gShakeAmount = 0.0f;
@@ -61,11 +56,11 @@ auto main(int argc, char* argv[]) -> int
                     currentRoomY = BOSS_ROOM_Y;
                     InitBoss(&mainBoss);
 
-                    for (int r = 0; r < MAP_ROWS; r++) {
-                        for (int c = 0; c < MAP_COLS; c++) {
-                            worldMap[r][c] = (r == 0 || r == MAP_ROWS - 1 || c == 0 || c == MAP_COLS - 1) ? 1 : 0;
-                        }
-                    }
+                    // 보스 맵 collision 데이터를 현재 맵에 적용
+                    for (int r = 0; r < MAP_ROWS; r++)
+                        for (int c = 0; c < MAP_COLS; c++)
+                            worldMap[r][c] = bossMapLayout[r][c];
+
                     player.x = SCREEN_WIDTH / 2.0f;
                     player.y = SCREEN_HEIGHT - (TILE_SIZE * 9.0f);
                 }
@@ -130,7 +125,8 @@ auto main(int argc, char* argv[]) -> int
         SDL_Rect shakeViewport = { offsetX, offsetY, SCREEN_WIDTH, SCREEN_HEIGHT };
         SDL_RenderSetViewport(renderer, &shakeViewport);
 
-        DrawMap(renderer, gMapTexture, gWallTexture, gBorderTexture);
+        SDL_Texture* bgTex = isBossFight ? gBossMapTexture : gMapTexture;
+        DrawMap(renderer, bgTex, gWallTexture);
 
         //투사체 이동 및 그리기
         UpdateAndDrawProjectiles(renderer, deltaTime);
@@ -149,6 +145,7 @@ auto main(int argc, char* argv[]) -> int
         SDL_RenderSetViewport(renderer, &normalViewport);
 
         if (!isBossFight) DrawMiniMap(renderer);
+        DrawHearts(renderer, &player);
 
         SDL_RenderPresent(renderer);
     }

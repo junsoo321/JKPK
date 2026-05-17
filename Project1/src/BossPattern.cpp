@@ -218,7 +218,6 @@ void Pattern_LaserAndDelay(BossData* b, PlayerData* player, Uint32 currentTime, 
             //AABB로 레이저와 충돌 감지
             if (SDL_HasIntersection(&pRect, &lRect)) {
                 player->hp -= 10;
-                std::cout << "Player HP : " << (player->hp) << std::endl;
                 player->isInvincible = true;
                 player->invincibleEndTime = currentTime + 2000;
                 break;
@@ -378,7 +377,6 @@ void Pattern_Phase3Main(BossData* b, PlayerData* player, float deltaTime) {
         SDL_Rect pRect = { (int)player->x, (int)player->y, PLAYER_SIZE, PLAYER_SIZE };
         if (SDL_HasIntersection(&bRect, &pRect) && !player->isInvincible) {
             player->hp -= BOSS_MELEE_DAMAGE * 1.5f; //피격시 근접공격 데미지의 1.5배 입힘
-            std::cout << "Player HP : " << (player->hp) << std::endl;
             player->isInvincible = true;
             player->invincibleEndTime = SDL_GetTicks() + 1500;
         }
@@ -456,7 +454,6 @@ void Pattern_Phase3Outro(BossData* b, PlayerData* player, float deltaTime) {
 
         if (!safe) { //생존 실패시
             player->hp -= 9999; // 즉사 데미지
-            std::cout << "Player HP : " << (player->hp) << std::endl;
         }
 
         //보스 사망 처리

@@ -30,6 +30,7 @@ extern "C" {
     void InitPlayer(PlayerData* p);
     void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime);
     void DrawPlayer(SDL_Renderer* renderer, PlayerData* p);
+    void DrawHearts(SDL_Renderer* renderer, PlayerData* p);
     bool CheckCollision(PlayerData* p, void* bulletArray, void* bossData);
 
 #ifdef __cplusplus

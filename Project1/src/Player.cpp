@@ -3,7 +3,6 @@
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
 #include "Boss.hpp"
-#include <iostream>
 
 void InitPlayer(PlayerData* p) {
     p->x = SCREEN_WIDTH / 2.0f;
@@ -52,56 +51,66 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     float dFootBot = p->y + PLAYER_SIZE - 2;
     bool canGoLeft  = HasDoorAtEdge(2, dFootTop, dFootBot) && currentRoomX > 0;
     bool canGoRight = HasDoorAtEdge(3, dFootTop, dFootBot) && currentRoomX < MAX_ROOMS_X - 1;
-    bool canGoUp    = HasDoorAtEdge(0, p->x, p->x + 28)   && currentRoomY > 0;
-    bool canGoDown  = HasDoorAtEdge(1, p->x, p->x + 28)   && currentRoomY < MAX_ROOMS_Y - 1;
+    bool canGoUp    = HasDoorAtEdge(0, p->x, p->x + PLAYER_SIZE - 2) && currentRoomY > 0;
+    bool canGoDown  = HasDoorAtEdge(1, p->x, p->x + PLAYER_SIZE - 2) && currentRoomY < MAX_ROOMS_Y - 1;
 
-    //맵 이동 판정 — 이동 후 새 방의 반대편 문 중앙에 배치
-    if (nextX < 5 && canGoLeft) {
+    //맵 이동 판정 — 발 히트박스가 문 타일에 닿으면 즉시 이동
+    const int EDGE = 5;
+    const int RIGHT_TRIGGER  = SCREEN_WIDTH  - PLAYER_SIZE - EDGE;
+    const int BOTTOM_TRIGGER = SCREEN_HEIGHT - PLAYER_SIZE - EDGE;
+
+    float nFootTop = nextY + PLAYER_FOOT_OFFSET;
+    float nFootBot = nextY + PLAYER_SIZE - 2;
+    float nFootL   = nextX;
+    float nFootR   = nextX + PLAYER_SIZE - 2;
+
+    // 문 타일 깊이(0~6 tiles)보다 한 칸 더 안쪽에 스폰하여 재전환 방지
+    const int SPAWN_INSET = 7 * TILE_SIZE;
+
+    if (canGoLeft  && IsTouchingEdgeDoor(2, nFootL, nFootR, nFootTop, nFootBot)) {
         MoveToNextRoom(2);
-        int cy = GetDoorCenter(3); // 새 방 오른쪽 문의 Y 중앙
-        p->x = SCREEN_WIDTH - 80;
+        int cy = GetDoorCenter(3);
+        p->x = (float)(SCREEN_WIDTH - PLAYER_SIZE - SPAWN_INSET);
         p->y = (cy >= 0) ? cy - PLAYER_SIZE / 2.0f : SCREEN_HEIGHT / 2.0f - PLAYER_SIZE / 2.0f;
         p->vx = 0.0f; p->vy = 0.0f; return;
     }
-    if (nextX > SCREEN_WIDTH - 35 && canGoRight) {
+    if (canGoRight && IsTouchingEdgeDoor(3, nFootL, nFootR, nFootTop, nFootBot)) {
         MoveToNextRoom(3);
-        int cy = GetDoorCenter(2); // 새 방 왼쪽 문의 Y 중앙
-        p->x = 50;
+        int cy = GetDoorCenter(2);
+        p->x = (float)SPAWN_INSET;
         p->y = (cy >= 0) ? cy - PLAYER_SIZE / 2.0f : SCREEN_HEIGHT / 2.0f - PLAYER_SIZE / 2.0f;
         p->vx = 0.0f; p->vy = 0.0f; return;
     }
-    if (nextY < 5 && canGoUp) {
+    if (canGoUp    && IsTouchingEdgeDoor(0, nFootL, nFootR, nFootTop, nFootBot)) {
         MoveToNextRoom(0);
-        int cx = GetDoorCenter(1); // 새 방 아래쪽 문의 X 중앙
+        int cx = GetDoorCenter(1);
         p->x = (cx >= 0) ? cx - PLAYER_SIZE / 2.0f : SCREEN_WIDTH / 2.0f - PLAYER_SIZE / 2.0f;
-        p->y = SCREEN_HEIGHT - 80;
+        p->y = (float)(SCREEN_HEIGHT - PLAYER_SIZE - SPAWN_INSET);
         p->vx = 0.0f; p->vy = 0.0f; return;
     }
-    if (nextY > SCREEN_HEIGHT - 35 && canGoDown) {
+    if (canGoDown  && IsTouchingEdgeDoor(1, nFootL, nFootR, nFootTop, nFootBot)) {
         MoveToNextRoom(1);
-        int cx = GetDoorCenter(0); // 새 방 위쪽 문의 X 중앙
+        int cx = GetDoorCenter(0);
         p->x = (cx >= 0) ? cx - PLAYER_SIZE / 2.0f : SCREEN_WIDTH / 2.0f - PLAYER_SIZE / 2.0f;
-        p->y = 50;
+        p->y = (float)SPAWN_INSET;
         p->vx = 0.0f; p->vy = 0.0f; return;
     }
 
     //벽 충돌 검사 — 발 히트박스 기준 (X, Y 축 독립 처리 → 벽면 슬라이딩 가능)
     //스프라이트 상단에서 PLAYER_FOOT_OFFSET 아래를 발 상단으로 사용
-    float footTop = p->y    + PLAYER_FOOT_OFFSET;
-    float footBot = p->y    + PLAYER_SIZE - 2;
-    float nFootTop = nextY  + PLAYER_FOOT_OFFSET;
-    float nFootBot = nextY  + PLAYER_SIZE - 2;
+    float footTop = p->y   + PLAYER_FOOT_OFFSET;
+    float footBot = p->y   + PLAYER_SIZE - 2;
 
-    bool blockX = IsWall(nextX,      footTop) || IsWall(nextX + 28, footTop) ||
-                  IsWall(nextX,      footBot)  || IsWall(nextX + 28, footBot);
-    bool blockY = IsWall(p->x,      nFootTop) || IsWall(p->x + 28, nFootTop) ||
-                  IsWall(p->x,      nFootBot)  || IsWall(p->x + 28, nFootBot);
+    bool blockX = IsWall(nextX,                  footTop) || IsWall(nextX + PLAYER_SIZE - 2, footTop) ||
+                  IsWall(nextX,                  footBot)  || IsWall(nextX + PLAYER_SIZE - 2, footBot);
+    bool blockY = IsWall(p->x,                   nFootTop) || IsWall(p->x  + PLAYER_SIZE - 2, nFootTop) ||
+                  IsWall(p->x,                   nFootBot)  || IsWall(p->x  + PLAYER_SIZE - 2, nFootBot);
 
     //화면 경계 — 문이 없거나 인접 방이 없으면 이동 불가
-    if (nextX < 5          && !canGoLeft)  blockX = true;
-    if (nextX > SCREEN_WIDTH - 35  && !canGoRight) blockX = true;
-    if (nextY < 5          && !canGoUp)   blockY = true;
-    if (nextY > SCREEN_HEIGHT - 35 && !canGoDown)  blockY = true;
+    if (nextX < EDGE                && !canGoLeft)  blockX = true;
+    if (nextX > RIGHT_TRIGGER       && !canGoRight) blockX = true;
+    if (nextY < EDGE                && !canGoUp)    blockY = true;
+    if (nextY > BOTTOM_TRIGGER      && !canGoDown)  blockY = true;
 
     if (!blockX) p->x = nextX; else p->vx = 0.0f;
     if (!blockY) p->y = nextY; else p->vy = 0.0f;
@@ -175,12 +184,43 @@ void DrawPlayer(SDL_Renderer* renderer, PlayerData* p) {
         CHAR_FRAME_SIZE,
         CHAR_FRAME_SIZE
     };
-    SDL_Rect dst = { (int)p->x, (int)p->y, CHAR_FRAME_SIZE * 2, CHAR_FRAME_SIZE * 2 };
+    // 히트박스(p->x, p->y)에서 오프셋을 빼서 스프라이트의 실제 도트가 히트박스와 정렬되도록 렌더링
+    SDL_Rect dst = {
+        (int)p->x - PLAYER_RENDER_OFFSET_X,
+        (int)p->y - PLAYER_RENDER_OFFSET_Y,
+        CHAR_FRAME_SIZE * 3,
+        CHAR_FRAME_SIZE * 3
+    };
 
     // 왼쪽 방향이면 수평 반전
     SDL_RendererFlip flip = (p->animDir == 2 && !p->facingRight)
                           ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
     SDL_RenderCopyEx(renderer, tex, &src, &dst, 0.0, NULL, flip);
+}
+
+//화면 왼쪽 위에 하트로 HP 표시
+void DrawHearts(SDL_Renderer* renderer, PlayerData* p) {
+    const int HEART_SIZE    = 32;
+    const int HEART_SPACING = 4;
+    const int START_X       = 10;
+    const int START_Y       = 10;
+    const int TOTAL_HEARTS  = 5;   // PLAYER_HP(100) / 20
+    const int HP_PER_HEART  = 20;
+    const int HP_PER_HALF   = 10;
+
+    // 피격 직후 깜빡임: hurtTimer 남아있는 동안 100ms 주기로 토글
+    if (p->hurtTimer > 0.0f && (SDL_GetTicks() / 100) % 2 == 0) return;
+
+    for (int i = 0; i < TOTAL_HEARTS; i++) {
+        SDL_Texture* tex;
+        if      (p->hp >= (i + 1) * HP_PER_HEART) tex = gHeartFullTex;
+        else if (p->hp >= i * HP_PER_HEART + HP_PER_HALF) tex = gHeartHalfTex;
+        else                                        tex = gHeartEmptyTex;
+
+        if (!tex) continue;
+        SDL_Rect dst = { START_X + i * (HEART_SIZE + HEART_SPACING), START_Y, HEART_SIZE, HEART_SIZE };
+        SDL_RenderCopy(renderer, tex, NULL, &dst);
+    }
 }
 
 //플레이어 피격(투사체 피격) 검사 및 처리 함수
@@ -209,8 +249,6 @@ bool CheckCollision(PlayerData* p, void* bulletArray, void* bossData) {
 
             p->isInvincible = true;
             p->invincibleEndTime = SDL_GetTicks() + 2000;
-
-            std::cout << "Player HP : " << (p->hp) << std::endl;
 
             bullets[b].active = false;
             if (p->hp <= 0) { p->isDead = true; return true; }
