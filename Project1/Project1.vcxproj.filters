@@ -14,34 +14,34 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\utils\Constants.h">
+    <ClInclude Include="include\Boss.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\Enemy.h">
+    <ClInclude Include="include\BossPattern.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\ImageManager.hpp">
+    <ClInclude Include="include\Constants.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\MapData.h">
+    <ClInclude Include="include\Enemy.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\MapSystem.h">
+    <ClInclude Include="include\ImageManager.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\Player.hpp">
+    <ClInclude Include="include\MapData.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\Projectile.hpp">
+    <ClInclude Include="include\MapSystem.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\SDL.h">
+    <ClInclude Include="include\Player.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\Boss.hpp">
+    <ClInclude Include="include\Projectile.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\BossPattern.hpp">
+    <ClInclude Include="include\SDL.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

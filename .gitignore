@@ -6,4 +6,5 @@ x64/
 *.opendb
 SDL2.dll
 SDL2_image.dll
+SDL2-devel-2.32.10-VC/
 Project1/3rdParty
