@@ -23,8 +23,12 @@
 
 //플레이어 설정
 #define PLAYER_SIZE 30
+#define CHAR_FRAME_SIZE 32  // 스프라이트 시트 한 프레임 크기 (px)
 #define PLAYER_SPEED 300.0f
 #define PLAYER_FRICTION 8.0f  //마찰 계수 (초당 감속률, 높을수록 빨리 멈춤)
+#define PLAYER_FOOT_OFFSET 20 //발 히트박스 시작 Y 오프셋 (스프라이트 상단 기준, px) — 벽 옆면 두께에 맞게 조정
+#define DOOR_SIZE 60          //출입문 개구부 크기 (px)
+#define DOOR_THICKNESS 20     //출입문 두께 (px, 표시용)
 #define PLAYER_HP 100
 #define PLAYER_BULLET_DAMAGE 50
 #define BOSS_PLAYER_INVINCIBLE_TIME 1000
@@ -32,7 +36,7 @@
 //플레이어 투사체 관련 설정
 #define MAX_PROJECTILES 5000		//한번에 존재 가능한 총 투사체 개수
 #define PROJECTILE_SPEED 600.0f	//투사체 속도(날아가는 속도)
-#define PROJECTILE_SIZE 8		//투사체 크기
+#define PROJECTILE_SIZE 32		//투사체 크기
 #define FIRE_DELAY 0.1f			//공격속도 (ms)
 #define PROJECTILE_SPIN_SPEED 360.0f //투사체 회전 속도 (도/초)
 

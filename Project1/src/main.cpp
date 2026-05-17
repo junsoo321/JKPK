@@ -18,14 +18,16 @@ extern "C" {
 int bossMap[MAP_ROWS][MAP_COLS];
 float gShakeAmount = 0.0f;
 
+
 auto main(int argc, char* argv[]) -> int
 {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window*     window   = SDL_CreateWindow("Game Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
     SDL_Renderer*   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    InitMap();
     LoadAllImages(renderer);
+    LoadCollisionMapsFromImages();
+    InitMap();
 
     PlayerData player;
     InitPlayer(&player);

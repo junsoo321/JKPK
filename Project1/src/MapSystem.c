@@ -37,11 +37,11 @@ void InitMap() {
             //기본 바닥 설정
             int tile = 0;
 
-            //월드 테두리 생성 (2: 가장자리 벽)
-            if (r == 0 && currentRoomY == 0) tile = 2;
-            if (r == MAP_ROWS - 1 && currentRoomY == MAX_ROOMS_Y - 1) tile = 2;
-            if (c == 0 && currentRoomX == 0) tile = 2;
-            if (c == MAP_COLS - 1 && currentRoomX == MAX_ROOMS_X - 1) tile = 2;
+            //월드 테두리 생성 (1: 투명 외곽벽)
+            if (r == 0 && currentRoomY == 0) tile = 1;
+            if (r == MAP_ROWS - 1 && currentRoomY == MAX_ROOMS_Y - 1) tile = 1;
+            if (c == 0 && currentRoomX == 0) tile = 1;
+            if (c == MAP_COLS - 1 && currentRoomX == MAX_ROOMS_X - 1) tile = 1;
 
             //맵 패턴 생성
             if (r > 0 && r < MAP_ROWS - 1 && c > 0 && c < MAP_COLS - 1) {
@@ -61,8 +61,11 @@ void InitMap() {
 int IsWall(float x, float y) {
     int col = (int)(x / TILE_SIZE);
     int row = (int)(y / TILE_SIZE);
+    if (row < 0 || row >= MAP_ROWS || col < 0 || col >= MAP_COLS) return 1;
 
-    return worldMap[row][col] != 0; //1(내부 장애물) 또는 2(가장자리 벽)이면 이동불가
+    // 0=바닥(가능), 1=외곽벽(불가), 2=장애물(불가), 3=문(가능)
+    int tile = worldMap[row][col];
+    return tile == 1 || tile == 2;
 }
 
 //맵 그리기 함수
@@ -80,7 +83,9 @@ void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, S
     for (int r = 0; r < MAP_ROWS; r++) {
         for (int c = 0; c < MAP_COLS; c++) {
             int tileType = worldMap[r][c];
-            if (tileType == 0 || processed[r][c]) continue;
+            // 0=바닥, 1=외곽벽(투명), 3=문(통과 가능) → 렌더링 안 함
+            // 2=맵 장애물만 텍스처 렌더링
+            if (tileType != 2 || processed[r][c]) continue;
 
             // 오른쪽으로 최대 너비 확장 (같은 타일 타입만)
             int w = 1;
@@ -105,11 +110,9 @@ void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, S
                 for (int dc = 0; dc < w; dc++)
                     processed[r + dr][c + dc] = true;
 
-            // 타일 타입에 따라 텍스처 선택 (1: 내부 장애물, 2: 가장자리 벽)
             SDL_Rect rect = { c * TILE_SIZE, r * TILE_SIZE, w * TILE_SIZE, h * TILE_SIZE };
-            SDL_Texture* tex = (tileType == 2) ? borderTex : wallTex;
-            if (tex) {
-                SDL_RenderCopy(renderer, tex, NULL, &rect);
+            if (wallTex) {
+                SDL_RenderCopy(renderer, wallTex, NULL, &rect);
             }
             else {
                 SDL_SetRenderDrawColor(renderer, 80, 80, 80, 255);
@@ -139,6 +142,65 @@ void MoveToNextRoom(int direction) {
     InitProjectiles(); //이전 방의 투사체 제거
     InitMap(); //다음 맵 생성(또는 불러오기)
 }
+
+// 해당 방향 가장자리에 있는 yellow 문 타일의 중앙 픽셀 좌표를 반환
+// direction: 0=상(X 반환), 1=하(X 반환), 2=좌(Y 반환), 3=우(Y 반환)
+// 문이 없으면 -1 반환
+int GetDoorCenter(int direction) {
+    int sum = 0, count = 0;
+
+    if (direction == 0 || direction == 1) {
+        for (int c = 0; c < MAP_COLS; c++) {
+            for (int depth = 0; depth <= 6; depth++) {
+                int r = (direction == 0) ? depth : (MAP_ROWS - 1 - depth);
+                if (r < 0 || r >= MAP_ROWS) continue;
+                if (worldMap[r][c] == 3) {
+                    sum += c * TILE_SIZE + TILE_SIZE / 2;
+                    count++;
+                    break;
+                }
+            }
+        }
+    } else {
+        for (int r = 0; r < MAP_ROWS; r++) {
+            for (int depth = 0; depth <= 6; depth++) {
+                int c = (direction == 2) ? depth : (MAP_COLS - 1 - depth);
+                if (c < 0 || c >= MAP_COLS) continue;
+                if (worldMap[r][c] == 3) {
+                    sum += r * TILE_SIZE + TILE_SIZE / 2;
+                    count++;
+                    break;
+                }
+            }
+        }
+    }
+
+    return count > 0 ? sum / count : -1;
+}
+
+// 플레이어 히트박스(pos1~pos2) 범위가 해당 방향 가장자리의 문(type 3) 타일과 겹치는지 확인
+// direction: 0=상, 1=하, 2=좌, 3=우  /  pos1~pos2: 벽과 평행한 축의 픽셀 범위
+int HasDoorAtEdge(int direction, float pos1, float pos2) {
+    int t1 = (int)(pos1 / TILE_SIZE);
+    int t2 = (int)(pos2 / TILE_SIZE);
+    if (t1 < 0) t1 = 0;
+    if (t2 < 0) t2 = 0;
+
+    for (int t = t1; t <= t2; t++) {
+        for (int depth = 0; depth <= 6; depth++) {
+            int r, c;
+            if      (direction == 0) { r = depth;              c = t; }
+            else if (direction == 1) { r = MAP_ROWS - 1 - depth; c = t; }
+            else if (direction == 2) { r = t; c = depth;            }
+            else                     { r = t; c = MAP_COLS - 1 - depth; }
+
+            if (r < 0 || r >= MAP_ROWS || c < 0 || c >= MAP_COLS) continue;
+            if (worldMap[r][c] == 3) return 1;
+        }
+    }
+    return 0;
+}
+
 
 //미니맵 그리는 함수
 void DrawMiniMap(SDL_Renderer* renderer) {

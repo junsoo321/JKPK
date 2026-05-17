@@ -12,6 +12,12 @@
     <Filter Include="헤더 파일">
       <UniqueIdentifier>{90f01379-e056-436b-9f06-8762bb7ba24f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\c">
+      <UniqueIdentifier>{a22e0989-1bac-4ce2-912d-117633892ace}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\c">
+      <UniqueIdentifier>{f8b34fc3-ae56-4ea3-883d-54252e5830ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Boss.hpp">
@@ -20,19 +26,7 @@
     <ClInclude Include="include\BossPattern.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="include\Constants.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Enemy.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="include\ImageManager.hpp">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MapData.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MapSystem.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="include\Player.hpp">
@@ -41,24 +35,27 @@
     <ClInclude Include="include\Projectile.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="include\Constants.h">
+      <Filter>헤더 파일\c</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Enemy.h">
+      <Filter>헤더 파일\c</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MapData.h">
+      <Filter>헤더 파일\c</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MapSystem.h">
+      <Filter>헤더 파일\c</Filter>
+    </ClInclude>
     <ClInclude Include="include\SDL.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\c</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Enemy.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="src\ImageManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MapData.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MapSystem.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\Player.cpp">
@@ -72,6 +69,15 @@
     </ClCompile>
     <ClCompile Include="src\Boss.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MapData.c">
+      <Filter>소스 파일\c</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MapSystem.c">
+      <Filter>소스 파일\c</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Enemy.c">
+      <Filter>소스 파일\c</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

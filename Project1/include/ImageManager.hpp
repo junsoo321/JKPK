@@ -8,7 +8,10 @@ inline auto GetImageManagerSourcePath() -> const char* { return __FILE__; }
 
 //!!! 이미지를 저장하는 포인터 변수들입니다.
 //!!! 나중에 실제 이미지로 교체할 때 이 변수들에 로드하면 됩니다.
-extern SDL_Texture* gPlayerTexture; //!!! 플레이어 외형 이미지 변수
+extern SDL_Texture* gPlayerIdleTex;  // characters/Default/idle.png
+extern SDL_Texture* gPlayerWalkTex;  // characters/Default/walk.png
+extern SDL_Texture* gPlayerHurtTex;  // characters/Default/hurt.png
+extern SDL_Texture* gPlayerDeathTex; // characters/Default/death.png
 extern SDL_Texture* gWallTexture;   //!!! 벽 타일 외형 이미지 변수
 extern SDL_Texture* gFloorTexture;  //!!! 바닥 타일 외형 이미지 변수
 extern SDL_Texture* gEnemyTexture;
@@ -19,3 +22,7 @@ extern SDL_Texture* gBorderTexture; //!!! 가장자리 벽 이미지 변수
 extern SDL_Texture* gBossTexture;
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();
+
+// assets/map_collision_N.png (80x60px) 파일을 읽어 mapLayouts[N] 덮어쓰기
+// 파일이 없으면 기존 하드코딩 데이터 유지
+void LoadCollisionMapsFromImages();

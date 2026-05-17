@@ -14,6 +14,12 @@ void InitPlayer(PlayerData* p) {
     p->hp = PLAYER_HP;
     p->isInvincible = false;
     p->invincibleEndTime = 0;
+    p->animDir    = 0;
+    p->facingRight = true;
+    p->animFrame  = 0;
+    p->animTimer  = 0.0f;
+    p->hurtTimer  = 0.0f;
+    p->isDead     = false;
 }
 
 //플레이어 이동 함수
@@ -41,45 +47,61 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     float nextX = p->x + p->vx * deltaTime;
     float nextY = p->y + p->vy * deltaTime;
 
-    //맵 이동 판정 (화면 경계 체크)
-    //오른쪽 끝
-    if (nextX > SCREEN_WIDTH - 35) {
-        if (currentRoomX < MAX_ROOMS_X - 1) {
-            MoveToNextRoom(3);
-            p->x = 50; p->vx = 0.0f; p->vy = 0.0f;
-            return;
-        }
+    // 충돌 맵의 yellow(type 3) 타일 기준으로 각 방향 문 통과 가능 여부 확인
+    float dFootTop = p->y + PLAYER_FOOT_OFFSET;
+    float dFootBot = p->y + PLAYER_SIZE - 2;
+    bool canGoLeft  = HasDoorAtEdge(2, dFootTop, dFootBot) && currentRoomX > 0;
+    bool canGoRight = HasDoorAtEdge(3, dFootTop, dFootBot) && currentRoomX < MAX_ROOMS_X - 1;
+    bool canGoUp    = HasDoorAtEdge(0, p->x, p->x + 28)   && currentRoomY > 0;
+    bool canGoDown  = HasDoorAtEdge(1, p->x, p->x + 28)   && currentRoomY < MAX_ROOMS_Y - 1;
+
+    //맵 이동 판정 — 이동 후 새 방의 반대편 문 중앙에 배치
+    if (nextX < 5 && canGoLeft) {
+        MoveToNextRoom(2);
+        int cy = GetDoorCenter(3); // 새 방 오른쪽 문의 Y 중앙
+        p->x = SCREEN_WIDTH - 80;
+        p->y = (cy >= 0) ? cy - PLAYER_SIZE / 2.0f : SCREEN_HEIGHT / 2.0f - PLAYER_SIZE / 2.0f;
+        p->vx = 0.0f; p->vy = 0.0f; return;
     }
-    //왼쪽 끝
-    else if (nextX < 5) {
-        if (currentRoomX > 0) {
-            MoveToNextRoom(2);
-            p->x = SCREEN_WIDTH - 80; p->vx = 0.0f; p->vy = 0.0f;
-            return;
-        }
+    if (nextX > SCREEN_WIDTH - 35 && canGoRight) {
+        MoveToNextRoom(3);
+        int cy = GetDoorCenter(2); // 새 방 왼쪽 문의 Y 중앙
+        p->x = 50;
+        p->y = (cy >= 0) ? cy - PLAYER_SIZE / 2.0f : SCREEN_HEIGHT / 2.0f - PLAYER_SIZE / 2.0f;
+        p->vx = 0.0f; p->vy = 0.0f; return;
     }
-    //위쪽 끝
-    else if (nextY < 5) {
-        if (currentRoomY > 0) {
-            MoveToNextRoom(0);
-            p->y = SCREEN_HEIGHT - 80; p->vx = 0.0f; p->vy = 0.0f;
-            return;
-        }
+    if (nextY < 5 && canGoUp) {
+        MoveToNextRoom(0);
+        int cx = GetDoorCenter(1); // 새 방 아래쪽 문의 X 중앙
+        p->x = (cx >= 0) ? cx - PLAYER_SIZE / 2.0f : SCREEN_WIDTH / 2.0f - PLAYER_SIZE / 2.0f;
+        p->y = SCREEN_HEIGHT - 80;
+        p->vx = 0.0f; p->vy = 0.0f; return;
     }
-    //아래쪽 끝
-    else if (nextY > SCREEN_HEIGHT - 35) {
-        if (currentRoomY < MAX_ROOMS_Y - 1) {
-            MoveToNextRoom(1);
-            p->y = 50; p->vx = 0.0f; p->vy = 0.0f;
-            return;
-        }
+    if (nextY > SCREEN_HEIGHT - 35 && canGoDown) {
+        MoveToNextRoom(1);
+        int cx = GetDoorCenter(0); // 새 방 위쪽 문의 X 중앙
+        p->x = (cx >= 0) ? cx - PLAYER_SIZE / 2.0f : SCREEN_WIDTH / 2.0f - PLAYER_SIZE / 2.0f;
+        p->y = 50;
+        p->vx = 0.0f; p->vy = 0.0f; return;
     }
 
-    //벽 충돌 검사 (X, Y 축 독립 처리 → 벽면 슬라이딩 가능)
-    bool blockX = IsWall(nextX, p->y)      || IsWall(nextX + 28, p->y) ||
-                  IsWall(nextX, p->y + 28) || IsWall(nextX + 28, p->y + 28);
-    bool blockY = IsWall(p->x, nextY)      || IsWall(p->x + 28, nextY) ||
-                  IsWall(p->x, nextY + 28) || IsWall(p->x + 28, nextY + 28);
+    //벽 충돌 검사 — 발 히트박스 기준 (X, Y 축 독립 처리 → 벽면 슬라이딩 가능)
+    //스프라이트 상단에서 PLAYER_FOOT_OFFSET 아래를 발 상단으로 사용
+    float footTop = p->y    + PLAYER_FOOT_OFFSET;
+    float footBot = p->y    + PLAYER_SIZE - 2;
+    float nFootTop = nextY  + PLAYER_FOOT_OFFSET;
+    float nFootBot = nextY  + PLAYER_SIZE - 2;
+
+    bool blockX = IsWall(nextX,      footTop) || IsWall(nextX + 28, footTop) ||
+                  IsWall(nextX,      footBot)  || IsWall(nextX + 28, footBot);
+    bool blockY = IsWall(p->x,      nFootTop) || IsWall(p->x + 28, nFootTop) ||
+                  IsWall(p->x,      nFootBot)  || IsWall(p->x + 28, nFootBot);
+
+    //화면 경계 — 문이 없거나 인접 방이 없으면 이동 불가
+    if (nextX < 5          && !canGoLeft)  blockX = true;
+    if (nextX > SCREEN_WIDTH - 35  && !canGoRight) blockX = true;
+    if (nextY < 5          && !canGoUp)   blockY = true;
+    if (nextY > SCREEN_HEIGHT - 35 && !canGoDown)  blockY = true;
 
     if (!blockX) p->x = nextX; else p->vx = 0.0f;
     if (!blockY) p->y = nextY; else p->vy = 0.0f;
@@ -89,29 +111,76 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     p->drawRect.y = (int)p->y;
     p->drawRect.w = PLAYER_SIZE;
     p->drawRect.h = PLAYER_SIZE;
+
+    // 이동 방향 감지
+    bool moving = (fabsf(p->vx) > 20.0f || fabsf(p->vy) > 20.0f);
+    if (fabsf(p->vx) > fabsf(p->vy)) {
+        p->animDir = 2;
+        if (p->vx > 20.0f)       p->facingRight = true;
+        else if (p->vx < -20.0f) p->facingRight = false;
+    } else if (p->vy < -20.0f) {
+        p->animDir = 1;
+    } else if (moving) {
+        p->animDir = 0;
+    }
+
+    // hurt 타이머 감소
+    if (p->hurtTimer > 0.0f) p->hurtTimer -= deltaTime;
+
+    // 현재 상태에 따른 프레임 수 / 속도
+    int   maxFrames;
+    float frameTime;
+    if (p->isDead)              { maxFrames = 3; frameTime = 0.15f; }
+    else if (p->hurtTimer > 0.0f) { maxFrames = 2; frameTime = 0.1f;  }
+    else if (moving)            { maxFrames = 4; frameTime = 0.1f;  }
+    else                        { maxFrames = 2; frameTime = 0.35f; }
+
+    p->animTimer += deltaTime;
+    if (p->animTimer >= frameTime) {
+        p->animTimer = 0.0f;
+        if (p->isDead)
+            p->animFrame = (p->animFrame < maxFrames - 1) ? p->animFrame + 1 : maxFrames - 1;
+        else
+            p->animFrame = (p->animFrame + 1) % maxFrames;
+    }
+    // 상태가 바뀌면 프레임 범위 초과 방지
+    if (p->animFrame >= maxFrames) p->animFrame = 0;
 }
 
 void DrawPlayer(SDL_Renderer* renderer, PlayerData* p) {
-    Uint32 currentTime = SDL_GetTicks();
+    Uint32 now = SDL_GetTicks();
 
-    //무적 상태일 때 깜빡임 처리
+    // 무적 깜빡임
     if (p->isInvincible) {
-        //현재 시간이 무적 종료 시간보다 작을 때만 깜빡임
-        if (currentTime < p->invincibleEndTime) {
-            //100ms 단위
-            if ((currentTime / 100) % 2 == 0) {
-                return;
-            }
-        }
-        else {
-            //무적 시간이 끝났으면 플래그 해제
+        if (now < p->invincibleEndTime) {
+            if ((now / 100) % 2 == 0) return;
+        } else {
             p->isInvincible = false;
         }
     }
 
-    //플레이어 그리기
-    SDL_Rect playerRect = { (int)p->x, (int)p->y, PLAYER_SIZE, PLAYER_SIZE };
-    SDL_RenderCopy(renderer, gPlayerTexture, NULL, &playerRect);
+    // 텍스처 선택
+    SDL_Texture* tex;
+    if      (p->isDead)              tex = gPlayerDeathTex;
+    else if (p->hurtTimer > 0.0f)    tex = gPlayerHurtTex;
+    else if (fabsf(p->vx) > 20.0f || fabsf(p->vy) > 20.0f) tex = gPlayerWalkTex;
+    else                             tex = gPlayerIdleTex;
+
+    if (!tex) return;
+
+    // 스프라이트 시트에서 현재 프레임 잘라내기
+    SDL_Rect src = {
+        p->animFrame * CHAR_FRAME_SIZE,
+        p->animDir   * CHAR_FRAME_SIZE,
+        CHAR_FRAME_SIZE,
+        CHAR_FRAME_SIZE
+    };
+    SDL_Rect dst = { (int)p->x, (int)p->y, CHAR_FRAME_SIZE * 2, CHAR_FRAME_SIZE * 2 };
+
+    // 왼쪽 방향이면 수평 반전
+    SDL_RendererFlip flip = (p->animDir == 2 && !p->facingRight)
+                          ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+    SDL_RenderCopyEx(renderer, tex, &src, &dst, 0.0, NULL, flip);
 }
 
 //플레이어 피격(투사체 피격) 검사 및 처리 함수
@@ -135,16 +204,16 @@ bool CheckCollision(PlayerData* p, void* bulletArray, void* bossData) {
             if (p->isInvincible) { //플레이어 무적일 경우, 투사체 검사 X
                 return false;
             }
-            p->hp -= ENEMY_ATK; //데미지
+            p->hp -= ENEMY_ATK;
+            p->hurtTimer = 0.3f;
 
-            //피격 시 무적 설정 (2초)
             p->isInvincible = true;
             p->invincibleEndTime = SDL_GetTicks() + 2000;
 
             std::cout << "Player HP : " << (p->hp) << std::endl;
 
             bullets[b].active = false;
-            if (p->hp <= 0) return true;
+            if (p->hp <= 0) { p->isDead = true; return true; }
         }
     }
     return false;
