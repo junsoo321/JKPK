@@ -35,7 +35,6 @@ auto main(int argc, char* argv[]) -> int
     bool isRunning = true;
     SDL_Event event;
     Uint32 lastTime = SDL_GetTicks();
-    float fireTimer = 0.0f; //플레이어 공격 연사력 제어용 타이머
 
     while (isRunning) {
         //DeltaTime 계산 (이전 프레임과 현재 프레임 사이의 시간 간격)
@@ -50,6 +49,10 @@ auto main(int argc, char* argv[]) -> int
             if (event.type == SDL_QUIT) isRunning = false;
 
             if (event.type == SDL_KEYDOWN) {
+                if (event.key.keysym.sym == SDLK_SPACE && event.key.repeat == 0) {
+                    FireProjectile(player.x, player.y, deltaTime);
+                }
+
                 if (event.key.keysym.sym == SDLK_b && !isBossFight) {
                     isBossFight = true;
                     currentRoomX = BOSS_ROOM_X;
@@ -78,13 +81,6 @@ auto main(int argc, char* argv[]) -> int
 
         //플레이어 이동
         UpdatePlayer(&player, keyState, deltaTime);
-
-        //플레이어 공격 연사력 제어
-        fireTimer += deltaTime;
-        if (keyState[SDL_SCANCODE_SPACE] && fireTimer >= FIRE_DELAY) {
-            FireProjectile(player.x, player.y, deltaTime);
-            fireTimer = 0.0f; //타이머 초기화
-        }
 
         if (isBossFight) {
             UpdateBoss(&mainBoss, &player, deltaTime);
