@@ -1,5 +1,5 @@
 ﻿#include "Player.hpp"
-#include "MapSystem.h"
+#include "MapSystem.hpp"
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
 #include "Boss.hpp"
@@ -33,50 +33,49 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  nextX -= move; //a, 좌
     if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) nextX += move; //d, 우
 
-    //맵 이동 판정 (화면 경계 체크)
-    //오른쪽 끝
-    if (nextX > SCREEN_WIDTH - 35) {
-        if (currentRoomX < MAX_ROOMS_X - 1) {
-            MoveToNextRoom(3);
-            p->x = 50;
-            return;
-        }
-    }
-    //왼쪽 끝
-    else if (nextX < 5) {
-        if (currentRoomX > 0) {
-            MoveToNextRoom(2);
-            p->x = SCREEN_WIDTH - 80;
-            return;
-        }
-    }
-    //위쪽 끝
-    else if (nextY < 5) {
-        if (currentRoomY > 0) {
-            MoveToNextRoom(0);
-            p->y = SCREEN_HEIGHT - 80;
-            return;
-        }
-    }
-    //아래쪽 끝
-    else if (nextY > SCREEN_HEIGHT - 35) {
-        if (currentRoomY < MAX_ROOMS_Y - 1) {
-            MoveToNextRoom(1);
-            p->y = 50;
-            return;
-        }
-    }
-
     //벽 충돌 검사
     bool canMove = true;
-    if (IsWall(nextX, nextY) || IsWall(nextX + 28, nextY) ||
-        IsWall(nextX, nextY + 28) || IsWall(nextX + 28, nextY + 28)) {
+    if (IsWall(nextX, nextY) || IsWall(nextX + 28, nextY) || IsWall(nextX, nextY + 28) || IsWall(nextX + 28, nextY + 28)) {
         canMove = false;
     }
 
     if (canMove) {
         p->x = nextX;
         p->y = nextY;
+    }
+
+    // 방 이동 처리
+
+// 오른쪽
+    if (p->x > SCREEN_WIDTH - 35) {
+        if (currentRoom->right && currentRoom->right->exists) {
+            MoveToNextRoom(3);
+            p->x = 50;
+        }
+    }
+
+    // 왼쪽
+    else if (p->x < 5) {
+        if (currentRoom->left && currentRoom->left->exists) {
+            MoveToNextRoom(2);
+            p->x = SCREEN_WIDTH - 80;
+        }
+    }
+
+    // 위
+    else if (p->y < 5) {
+        if (currentRoom->up && currentRoom->up->exists) {
+            MoveToNextRoom(0);
+            p->y = SCREEN_HEIGHT - 80;
+        }
+    }
+
+    // 아래
+    else if (p->y > SCREEN_HEIGHT - 35) {
+        if (currentRoom->down && currentRoom->down->exists) {
+            MoveToNextRoom(1);
+            p->y = 50;
+        }
     }
 
     //렌더링용 사각형 업데이트

@@ -1,6 +1,6 @@
 ﻿#include <SDL.h>
 #include "Constants.h"
-#include "MapSystem.h"
+#include "MapSystem.hpp"
 #include "Player.hpp"
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
@@ -8,30 +8,33 @@
 #include "Boss.hpp"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 extern "C" {
-    extern int worldMap[MAP_ROWS][MAP_COLS];
     extern int currentRoomX;
     extern int currentRoomY;
 }
 
-int bossMap[MAP_ROWS][MAP_COLS];
+RoomNode roomNodes[MAP_ROWS][MAP_COLS];
 float gShakeAmount = 0.0f;
+BossData mainBoss;
+bool isBossFight = false;
 
 auto main(int argc, char* argv[]) -> int
 {
     SDL_Init(SDL_INIT_VIDEO);
+    srand((unsigned int)time(NULL));
     SDL_Window*     window   = SDL_CreateWindow("Game Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
     SDL_Renderer*   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
+    InitRoomNodes();
+    GenerateDungeon();
     InitMap();
     LoadAllImages(renderer);
 
     PlayerData player;
     InitPlayer(&player);
 
-    BossData mainBoss;
-    bool isBossFight = false;
     bool isRunning = true;
     SDL_Event event;
     Uint32 lastTime = SDL_GetTicks();
@@ -48,24 +51,13 @@ auto main(int argc, char* argv[]) -> int
         //키보드 입력 처리
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) isRunning = false;
-
             if (event.type == SDL_KEYDOWN) {
-                if (event.key.keysym.sym == SDLK_b && !isBossFight) {
-                    isBossFight = true;
-                    currentRoomX = BOSS_ROOM_X;
-                    currentRoomY = BOSS_ROOM_Y;
-                    InitBoss(&mainBoss);
-
-                    for (int r = 0; r < MAP_ROWS; r++) {
-                        for (int c = 0; c < MAP_COLS; c++) {
-                            worldMap[r][c] = (r == 0 || r == MAP_ROWS - 1 || c == 0 || c == MAP_COLS - 1) ? 1 : 0;
-                        }
-                    }
-                    player.x = SCREEN_WIDTH / 2.0f;
-                    player.y = SCREEN_HEIGHT - (TILE_SIZE * 9.0f);
+                if (event.key.keysym.sym == SDLK_m) {
+                    gShowFullMap = !gShowFullMap;
                 }
             }
         }
+
 
 
         //화면 흔들림 감쇠
@@ -78,6 +70,20 @@ auto main(int argc, char* argv[]) -> int
 
         //플레이어 이동
         UpdatePlayer(&player, keyState, deltaTime);
+
+        if (!isBossFight && currentRoom->roomType == ROOM_BOSS) {
+            isBossFight = true;
+            InitBoss(&mainBoss);
+
+            for (int r = 0; r < MAP_ROWS; r++) {
+                for (int c = 0; c < MAP_COLS; c++) {
+                    currentRoom->mapData[r][c] = (r == 0 || r == MAP_ROWS - 1 || c == 0 || c == MAP_COLS - 1) ? 1 : 0;
+                }
+            }
+
+            player.x = SCREEN_WIDTH / 2.0f;
+            player.y = SCREEN_HEIGHT - (TILE_SIZE * 9.0f);
+        }
 
         //플레이어 공격 연사력 제어
         fireTimer += deltaTime;
@@ -144,7 +150,12 @@ auto main(int argc, char* argv[]) -> int
             UpdateAndDrawEnemies(renderer, player.x, player.y, gEnemyTexture, deltaTime);
             CheckEnemyCollision(bullets);
         }
-
+        if (!gShowFullMap) {
+            DrawMiniMap(renderer);
+        }
+        else{
+            DrawMapOverlay(renderer);
+        }
         DrawPlayer(renderer, &player);
 
         SDL_Rect normalViewport = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };

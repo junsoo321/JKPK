@@ -24,8 +24,8 @@
     <ClCompile Include="src\Enemy.c" />
     <ClCompile Include="src\ImageManager.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\MapData.c" />
-    <ClCompile Include="src\MapSystem.c" />
+    <ClCompile Include="src\MapData.cpp" />
+    <ClCompile Include="src\MapSystem.cpp" />
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\Projectile.cpp" />
   </ItemGroup>
@@ -35,10 +35,11 @@
     <ClInclude Include="include\Constants.h" />
     <ClInclude Include="include\Enemy.h" />
     <ClInclude Include="include\ImageManager.hpp" />
-    <ClInclude Include="include\MapData.h" />
-    <ClInclude Include="include\MapSystem.h" />
+    <ClInclude Include="include\MapData.hpp" />
+    <ClInclude Include="include\MapSystem.hpp" />
     <ClInclude Include="include\Player.hpp" />
     <ClInclude Include="include\Projectile.hpp" />
+    <ClInclude Include="include\RoomNode.h" />
     <ClInclude Include="include\SDL.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

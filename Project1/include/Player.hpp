@@ -4,7 +4,7 @@
 #include "Constants.h"
 
 //플레이어 구조체
-struct PlayerData {
+typedef struct PlayerData {
     float x;     //위치 좌표
     float y;
     float speed; //이동속도
@@ -12,7 +12,7 @@ struct PlayerData {
     bool isInvincible;     // 무적 상태 여부
     Uint32 invincibleEndTime; // 무적 종료 시각 (SDL_GetTicks 기준)
     SDL_Rect drawRect;  //히트박스
-};
+} PlayerData;
 
 #ifdef __cplusplus
 extern "C" {
