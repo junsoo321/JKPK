@@ -111,8 +111,11 @@ void FireProjectile_PHASE3(float startX, float startY, float targetX, float targ
 void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime) {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (bullets[i].active) {
-            //타입에 따른 이동 속도 및 크기 차등 적용
-            float currentSpeed = (bullets[i].type == 1) ? 150.0f : PROJECTILE_SPEED;
+            //타입 및 발사 주체에 따른 이동 속도 차등 적용
+            float currentSpeed;
+            if (bullets[i].type == 1) currentSpeed = 150.0f;
+            else if (bullets[i].owner == 1) currentSpeed = BOSS_PROJECTILE_SPEED;
+            else currentSpeed = PROJECTILE_SPEED;
             int currentSize = (bullets[i].type == 1) ? (PROJECTILE_SIZE * 2) : PROJECTILE_SIZE;
 
             bullets[i].x += bullets[i].dirX * currentSpeed * deltaTime;

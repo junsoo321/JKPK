@@ -39,6 +39,7 @@
 //플레이어 투사체 관련 설정
 #define MAX_PROJECTILES 5000			//	한번에 존재 가능한 총 투사체 개수
 #define PROJECTILE_SPEED 400.0f			//	투사체 속도(날아가는 속도)
+#define BOSS_PROJECTILE_SPEED 250.0f	//	보스 투사체 속도
 #define PROJECTILE_SIZE 32				//	투사체 크기
 #define FIRE_DELAY 0.1f					//	공격속도 (ms)
 #define PROJECTILE_SPIN_SPEED 360.0f	//	투사체 회전 속도 (도/초)
@@ -80,7 +81,7 @@
 #define BOSS_LASER_STEP 90           //레이저 사이의 간격
 
 //2페이즈 탄막 패턴
-#define SWAY_ROAD_FIRE_INTERVAL 0.05f //탄막 연사 속도
+#define SWAY_ROAD_FIRE_INTERVAL 0.12f //탄막 연사 속도
 #define SWAY_ROAD_SWAY_SPEED 1.0f     //좌우 흔들림 속도
 #define SWAY_ROAD_SWAY_RANGE 45.0f    //좌우 흔들림 각도 범위
 #define SWAY_ROAD_BULLET_COUNT 16      //한 번에 발사되는 탄환 개수 (방사형)
