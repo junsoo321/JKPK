@@ -1,8 +1,7 @@
 ﻿#include "Enemy.h"
-#include "MapSystem.h"
+#include "MapSystem.hpp"
 #include "Projectile.hpp"
-#include "MapData.h"
-
+#include "MapData.hpp"
 #include <stdlib.h>
 #include <math.h>
 
@@ -64,7 +63,11 @@ bool CanMove(float nextX, float nextY) {
     int gridBottom = (int)(nextY + ENEMY_SIZE) / TILE_SIZE;
 
     // 몹 히트박스의 네 모서리 중 하나라도 벽에 걸리면 이동 불가
-    if (worldMap[gridY][gridX] != 0 || worldMap[gridY][gridRight] != 0 || worldMap[gridBottom][gridX] != 0 || worldMap[gridBottom][gridRight] != 0) {
+    if (currentRoom->mapData[gridY][gridX] != 0 ||
+        currentRoom->mapData[gridY][gridRight] != 0 ||
+        currentRoom->mapData[gridBottom][gridX] != 0 ||
+        currentRoom->mapData[gridBottom][gridRight] != 0)
+    {
         return false;
     }
     return true;

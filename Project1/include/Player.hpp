@@ -4,7 +4,7 @@
 #include "Constants.h"
 
 //플레이어 구조체
-struct PlayerData {
+typedef struct PlayerData {
     float x;
     float y;
     float vx;
@@ -22,7 +22,7 @@ struct PlayerData {
     float animTimer;
     float hurtTimer;    // > 0 이면 hurt 애니메이션 재생
     bool  isDead;
-};
+} PlayerData;
 
 #ifdef __cplusplus
 extern "C" {

@@ -17,10 +17,11 @@
 
 
 //랜덤 맵 생성 시 전체 맵 개수의 최대값
-#define MAX_ROOMS_X 5	//가로 최대 개수
-#define MAX_ROOMS_Y 5	//세로 최대 개수
-#define BOSS_ROOM_X 5	//보스방의 월드 맵 X 좌표
-#define BOSS_ROOM_Y 5	//보스방의 월드 맵 Y 좌표
+#define MAX_ROOMS_X 10  //가로 최대 개수
+#define MAX_ROOMS_Y 10  //세로 최대 개수
+#define ROOM_NORMAL 0
+#define ROOM_BOSS 1
+#define ROOM_START 2
 
 //플레이어 설정
 #define PLAYER_SIZE 36				//	히트박스 크기 — 실제 캐릭터 도트 영역(3x 기준 36×42)에 맞춤

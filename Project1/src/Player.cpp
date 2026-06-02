@@ -1,5 +1,5 @@
 ﻿#include "Player.hpp"
-#include "MapSystem.h"
+#include "MapSystem.hpp"
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
 #include "Boss.hpp"
@@ -34,86 +34,56 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     float friction = 1.0f - PLAYER_FRICTION * deltaTime;
     if (friction < 0.0f) friction = 0.0f;
 
-    float targetVx = 0.0f, targetVy = 0.0f;
-    if (keyboardState[SDL_SCANCODE_W] || keyboardState[SDL_SCANCODE_UP])    targetVy -= p->speed;
-    if (keyboardState[SDL_SCANCODE_S] || keyboardState[SDL_SCANCODE_DOWN])  targetVy += p->speed;
-    if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  targetVx -= p->speed;
-    if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) targetVx += p->speed;
+    //키보드 입력 받기, 이동할 좌표 저장
+    if (keyboardState[SDL_SCANCODE_W] || keyboardState[SDL_SCANCODE_UP])    nextY -= move; //w, 위
+    if (keyboardState[SDL_SCANCODE_S] || keyboardState[SDL_SCANCODE_DOWN])  nextY += move; //s, 아래
+    if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  nextX -= move; //a, 좌
+    if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) nextX += move; //d, 우
 
-    p->vx = (targetVx != 0.0f) ? targetVx : p->vx * friction;
-    p->vy = (targetVy != 0.0f) ? targetVy : p->vy * friction;
-
-    float nextX = p->x + p->vx * deltaTime;
-    float nextY = p->y + p->vy * deltaTime;
-
-    // 충돌 맵의 yellow(type 3) 타일 기준으로 각 방향 문 통과 가능 여부 확인
-    float dFootTop = p->y + PLAYER_FOOT_OFFSET;
-    float dFootBot = p->y + PLAYER_SIZE - 2;
-    bool canGoLeft  = HasDoorAtEdge(2, dFootTop, dFootBot) && currentRoomX > 0;
-    bool canGoRight = HasDoorAtEdge(3, dFootTop, dFootBot) && currentRoomX < MAX_ROOMS_X - 1;
-    bool canGoUp    = HasDoorAtEdge(0, p->x, p->x + PLAYER_SIZE - 2) && currentRoomY > 0;
-    bool canGoDown  = HasDoorAtEdge(1, p->x, p->x + PLAYER_SIZE - 2) && currentRoomY < MAX_ROOMS_Y - 1;
-
-    //맵 이동 판정 — 발 히트박스가 문 타일에 닿으면 즉시 이동
-    const int EDGE = 5;
-    const int RIGHT_TRIGGER  = SCREEN_WIDTH  - PLAYER_SIZE - EDGE;
-    const int BOTTOM_TRIGGER = SCREEN_HEIGHT - PLAYER_SIZE - EDGE;
-
-    float nFootTop = nextY + PLAYER_FOOT_OFFSET;
-    float nFootBot = nextY + PLAYER_SIZE - 2;
-    float nFootL   = nextX;
-    float nFootR   = nextX + PLAYER_SIZE - 2;
-
-    // 문 타일 깊이(0~6 tiles)보다 한 칸 더 안쪽에 스폰하여 재전환 방지
-    const int SPAWN_INSET = 7 * TILE_SIZE;
-
-    if (canGoLeft  && IsTouchingEdgeDoor(2, nFootL, nFootR, nFootTop, nFootBot)) {
-        MoveToNextRoom(2);
-        int cy = GetDoorCenter(3);
-        p->x = (float)(SCREEN_WIDTH - PLAYER_SIZE - SPAWN_INSET);
-        p->y = (cy >= 0) ? cy - PLAYER_SIZE / 2.0f : SCREEN_HEIGHT / 2.0f - PLAYER_SIZE / 2.0f;
-        p->vx = 0.0f; p->vy = 0.0f; return;
-    }
-    if (canGoRight && IsTouchingEdgeDoor(3, nFootL, nFootR, nFootTop, nFootBot)) {
-        MoveToNextRoom(3);
-        int cy = GetDoorCenter(2);
-        p->x = (float)SPAWN_INSET;
-        p->y = (cy >= 0) ? cy - PLAYER_SIZE / 2.0f : SCREEN_HEIGHT / 2.0f - PLAYER_SIZE / 2.0f;
-        p->vx = 0.0f; p->vy = 0.0f; return;
-    }
-    if (canGoUp    && IsTouchingEdgeDoor(0, nFootL, nFootR, nFootTop, nFootBot)) {
-        MoveToNextRoom(0);
-        int cx = GetDoorCenter(1);
-        p->x = (cx >= 0) ? cx - PLAYER_SIZE / 2.0f : SCREEN_WIDTH / 2.0f - PLAYER_SIZE / 2.0f;
-        p->y = (float)(SCREEN_HEIGHT - PLAYER_SIZE - SPAWN_INSET);
-        p->vx = 0.0f; p->vy = 0.0f; return;
-    }
-    if (canGoDown  && IsTouchingEdgeDoor(1, nFootL, nFootR, nFootTop, nFootBot)) {
-        MoveToNextRoom(1);
-        int cx = GetDoorCenter(0);
-        p->x = (cx >= 0) ? cx - PLAYER_SIZE / 2.0f : SCREEN_WIDTH / 2.0f - PLAYER_SIZE / 2.0f;
-        p->y = (float)SPAWN_INSET;
-        p->vx = 0.0f; p->vy = 0.0f; return;
+    //벽 충돌 검사
+    bool canMove = true;
+    if (IsWall(nextX, nextY) || IsWall(nextX + 28, nextY) || IsWall(nextX, nextY + 28) || IsWall(nextX + 28, nextY + 28)) {
+        canMove = false;
     }
 
-    //벽 충돌 검사 — 발 히트박스 기준 (X, Y 축 독립 처리 → 벽면 슬라이딩 가능)
-    //스프라이트 상단에서 PLAYER_FOOT_OFFSET 아래를 발 상단으로 사용
-    float footTop = p->y   + PLAYER_FOOT_OFFSET;
-    float footBot = p->y   + PLAYER_SIZE - 2;
+    if (canMove) {
+        p->x = nextX;
+        p->y = nextY;
+    }
 
-    bool blockX = IsWall(nextX,                  footTop) || IsWall(nextX + PLAYER_SIZE - 2, footTop) ||
-                  IsWall(nextX,                  footBot)  || IsWall(nextX + PLAYER_SIZE - 2, footBot);
-    bool blockY = IsWall(p->x,                   nFootTop) || IsWall(p->x  + PLAYER_SIZE - 2, nFootTop) ||
-                  IsWall(p->x,                   nFootBot)  || IsWall(p->x  + PLAYER_SIZE - 2, nFootBot);
+    // 방 이동 처리
 
-    //화면 경계 — 문이 없거나 인접 방이 없으면 이동 불가
-    if (nextX < EDGE                && !canGoLeft)  blockX = true;
-    if (nextX > RIGHT_TRIGGER       && !canGoRight) blockX = true;
-    if (nextY < EDGE                && !canGoUp)    blockY = true;
-    if (nextY > BOTTOM_TRIGGER      && !canGoDown)  blockY = true;
+// 오른쪽
+    if (p->x > SCREEN_WIDTH - 35) {
+        if (currentRoom->right && currentRoom->right->exists) {
+            MoveToNextRoom(3);
+            p->x = 50;
+        }
+    }
 
-    if (!blockX) p->x = nextX; else p->vx = 0.0f;
-    if (!blockY) p->y = nextY; else p->vy = 0.0f;
+    // 왼쪽
+    else if (p->x < 5) {
+        if (currentRoom->left && currentRoom->left->exists) {
+            MoveToNextRoom(2);
+            p->x = SCREEN_WIDTH - 80;
+        }
+    }
+
+    // 위
+    else if (p->y < 5) {
+        if (currentRoom->up && currentRoom->up->exists) {
+            MoveToNextRoom(0);
+            p->y = SCREEN_HEIGHT - 80;
+        }
+    }
+
+    // 아래
+    else if (p->y > SCREEN_HEIGHT - 35) {
+        if (currentRoom->down && currentRoom->down->exists) {
+            MoveToNextRoom(1);
+            p->y = 50;
+        }
+    }
 
     //렌더링용 사각형 업데이트
     p->drawRect.x = (int)p->x;

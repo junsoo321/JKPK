@@ -186,7 +186,7 @@ void Pattern_LaserAndDelay(BossData* b, PlayerData* player, Uint32 currentTime, 
     //레이저 공격 상태
     b->laserCycle += deltaTime;
     if (b->laserCycle >= BOSS_LASER_WARNING_TIME && b->laserCycle < BOSS_LASER_WARNING_TIME + (deltaTime * 2.0f)) {
-        if (b->stateTimer < 10.0f && gShakeAmount <= 0) { //레이저 타이밍에 맞춰서 화면 흔들기
+        if (b->stateTimer < 12.0f && gShakeAmount <= 0) { //레이저 타이밍에 맞춰서 화면 흔들기
             gShakeAmount = SHAKE_INTENSITY;
         }
     }

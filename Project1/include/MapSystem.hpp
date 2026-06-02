@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <SDL.h>
+#include "RoomNode.h"
 
 #ifdef __cplusplus //C++에서 이 헤더를 포함해도 C 언어 함수 이름을 그대로 사용할 수 있도록 설정
 extern "C" {
@@ -21,9 +22,14 @@ extern "C" {
 
 extern int currentRoomX;
 	extern int currentRoomY;
+	extern RoomNode* currentRoom;
+	extern bool gShowFullMap;
 
 	void MoveToNextRoom(int direction); //0:상, 1:하, 2:좌, 3:우
-	void DrawMiniMap(SDL_Renderer* renderer);
+	void InitRoomNodes();
+	void DrawMapOverlay(SDL_Renderer* renderer);	void DrawMiniMap(SDL_Renderer* renderer);
+	void InitRoomNodes();
+	void GenerateDungeon();
 
 #ifdef __cplusplus //C++에서 이 헤더를 포함해도 C 언어 함수 이름을 그대로 사용할 수 있도록 설정
 }

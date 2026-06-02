@@ -1,9 +1,11 @@
 ﻿#pragma once
 
-#include "Player.hpp"
+#include <SDL.h>
+
+typedef struct PlayerData PlayerData;
 
 // 보스 상태 열거형
-enum BossState {
+typedef enum BossState {
     B_PHASE1_INTRO,       // 등장 연출
     B_IDLE,               // 1페이즈 기본 대기 및 공격
     B_TELEPORT_OUT,       // 텔레포트 사라짐
@@ -18,10 +20,10 @@ enum BossState {
     B_PHASE3_MAIN,        // 3페이즈 메인
     B_PHASE3_OUTRO,       // 3페이즈 종료(즉사기 패턴)
     B_DEAD                // 보스 사망
-};
+} BossState;
 
 //보스 데이터 구조체
-struct BossData {
+typedef struct BossData {
     float x, y;           //현재 좌표
     float startY;         //인트로 시작 좌표
     float targetX, targetY; //이동 목표 좌표
@@ -56,7 +58,7 @@ struct BossData {
     float rushSpeed;         //돌진 속도
     float rockX, rockY;      //안전지대 바위 위치
     bool isRushing;          //돌진 중 여부
-};
+} BossData;
 
 void InitBoss(BossData* b);
 void UpdateBoss(BossData* b, PlayerData* player, float deltaTime);

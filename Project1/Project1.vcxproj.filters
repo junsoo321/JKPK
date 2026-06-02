@@ -26,6 +26,9 @@
     <ClInclude Include="include\BossPattern.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="include\BossPattern.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="include\ImageManager.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -56,6 +59,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MapData.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MapSystem.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\Player.cpp">
