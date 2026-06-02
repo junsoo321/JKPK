@@ -34,11 +34,17 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     float friction = 1.0f - PLAYER_FRICTION * deltaTime;
     if (friction < 0.0f) friction = 0.0f;
 
+    float move  = p->speed * deltaTime;
+    float nextX = p->x;
+    float nextY = p->y;
+    p->vx = 0.0f;
+    p->vy = 0.0f;
+
     //키보드 입력 받기, 이동할 좌표 저장
-    if (keyboardState[SDL_SCANCODE_W] || keyboardState[SDL_SCANCODE_UP])    nextY -= move; //w, 위
-    if (keyboardState[SDL_SCANCODE_S] || keyboardState[SDL_SCANCODE_DOWN])  nextY += move; //s, 아래
-    if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  nextX -= move; //a, 좌
-    if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) nextX += move; //d, 우
+    if (keyboardState[SDL_SCANCODE_W] || keyboardState[SDL_SCANCODE_UP])    { nextY -= move; p->vy = -p->speed; }
+    if (keyboardState[SDL_SCANCODE_S] || keyboardState[SDL_SCANCODE_DOWN])  { nextY += move; p->vy =  p->speed; }
+    if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  { nextX -= move; p->vx = -p->speed; }
+    if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) { nextX += move; p->vx =  p->speed; }
 
     //벽 충돌 검사
     bool canMove = true;

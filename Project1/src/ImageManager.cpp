@@ -1,5 +1,5 @@
 ﻿#include "ImageManager.hpp"
-#include "MapData.h"
+#include "MapData.hpp"
 #include "Constants.h"
 
 #include <SDL_image.h>

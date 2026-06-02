@@ -1,6 +1,7 @@
 ﻿#include <SDL.h>
 #include "Constants.h"
 #include "MapSystem.hpp"
+#include "MapData.hpp"
 #include "Player.hpp"
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
@@ -15,7 +16,6 @@ extern "C" {
     extern int currentRoomY;
 }
 
-RoomNode roomNodes[MAP_ROWS][MAP_COLS];
 float gShakeAmount = 0.0f;
 BossData mainBoss;
 bool isBossFight = false;
@@ -56,24 +56,15 @@ auto main(int argc, char* argv[]) -> int
                 if (event.key.keysym.sym == SDLK_m) {
                     gShowFullMap = !gShowFullMap;
                 }
-            }
-        }
-
                 if (event.key.keysym.sym == SDLK_SPACE && event.key.repeat == 0) {
                     FireProjectile(player.x, player.y, deltaTime);
                 }
-
                 if (event.key.keysym.sym == SDLK_b && !isBossFight) {
                     isBossFight = true;
-                    currentRoomX = BOSS_ROOM_X;
-                    currentRoomY = BOSS_ROOM_Y;
                     InitBoss(&mainBoss);
-
-                    // 보스 맵 collision 데이터를 현재 맵에 적용
                     for (int r = 0; r < MAP_ROWS; r++)
                         for (int c = 0; c < MAP_COLS; c++)
-                            worldMap[r][c] = bossMapLayout[r][c];
-
+                            currentRoom->mapData[r][c] = (r == 0 || r == MAP_ROWS - 1 || c == 0 || c == MAP_COLS - 1) ? 1 : 0;
                     player.x = SCREEN_WIDTH / 2.0f;
                     player.y = SCREEN_HEIGHT - (TILE_SIZE * 9.0f);
                 }
@@ -153,7 +144,7 @@ auto main(int argc, char* argv[]) -> int
         SDL_RenderSetViewport(renderer, &shakeViewport);
 
         SDL_Texture* bgTex = isBossFight ? gBossMapTexture : gMapTexture;
-        DrawMap(renderer, bgTex, gWallTexture);
+        DrawMap(renderer, bgTex, gWallTexture, nullptr);
 
         //투사체 이동 및 그리기
         UpdateAndDrawProjectiles(renderer, deltaTime);

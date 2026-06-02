@@ -44,14 +44,17 @@
     <ClInclude Include="include\Enemy.h">
       <Filter>헤더 파일\c</Filter>
     </ClInclude>
-    <ClInclude Include="include\MapData.h">
-      <Filter>헤더 파일\c</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MapSystem.h">
-      <Filter>헤더 파일\c</Filter>
-    </ClInclude>
     <ClInclude Include="include\SDL.h">
       <Filter>헤더 파일\c</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RoomNode.h">
+      <Filter>헤더 파일\c</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MapData.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MapSystem.hpp">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -78,12 +81,6 @@
     </ClCompile>
     <ClCompile Include="src\Boss.cpp">
       <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MapData.c">
-      <Filter>소스 파일\c</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MapSystem.c">
-      <Filter>소스 파일\c</Filter>
     </ClCompile>
     <ClCompile Include="src\Enemy.c">
       <Filter>소스 파일\c</Filter>
