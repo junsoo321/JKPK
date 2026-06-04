@@ -3,6 +3,7 @@
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
 #include "Boss.hpp"
+#include "Enemy.h"
 #include <iostream>
 
 void InitPlayer(PlayerData* p) {
@@ -45,7 +46,10 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     }
 
     // 방 이동 처리
-
+    if (AreEnemiesAlive())
+    {
+        return;
+    }
 // 오른쪽
     if (p->x > SCREEN_WIDTH - 35) {
         if (currentRoom->right && currentRoom->right->exists) {

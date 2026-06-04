@@ -38,7 +38,7 @@ void InitMap() {
 
             //맵 패턴 생성
             if (r > 0 && r < MAP_ROWS - 1 && c > 0 && c < MAP_COLS - 1) {
-                tile = mapLayouts[randomIdx][r][c];
+                tile = mapLayouts[1][r][c];
             }
 
             //결과물을 현재 맵(worldMap)과 월드 데이터(worldData)에 동시 저장

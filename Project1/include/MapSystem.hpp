@@ -16,6 +16,7 @@ extern "C" {
 	extern int currentRoomY;
 	extern RoomNode* currentRoom;
 	extern bool gShowFullMap;
+	extern RoomNode roomNodes[MAX_ROOMS_X][MAX_ROOMS_Y];
 
 	//맵을 이동하는 함수
 	void MoveToNextRoom(int direction); //0:상, 1:하, 2:좌, 3:우

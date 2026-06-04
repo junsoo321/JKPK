@@ -4,14 +4,57 @@
 #include <stdbool.h>
 #include "Constants.h"
 
-//몹 구조체 정의
-typedef struct {
+typedef enum
+{
+    NINJA_IDLE,
+    NINJA_DASH_PREPARE,
+    NINJA_DASH,
+    NINJA_RECOVER
+} NinjaState;
+
+typedef enum
+{
+    ENEMY_NORMAL,
+    ENEMY_SUICIDE,
+    ENEMY_NINJA
+} EnemyType;
+
+typedef struct
+{
     float x, y;
-    float speed, dirX, dirY;
+
+    float speed;
+    float dirX;
+    float dirY;
+    float moveDirX;
+    float moveDirY;
+    Uint32 nextMoveDecisionTime;
     bool active;
-    //공격 시점은 개별 측정이 아닌 SDL_GetTicks() 기준으로 결정
-    Uint32 lastAttackTime; // 마지막으로 공격한 시각
-    Uint32 nextAttackDelay; // 다음 공격까지 대기할 랜덤 시간 (ms)
+
+    EnemyType type;
+
+    Uint32 spawnTime;
+
+    //투사체(일반몹)
+    Uint32 lastAttackTime;
+    Uint32 nextAttackDelay;
+
+    //자폭몹
+    Uint32 explodeTime;
+
+    //닌자몹
+    Uint32 skillStartTime;
+    Uint32 skillCooldownEnd;
+    Uint32 dodgeEndTime;
+    Uint32 nextDodgeTime;
+    bool isDodging;
+    bool isInvincible;
+    Uint32 lastEmergencyDodgeTime;
+    Uint32 stateStartTime;
+
+    int state;
+
+    bool warning;
 } Enemy;
 
 
@@ -32,6 +75,8 @@ extern "C" {
 
     //투사체 충돌 체크 함수
     void CheckEnemyCollision(void* projectileArray);
+
+    bool AreEnemiesAlive(void);
 
 #ifdef __cplusplus //C++에서 이 헤더를 포함해도 C 언어 함수 이름을 그대로 사용할 수 있도록 설정
 }

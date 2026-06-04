@@ -15,7 +15,6 @@ extern "C" {
     extern int currentRoomY;
 }
 
-RoomNode roomNodes[MAP_ROWS][MAP_COLS];
 float gShakeAmount = 0.0f;
 BossData mainBoss;
 bool isBossFight = false;
