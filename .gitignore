@@ -4,6 +4,3 @@ x64/
 *.vcxproj.user
 *.db
 *.opendb
-SDL2.dll
-SDL2_image.dll
-Project1/3rdParty
