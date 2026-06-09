@@ -10,6 +10,7 @@ typedef struct RoomNode {
     bool visited;
     bool discovered;
     bool exists;
+    bool specialCleared;
 
     int roomType;
 

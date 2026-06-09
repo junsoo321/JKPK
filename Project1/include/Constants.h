@@ -21,6 +21,14 @@
 #define ROOM_NORMAL 0
 #define ROOM_BOSS 1
 #define ROOM_START 2
+#define ROOM_MAZE 3
+#define ROOM_QUIZ 4
+
+#define MAZE_ROOM_COUNT 8
+#define MAZE_TILE_SIZE 32
+#define MAZE_PLAYER_SIZE 24
+
+#define QUIZ_ROOM_COUNT 0
 
 //플레이어 설정
 #define PLAYER_SIZE 30

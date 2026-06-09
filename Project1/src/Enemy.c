@@ -11,8 +11,13 @@ static Enemy currentEnemies[MAX_ENEMIES_PER_ROOM];
 extern Projectile bullets[MAX_PROJECTILES];
 
 void LoadEnemiesForRoom(int roomX, int roomY) {
-    if (roomNodes[roomX][roomY].roomType
-        == ROOM_START)
+    int roomType = roomNodes[roomX][roomY].roomType;
+
+    if (
+        roomType == ROOM_START ||
+        roomType == ROOM_MAZE ||
+        roomType == ROOM_QUIZ
+        )
     {
         for (int i = 0; i < MAX_ENEMIES_PER_ROOM; i++) {
             currentEnemies[i].active = false;
@@ -43,7 +48,7 @@ void LoadEnemiesForRoom(int roomX, int roomY) {
                 currentEnemies[i].nextDodgeTime = SDL_GetTicks() + 5000; 
                 currentEnemies[i].dodgeEndTime = 0;
 
-                int r = rand() % 90;
+                int r = rand() % 100;
 
                 if (r < 65)
                     currentEnemies[i].type = ENEMY_NORMAL;

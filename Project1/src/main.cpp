@@ -6,6 +6,9 @@
 #include "Projectile.hpp"
 #include "Enemy.h"
 #include "Boss.hpp"
+#include "GameState.hpp"
+#include "QuizStage.hpp"
+#include "MazeStage.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -55,6 +58,10 @@ auto main(int argc, char* argv[]) -> int
                     gShowFullMap = !gShowFullMap;
                 }
             }
+            if (gGameState == GAME_QUIZ)
+            {
+                HandleQuizEvent(&event);
+            }
         }
 
 
@@ -67,8 +74,39 @@ auto main(int argc, char* argv[]) -> int
 
         const Uint8* keyState = SDL_GetKeyboardState(NULL);
 
-        //플레이어 이동
-        UpdatePlayer(&player, keyState, deltaTime);
+        if (gGameState == GAME_NORMAL ||
+            gGameState == GAME_BOSS)
+        {
+            UpdatePlayer(
+                &player,
+                keyState,
+                deltaTime
+            );
+        }
+        else if (gGameState == GAME_MAZE)
+        {
+            UpdateMazeStage(
+                keyState,
+                deltaTime
+            );
+        }
+
+        if (
+            currentRoom->roomType == ROOM_MAZE &&
+            !currentRoom->specialCleared &&
+            gGameState != GAME_MAZE
+            )
+        {
+            StartMazeStage();
+
+            gGameState = GAME_MAZE;
+        }
+
+        if (currentRoom->roomType == ROOM_QUIZ &&
+            !currentRoom->specialCleared)
+        {
+            gGameState = GAME_QUIZ;
+        }
 
         if (!isBossFight && currentRoom->roomType == ROOM_BOSS) {
             isBossFight = true;
@@ -82,6 +120,36 @@ auto main(int argc, char* argv[]) -> int
 
             player.x = SCREEN_WIDTH / 2.0f;
             player.y = SCREEN_HEIGHT - (TILE_SIZE * 9.0f);
+        }
+
+        if (gGameState == GAME_QUIZ)
+        {
+            if (IsQuizFinished())
+            {
+                if (IsQuizCorrect())
+                {
+                    currentRoom->specialCleared = true;
+                }
+                else
+                {
+                    player.hp -= 10;
+                    currentRoom->specialCleared = true;
+                }
+
+                gGameState = GAME_NORMAL;
+            }
+        }
+
+        if (
+            gGameState == GAME_MAZE
+            )
+        {
+            if (IsMazeFinished())
+            {
+                currentRoom->specialCleared = true;
+
+                gGameState = GAME_NORMAL;
+            }
         }
 
         //플레이어 공격 연사력 제어
@@ -137,7 +205,21 @@ auto main(int argc, char* argv[]) -> int
         SDL_Rect shakeViewport = { offsetX, offsetY, SCREEN_WIDTH, SCREEN_HEIGHT };
         SDL_RenderSetViewport(renderer, &shakeViewport);
 
-        DrawMap(renderer, gMapTexture, gWallTexture, gBorderTexture);
+        if (
+            gGameState == GAME_MAZE
+            )
+        {
+            DrawMazeStage(renderer);
+        }
+        else
+        {
+            DrawMap(
+                renderer,
+                gMapTexture,
+                gWallTexture,
+                gBorderTexture
+            );
+        }
 
         //투사체 이동 및 그리기
         UpdateAndDrawProjectiles(renderer, deltaTime);
