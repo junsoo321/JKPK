@@ -309,10 +309,13 @@ void CheckEnemyCollision(void* bulletArray)
         for (int e = 0; e < MAX_ENEMIES_PER_ROOM; e++) {
             if (!currentEnemies[e].active) continue;
 
-            if (localBullets[b].x < currentEnemies[e].x + ENEMY_SIZE &&
-                localBullets[b].x + PROJECTILE_SIZE > currentEnemies[e].x &&
-                localBullets[b].y < currentEnemies[e].y + ENEMY_SIZE &&
-                localBullets[b].y + PROJECTILE_SIZE > currentEnemies[e].y) {
+            float hitX = currentEnemies[e].x + ENEMY_HIT_OFFSET_X;
+            float hitY = currentEnemies[e].y + ENEMY_HIT_OFFSET_Y;
+
+            if (localBullets[b].x < hitX + ENEMY_HIT_W &&
+                localBullets[b].x + PROJECTILE_SIZE > hitX &&
+                localBullets[b].y < hitY + ENEMY_HIT_H &&
+                localBullets[b].y + PROJECTILE_SIZE > hitY) {
 
                 // 대쉬 혹은 무적 판정 상태이면 탄환만 지우고 스킵
                 if (currentEnemies[e].isInvincible) {

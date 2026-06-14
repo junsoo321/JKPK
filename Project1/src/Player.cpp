@@ -133,7 +133,48 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime)
         p->y = nextY;
     }
 
-    // 현재 방에 몹이 남아있다면 방 이동 불가
+    // 히트박스 갱신
+    p->drawRect.x = (int)p->x;
+    p->drawRect.y = (int)p->y;
+    p->drawRect.w = PLAYER_SIZE;
+    p->drawRect.h = PLAYER_SIZE;
+
+    // 이동 방향 감지 (항상 실행 — 몹 유무와 무관)
+    bool moving = (fabsf(p->vx) > 20.0f || fabsf(p->vy) > 20.0f);
+    if (fabsf(p->vx) > fabsf(p->vy)) {
+        p->animDir = 2;
+        if (p->vx > 20.0f)       p->facingRight = true;
+        else if (p->vx < -20.0f) p->facingRight = false;
+    } else if (p->vy < -20.0f) {
+        p->animDir = 1;
+    } else if (moving) {
+        p->animDir = 0;
+    }
+
+    // hurt 타이머 감소 (항상 실행)
+    if (p->hurtTimer > 0.0f) p->hurtTimer -= deltaTime;
+
+    // 애니메이션 프레임 갱신 (항상 실행)
+    {
+        int   maxFrames;
+        float frameTime;
+        if (p->isDead)                { maxFrames = 3; frameTime = 0.15f; }
+        else if (p->hurtTimer > 0.0f) { maxFrames = 2; frameTime = 0.1f;  }
+        else if (moving)              { maxFrames = 4; frameTime = 0.1f;  }
+        else                          { maxFrames = 2; frameTime = 0.35f; }
+
+        p->animTimer += deltaTime;
+        if (p->animTimer >= frameTime) {
+            p->animTimer = 0.0f;
+            if (p->isDead)
+                p->animFrame = (p->animFrame < maxFrames - 1) ? p->animFrame + 1 : maxFrames - 1;
+            else
+                p->animFrame = (p->animFrame + 1) % maxFrames;
+        }
+        if (p->animFrame >= maxFrames) p->animFrame = 0;
+    }
+
+    // 현재 방에 몹이 남아있다면 방 이동 불가 (문 전환만 막음)
     if (AreEnemiesAlive()) return;
 
     SDL_Rect dU = GetDoorRect(0), dD = GetDoorRect(1);
@@ -171,45 +212,6 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime)
         p->x = spawnX;
         p->y = SafeSpawnY(p->x, spawnY);
     }
-
-    p->drawRect.x = (int)p->x;
-    p->drawRect.y = (int)p->y;
-    p->drawRect.w = PLAYER_SIZE;
-    p->drawRect.h = PLAYER_SIZE;
-
-    // 이동 방향 감지
-    bool moving = (fabsf(p->vx) > 20.0f || fabsf(p->vy) > 20.0f);
-    if (fabsf(p->vx) > fabsf(p->vy)) {
-        p->animDir = 2;
-        if (p->vx > 20.0f)       p->facingRight = true;
-        else if (p->vx < -20.0f) p->facingRight = false;
-    } else if (p->vy < -20.0f) {
-        p->animDir = 1;
-    } else if (moving) {
-        p->animDir = 0;
-    }
-
-    // hurt 타이머 감소
-    if (p->hurtTimer > 0.0f) p->hurtTimer -= deltaTime;
-
-    // 현재 상태에 따른 프레임 수 / 속도
-    int   maxFrames;
-    float frameTime;
-    if (p->isDead)              { maxFrames = 3; frameTime = 0.15f; }
-    else if (p->hurtTimer > 0.0f) { maxFrames = 2; frameTime = 0.1f;  }
-    else if (moving)            { maxFrames = 4; frameTime = 0.1f;  }
-    else                        { maxFrames = 2; frameTime = 0.35f; }
-
-    p->animTimer += deltaTime;
-    if (p->animTimer >= frameTime) {
-        p->animTimer = 0.0f;
-        if (p->isDead)
-            p->animFrame = (p->animFrame < maxFrames - 1) ? p->animFrame + 1 : maxFrames - 1;
-        else
-            p->animFrame = (p->animFrame + 1) % maxFrames;
-    }
-    // 상태가 바뀌면 프레임 범위 초과 방지
-    if (p->animFrame >= maxFrames) p->animFrame = 0;
 }
 
 //무적(피격) 타임라인 동안 100ms 간격 프레임 탈락 방식으로 캐릭터 깜빡임 연출

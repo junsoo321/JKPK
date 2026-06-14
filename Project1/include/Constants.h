@@ -39,7 +39,7 @@
 #define CHAR_FRAME_SIZE 32			//	스프라이트 시트 한 프레임 크기 (px)
 #define PLAYER_RENDER_OFFSET_X 30	//	스프라이트를 히트박스 기준으로 좌측으로 당기는 오프셋 (10px * 3)
 #define PLAYER_RENDER_OFFSET_Y 27	//	스프라이트를 히트박스 기준으로 위쪽으로 당기는 오프셋 (9px * 3)
-#define PLAYER_SPEED 200.0f
+#define PLAYER_SPEED 140.0f
 #define PLAYER_FRICTION 8.0f
 #define PLAYER_FOOT_OFFSET 20		//	발 히트박스 시작 Y 오프셋 (히트박스 상단 기준)
 #define DOOR_SIZE 60				//	출입문 개구부 크기 (px)
@@ -50,10 +50,10 @@
 
 //플레이어 투사체 관련 설정
 #define MAX_PROJECTILES 5000			//	한번에 존재 가능한 총 투사체 개수
-#define PROJECTILE_SPEED 400.0f			//	투사체 속도(날아가는 속도)
+#define PROJECTILE_SPEED 280.0f			//	투사체 속도(날아가는 속도)
 #define BOSS_PROJECTILE_SPEED 250.0f	//	보스 투사체 속도
-#define PROJECTILE_SIZE 32				//	투사체 크기
-#define FIRE_DELAY 0.1f					//	공격속도 (ms)
+#define PROJECTILE_SIZE 42				//	투사체 크기
+#define FIRE_DELAY 0.27f				//	공격속도 (ms)
 #define PROJECTILE_SPIN_SPEED 360.0f	//	투사체 회전 속도 (도/초)
 
 //몹(enemy) 설정
@@ -61,7 +61,11 @@
 #define ENEMY_SPEED 250.0f		//적 속도
 #define SUICIDE_SPEED 400.0f	//자폭몹 속도
 #define NINJA_SPEED 320.0f		//닌자몹 속도
-#define ENEMY_SIZE 30           //적 크기
+#define ENEMY_SIZE 50           //적 렌더 크기 (스프라이트 전체)
+#define ENEMY_HIT_OFFSET_X 7   //스프라이트 좌측 투명 패딩 (50px 기준)
+#define ENEMY_HIT_OFFSET_Y 7   //스프라이트 상단 투명 패딩 (50px 기준)
+#define ENEMY_HIT_W 36         //실제 캐릭터 히트박스 너비
+#define ENEMY_HIT_H 36         //실제 캐릭터 히트박스 높이
 #define ENEMY_ATK 10			//적 공격력(투사체)
 #define ENEMY_KEEP_DISTANCE 250.0f //일반몹이 플레이어와 유지하려는 거리
 #define NINJA_DASH_DISTANCE 180.0f //닌자몹 돌진 공격 사거리
