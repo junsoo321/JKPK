@@ -38,7 +38,7 @@
     <ClInclude Include="include\SDL.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="include\Enemy.h">
+    <ClInclude Include="include\Enemy.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="include\GameState.hpp">
@@ -56,9 +56,27 @@
     <ClInclude Include="include\Constants.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="include\QuizQuestions.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\UIState.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PauseMenu.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HelpScreen.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TextRenderer.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TitleScreen.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Enemy.c">
+    <ClCompile Include="src\Enemy.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\ImageManager.cpp">
@@ -92,6 +110,24 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\MazeStage.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\QuizQuestions.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PauseMenu.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UIState.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HelpScreen.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextRenderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TitleScreen.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,3 +1,3 @@
 ﻿#include "GameState.hpp"
 
-GameState gGameState = GAME_NORMAL;
+GameState gGameState = GAME_TITLE;

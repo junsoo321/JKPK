@@ -1,6 +1,7 @@
 ﻿#include "ImageManager.hpp"
 
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include <iostream>
 #include <string>
 
@@ -14,10 +15,10 @@ SDL_Texture* gEnemyProjectileTexture = nullptr;
 SDL_Texture* gMapTexture = nullptr;
 SDL_Texture* gBorderTexture = nullptr;
 SDL_Texture* gBossTexture = nullptr;
+TTF_Font* gFont = nullptr; //퀴즈 출력용 폰트
 
 // ImageManager.hpp 상위 디렉터리의 assets/ 폴더를 기준으로 경로 반환
-static auto AssetPath(const char* filename) -> std::string
-{
+auto AssetPath(const char* filename) -> std::string{
     std::string path(GetImageManagerSourcePath());
     for (char& c : path) if (c == '\\') c = '/';
 
@@ -31,8 +32,7 @@ static auto AssetPath(const char* filename) -> std::string
     return parentDir + "assets/" + filename;
 }
 
-auto LoadAllImages(SDL_Renderer* renderer) -> void
-{
+auto LoadAllImages(SDL_Renderer* renderer) -> void{
     // 1. SDL_image 초기화 (PNG 로드 설정)
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags))
@@ -67,11 +67,24 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
 
     gBossTexture = LoadTexture(AssetPath("enemy.png"));
 
-    // 3. 실제 파일 로드 (경로와 파일명은 본인의 환경에 맞게 수정하세요)
+    gFont = TTF_OpenFont( AssetPath("Pretendard-Regular.ttf").c_str(), 24);
+
+    if (!gFont) {
+        std::cout << "Font Load Failed : " << TTF_GetError() << std::endl;
+    }
+    else {
+        std::cout << "Font Loaded Successfully" << std::endl;
+    }
+
+    // 3. 실제 파일 로드
     std::cout << "Images Manager: All images loaded successfully." << std::endl;
 }
 
 void FreeAllImages() {
+    if (gFont) {
+        TTF_CloseFont(gFont);
+        gFont = nullptr;
+    }
     // 메모리 해제 (안전하게 nullptr 체크 후 해제)
     if (gPlayerTexture)     SDL_DestroyTexture(gPlayerTexture);
     if (gWallTexture)       SDL_DestroyTexture(gWallTexture);
