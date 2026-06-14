@@ -1,6 +1,6 @@
 ﻿#include "Projectile.hpp"
 #include "MapSystem.hpp"
-#include "Imagemanager.hpp"
+#include "ImageManager.hpp"
 #include <math.h>
 
 Projectile bullets[MAX_PROJECTILES];
