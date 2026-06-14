@@ -215,7 +215,7 @@ auto main(int argc, char* argv[]) -> int
 
         //게임 상태별 월드 배경 및 오브젝트 레이어 렌더링
         if (gGameState == GAME_QUIZ) {
-            DrawMap(renderer, gMapTexture, gWallTexture, gBorderTexture);
+            DrawMap(renderer, gMapTexture, gWallTexture, gWallTexture);
             DrawQuizStage(renderer);
         }
         else if (gGameState == GAME_MAZE) {

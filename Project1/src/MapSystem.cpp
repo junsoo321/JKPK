@@ -15,6 +15,9 @@
 #include <string.h>
 
 RoomNode roomNodes[MAX_ROOMS_X][MAX_ROOMS_Y];
+int currentRoomX = 0;
+int currentRoomY = 0;
+RoomNode* currentRoom = nullptr;
 extern BossData mainBoss;
 extern bool isBossFight;
 bool gShowFullMap = false;
