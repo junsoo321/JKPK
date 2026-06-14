@@ -19,4 +19,6 @@
 
 ## [SDL2_image 설치 가이드](docs/SDL2_image_Install.md)
 
+## [SDL2_ttf 설치 가이드](docs/SDL2_ttf_Install.md)
+
 ## [업데이트 내역](docs/update.md)
