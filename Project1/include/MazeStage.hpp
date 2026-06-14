@@ -2,8 +2,8 @@
 
 #include <SDL.h>
 
-#define MAZE_WIDTH 50//81
-#define MAZE_HEIGHT 40//61
+#define MAZE_WIDTH 81
+#define MAZE_HEIGHT 61
 
 struct MazeStageData
 {
@@ -40,3 +40,5 @@ static void FindFarthestPoint(
     int& outX,
     int& outY
 );
+
+void BreakRandomWalls(int count);

@@ -2,9 +2,13 @@
 
 //이미지 불러오기 및 변수에 할당하는 .hpp파일, SDL 함수 구조를 몰라서 Gemini로 임시 생성함
 #include <SDL.h>
+#include <SDL_ttf.h>
+#include <string>
 
 // return current project execution directory
 inline auto GetImageManagerSourcePath() -> const char* { return __FILE__; }
+
+extern TTF_Font* gFont;
 
 //!!! 이미지를 저장하는 포인터 변수들입니다.
 //!!! 나중에 실제 이미지로 교체할 때 이 변수들에 로드하면 됩니다.
@@ -46,3 +50,4 @@ SDL_Texture* GetRoomMapTexture(SDL_Renderer* renderer, int doorMask);
 // 도어 마스크에 맞는 collision을
 // map_collision_base.png + 문 오버레이 alpha에서 생성
 void LoadRoomCollisionMap(int doorMask);
+std::string AssetPath(const char* filename);

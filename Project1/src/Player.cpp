@@ -3,7 +3,7 @@
 #include "ImageManager.hpp"
 #include "Projectile.hpp"
 #include "Boss.hpp"
-#include "Enemy.h"
+#include "Enemy.hpp"
 #include <iostream>
 #include <cmath>
 #include <cstdio>
@@ -71,11 +71,11 @@ void InitPlayer(PlayerData* p) {
     p->isDead     = false;
 }
 
-//플레이어 이동 함수
-void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
+//키보드 입력 기반 이동, 4꼭짓점 벽 충돌, 방 클리어 시 상하좌우 개방 구역 이동 판정
+void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime)
+{
     Uint32 now = SDL_GetTicks();
 
-    //무적 확인
     if (p->isInvincible && now > p->invincibleEndTime) {
         p->isInvincible = false;
     }
@@ -113,7 +113,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     if (keyboardState[SDL_SCANCODE_A] || keyboardState[SDL_SCANCODE_LEFT])  { nextX -= move; p->vx = -p->speed; }
     if (keyboardState[SDL_SCANCODE_D] || keyboardState[SDL_SCANCODE_RIGHT]) { nextX += move; p->vx =  p->speed; }
 
-    //벽 충돌 검사
+    // 플레이어 히트박스(가로세로 28px 기준) 4모서리 벽 충돌 스크리닝
     bool canMove = true;
     if (IsWall(nextX, nextY) || IsWall(nextX + 28, nextY) || IsWall(nextX, nextY + 28) || IsWall(nextX + 28, nextY + 28)) {
         canMove = false;
@@ -124,12 +124,10 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
         p->y = nextY;
     }
 
-    // 방 이동 처리
-    if (AreEnemiesAlive())
-    {
-        return;
-    }
-// 오른쪽
+    // 현재 방에 몹이 남아있다면 문이 가로막혀 방 이동 불가
+    if (AreEnemiesAlive()) return;
+
+    // 우측 방 이동
     if (p->x > SCREEN_WIDTH - 35) {
         if (currentRoom->right && currentRoom->right->exists) {
             MoveToNextRoom(3);
@@ -137,8 +135,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
             p->y = SafeSpawnY(p->x, p->y);
         }
     }
-
-    // 왼쪽
+    // 좌측 방 이동
     else if (p->x < 5) {
         if (currentRoom->left && currentRoom->left->exists) {
             MoveToNextRoom(2);
@@ -146,8 +143,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
             p->y = SafeSpawnY(p->x, p->y);
         }
     }
-
-    // 위
+    // 상단 방 이동
     else if (p->y < 5) {
         if (currentRoom->up && currentRoom->up->exists) {
             MoveToNextRoom(0);
@@ -155,8 +151,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
             p->x = SafeSpawnX(p->x, p->y);
         }
     }
-
-    // 아래
+    // 하단 방 이동
     else if (p->y > SCREEN_HEIGHT - 35) {
         if (currentRoom->down && currentRoom->down->exists) {
             MoveToNextRoom(1);
@@ -165,7 +160,6 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
         }
     }
 
-    //렌더링용 사각형 업데이트
     p->drawRect.x = (int)p->x;
     p->drawRect.y = (int)p->y;
     p->drawRect.w = PLAYER_SIZE;
@@ -206,7 +200,9 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     if (p->animFrame >= maxFrames) p->animFrame = 0;
 }
 
-void DrawPlayer(SDL_Renderer* renderer, PlayerData* p) {
+//무적(피격) 타임라인 동안 100ms 간격 프레임 탈락 방식으로 캐릭터 깜빡임 연출
+void DrawPlayer(SDL_Renderer* renderer, PlayerData* p)
+{
     Uint32 now = SDL_GetTicks();
 
     // 무적 깜빡임
@@ -273,23 +269,24 @@ void DrawHearts(SDL_Renderer* renderer, PlayerData* p) {
     }
 }
 
-//플레이어 피격(투사체 피격) 검사 및 처리 함수
-bool CheckCollision(PlayerData* p, void* bulletArray, void* bossData) {
-
-    Projectile* bullets = (Projectile*)bulletArray;
+//적 투사체와의 피격 판정 및 3페이즈 특수 기믹(초록 투사체 상쇄) 처리
+bool CheckCollision(PlayerData* p, void* bulletArray, void* bossData)
+{
+    Projectile* localBullets = (Projectile*)bulletArray;
     BossData* boss = (BossData*)bossData;
+
     for (int b = 0; b < MAX_PROJECTILES; b++) {
-        if (!bullets[b].active) continue;
-        if (bullets[b].owner == 0) continue;
+        if (!localBullets[b].active || localBullets[b].owner == 0) continue;
 
-        if (bullets[b].x < p->x + PLAYER_SIZE && bullets[b].x + PROJECTILE_SIZE > p->x &&
-            bullets[b].y < p->y + PLAYER_SIZE && bullets[b].y + PROJECTILE_SIZE > p->y) {
+        // AABB 충돌 조건 충족 시
+        if (localBullets[b].x < p->x + PLAYER_SIZE && localBullets[b].x + PROJECTILE_SIZE > p->x &&
+            localBullets[b].y < p->y + PLAYER_SIZE && localBullets[b].y + PROJECTILE_SIZE > p->y) {
 
-            //3페이즈 초록 투사체 플레이어 피격 처리(아래 무적보다 먼저 확인해서, 무적과 상관없이 작용)
-            if (bullets[b].type == 1) {
-                bullets[b].active = false; //투사체 소멸
-                boss->greenBulletCount--;        //보스의 남은 투사체 개수 감소
-                continue;                     //플레이어는 데미지를 입지 않고 다음 투사체 검사로 넘어감
+            // 기믹용 초록 투사체(type == 1)는 무적 상태를 무시하고 데미지 없이 흡수 처리
+            if (localBullets[b].type == 1) {
+                localBullets[b].active = false;
+                boss->greenBulletCount--;
+                continue;
             }
             if (p->isInvincible) { //플레이어 무적일 경우, 투사체 검사 X
                 return false;
@@ -298,10 +295,10 @@ bool CheckCollision(PlayerData* p, void* bulletArray, void* bossData) {
             p->hurtTimer = 0.3f;
 
             p->isInvincible = true;
-            p->invincibleEndTime = SDL_GetTicks() + 2000;
+            p->invincibleEndTime = SDL_GetTicks() + 2000; // 2초간 무적 유효
 
-            bullets[b].active = false;
-            if (p->hp <= 0) { p->isDead = true; return true; }
+            localBullets[b].active = false;
+            if (p->hp <= 0) { p->isDead = true; return true; } // 사망 상태 반환
         }
     }
     return false;

@@ -2,10 +2,19 @@
 
 enum GameState
 {
+    GAME_TITLE,
+    GAME_STORY,
+    GAME_HELP,
+
     GAME_NORMAL,
-    GAME_BOSS,
+    GAME_MAZE,
     GAME_QUIZ,
-    GAME_MAZE
+    GAME_BOSS,
+
+    GAME_PAUSE,
+
+    GAME_OVER_FADE,
+    GAME_OVER
 };
 
 extern GameState gGameState;

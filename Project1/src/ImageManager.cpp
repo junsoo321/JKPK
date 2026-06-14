@@ -3,6 +3,7 @@
 #include "Constants.h"
 
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -42,6 +43,8 @@ static bool doorClearReady = false;
 // baseCollision: loaded from map_collision_base.png
 static int  baseCollision[MAP_ROWS][MAP_COLS] = {};
 static bool baseCollisionReady = false;
+
+TTF_Font* gFont = nullptr; //퀴즈 출력용 폰트
 
 // [Utilities]
 static auto AssetPath(const char* filename) -> std::string
@@ -106,8 +109,7 @@ static void SampleDoorOverlay(SDL_Surface* img, int dirIdx) {
 }
 
 // [Public]
-auto LoadAllImages(SDL_Renderer* renderer) -> void
-{
+auto LoadAllImages(SDL_Renderer* renderer) -> void{
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         std::cout << "SDL_image init failed: " << IMG_GetError() << std::endl;
@@ -142,6 +144,15 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
 
     // base map + door overlays
     gMapBaseTex = LoadTex(AssetPath("map/map_base.png"));
+
+    gFont = TTF_OpenFont( AssetPath("Pretendard-Regular.ttf").c_str(), 24);
+
+    if (!gFont) {
+        std::cout << "Font Load Failed : " << TTF_GetError() << std::endl;
+    }
+    else {
+        std::cout << "Font Loaded Successfully" << std::endl;
+    }
 
     // order: 0=U 1=D 2=L 3=R (matches door mask bits)
     const char* doorFiles[4] = {
@@ -245,6 +256,10 @@ SDL_Texture* GetRoomMapTexture(SDL_Renderer* renderer, int doorMask) {
 }
 
 void FreeAllImages() {
+    if (gFont) {
+        TTF_CloseFont(gFont);
+        gFont = nullptr;
+    }
     for (int i = 0; i < 16; i++) {
         if (gRoomMapTextures[i] && gRoomMapTextures[i] != gMapTexture)
             SDL_DestroyTexture(gRoomMapTextures[i]);
