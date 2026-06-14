@@ -29,6 +29,7 @@ extern SDL_Texture* gBossMapTexture; // map/map_boss.png
 extern SDL_Texture* gHeartFullTex;
 extern SDL_Texture* gHeartHalfTex;
 extern SDL_Texture* gHeartEmptyTex;
+extern SDL_Texture* gButtonTex;
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();
 

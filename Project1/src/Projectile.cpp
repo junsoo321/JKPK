@@ -139,9 +139,15 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime)
             }
 
             // 2. 일반 투사체 타일맵 벽 충돌 검사 (초록 기믹 구체는 벽 통과)
-            if (bullets[i].type != 1 && IsWall(bullets[i].x, bullets[i].y)) {
-                bullets[i].active = false;
-                continue;
+            if (bullets[i].type != 1) {
+                float px = bullets[i].x;
+                float py = bullets[i].y;
+                float ps = (float)(currentSize - 1);
+                if (IsWall(px, py) || IsWall(px + ps, py) ||
+                    IsWall(px, py + ps) || IsWall(px + ps, py + ps)) {
+                    bullets[i].active = false;
+                    continue;
+                }
             }
         }
 

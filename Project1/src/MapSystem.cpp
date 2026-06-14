@@ -291,9 +291,9 @@ void MoveToNextRoom(int direction)
     currentRoomX = currentRoom->gridX;
     currentRoomY = currentRoom->gridY;
 
-    LoadEnemiesForRoom(currentRoomX, currentRoomY);
     InitProjectiles();
-    InitMap();
+    InitMap();                                       // 충돌 맵 먼저 로드
+    LoadEnemiesForRoom(currentRoomX, currentRoomY);  // 그 후 스폰 (정확한 mapData 사용)
     currentRoom->visited = true;
 
     // 만약 이동한 곳이 클리어하지 않은 퀴즈방이라면 퀴즈 스테이지 즉시 개시

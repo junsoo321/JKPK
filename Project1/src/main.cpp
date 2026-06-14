@@ -164,7 +164,7 @@ auto main(int argc, char* argv[]) -> int
 
             //플레이어 공격 연사력 타이머 처리 및 투사체 발사
             fireTimer += deltaTime;
-            if (gGameState != GAME_PAUSE && keyState[SDL_SCANCODE_SPACE] && fireTimer >= FIRE_DELAY) {
+            if ((gGameState == GAME_NORMAL || gGameState == GAME_BOSS) && keyState[SDL_SCANCODE_SPACE] && fireTimer >= FIRE_DELAY) {
                 FireProjectile(player.x, player.y, deltaTime);
                 fireTimer = 0.0f; //타이머 초기화
             }

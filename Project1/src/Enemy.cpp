@@ -85,22 +85,22 @@ void SaveEnemiesForRoom(int roomX, int roomY)
     }
 }
 
-//몹 히트박스의 네 모서리 기준 벽 충돌(타일맵) 스크리닝
+//몹 히트박스가 차지하는 모든 타일을 스윕해 벽 충돌 판정
 bool CanMove(float nextX, float nextY)
 {
     if (nextX < 5 || nextX + ENEMY_SIZE > SCREEN_WIDTH) return false;
     if (nextY < 5 || nextY + ENEMY_SIZE > SCREEN_HEIGHT) return false;
 
-    int gridX = (int)nextX / TILE_SIZE;
-    int gridY = (int)nextY / TILE_SIZE;
-    int gridRight = (int)(nextX + ENEMY_SIZE) / TILE_SIZE;
-    int gridBottom = (int)(nextY + ENEMY_SIZE) / TILE_SIZE;
+    int colMin = (int)nextX / TILE_SIZE;
+    int colMax = (int)(nextX + ENEMY_SIZE - 1) / TILE_SIZE;
+    int rowMin = (int)nextY / TILE_SIZE;
+    int rowMax = (int)(nextY + ENEMY_SIZE - 1) / TILE_SIZE;
 
-    if (currentRoom->mapData[gridY][gridX] != 0 ||
-        currentRoom->mapData[gridY][gridRight] != 0 ||
-        currentRoom->mapData[gridBottom][gridX] != 0 ||
-        currentRoom->mapData[gridBottom][gridRight] != 0) {
-        return false;
+    for (int row = rowMin; row <= rowMax; row++) {
+        for (int col = colMin; col <= colMax; col++) {
+            if (row < 0 || row >= MAP_ROWS || col < 0 || col >= MAP_COLS) return false;
+            if (currentRoom->mapData[row][col] != 0) return false;
+        }
     }
     return true;
 }
@@ -339,16 +339,5 @@ bool AreEnemiesAlive(void)
 
 bool CanSpawnEnemy(float x, float y)
 {
-    int left = (int)x / TILE_SIZE;
-    int top = (int)y / TILE_SIZE;
-    int right = (int)(x + ENEMY_SIZE) / TILE_SIZE;
-    int bottom = (int)(y + ENEMY_SIZE) / TILE_SIZE;
-
-    if (currentRoom->mapData[top][left] != 0 ||
-        currentRoom->mapData[top][right] != 0 ||
-        currentRoom->mapData[bottom][left] != 0 ||
-        currentRoom->mapData[bottom][right] != 0) {
-        return false;
-    }
-    return true;
+    return CanMove(x, y);
 }

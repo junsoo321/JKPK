@@ -26,6 +26,7 @@ SDL_Texture* gBossMapTexture         = nullptr;
 SDL_Texture* gHeartFullTex           = nullptr;
 SDL_Texture* gHeartHalfTex           = nullptr;
 SDL_Texture* gHeartEmptyTex          = nullptr;
+SDL_Texture* gButtonTex              = nullptr;
 TTF_Font*    gFont                   = nullptr;
 
 // [Internal - map system]
@@ -184,6 +185,9 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void {
     gHeartHalfTex  = LoadTex(AssetPath("display/heart_half.png"));
     gHeartEmptyTex = LoadTex(AssetPath("display/heart_empty.png"));
 
+    // UI
+    gButtonTex = LoadTex(AssetPath("ui/button.png"));
+
     // font
     gFont = TTF_OpenFont(AssetPath("Pretendard-Regular.ttf").c_str(), 24);
     if (!gFont) std::cout << "Font load failed: " << TTF_GetError() << "\n";
@@ -309,6 +313,7 @@ void FreeAllImages() {
     Free(gHeartFullTex);
     Free(gHeartHalfTex);
     Free(gHeartEmptyTex);
+    Free(gButtonTex);
     Free(gMapBaseTex);
     Free(gDoorTexU);
     Free(gDoorTexD);
