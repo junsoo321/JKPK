@@ -4,6 +4,9 @@
 #include "Projectile.hpp"
 #include "Enemy.h"
 #include "Boss.hpp"
+#include "GameState.hpp"
+#include "QuizStage.hpp"
+#include "MazeStage.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -38,7 +41,7 @@ void InitMap() {
 
             //맵 패턴 생성
             if (r > 0 && r < MAP_ROWS - 1 && c > 0 && c < MAP_COLS - 1) {
-                tile = mapLayouts[randomIdx][r][c];
+                tile = mapLayouts[1][r][c];
             }
 
             //결과물을 현재 맵(worldMap)과 월드 데이터(worldData)에 동시 저장
@@ -135,6 +138,10 @@ void InitRoomNodes() {
             roomNodes[x][y].exists = false;
             roomNodes[x][y].visited = false;
             roomNodes[x][y].discovered = false;
+            roomNodes[x][y].specialCleared = false;
+
+            roomNodes[x][y].specialCleared = false;
+
 
             roomNodes[x][y].roomType = ROOM_NORMAL;
         }
@@ -217,32 +224,119 @@ void GenerateDungeon() {
 
     }
 
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 50; i++)
     {
         int rx = rand() % MAX_ROOMS_X;
         int ry = rand() % MAX_ROOMS_Y;
 
-        if (!roomNodes[rx][ry].exists) {
+        if (!roomNodes[rx][ry].exists)
             continue;
-        }
+
+        int branchLength = 1 + rand() % 3;
 
         int dir = rand() % 4;
 
         int nx = rx;
         int ny = ry;
 
-        switch (dir) {
-        case 0: ny--; break;
-        case 1: ny++; break;
-        case 2: nx--; break;
-        case 3: nx++; break;
-        }
+        for (int j = 0; j < branchLength; j++)
+        {
+            switch (dir)
+            {
+            case 0: ny--; break;
+            case 1: ny++; break;
+            case 2: nx--; break;
+            case 3: nx++; break;
+            }
 
-        if (nx < 0 || nx >= MAX_ROOMS_X || ny < 0 || ny >= MAX_ROOMS_Y) {
-            continue;
-        }
+            if (nx < 0 || nx >= MAX_ROOMS_X ||
+                ny < 0 || ny >= MAX_ROOMS_Y)
+            {
+                break;
+            }
 
-        roomNodes[nx][ny].exists = true;
+            roomNodes[nx][ny].exists = true;
+        }
+    }
+
+    // 스페셜 방 생성
+    int mazeX;
+    int mazeY;
+
+    do {
+        mazeX = rand() % MAX_ROOMS_X;
+        mazeY = rand() % MAX_ROOMS_Y;
+    } while (
+        !roomNodes[mazeX][mazeY].exists ||
+        roomNodes[mazeX][mazeY].roomType != ROOM_NORMAL
+        );
+
+    for (int i = 0; i < MAZE_ROOM_COUNT; i++)
+    {
+        int mazeX;
+        int mazeY;
+
+        int tryCount = 0;
+
+        do {
+            mazeX = rand() % MAX_ROOMS_X;
+            mazeY = rand() % MAX_ROOMS_Y;
+
+            tryCount++;
+
+        } while (
+            (
+                !roomNodes[mazeX][mazeY].exists ||
+                roomNodes[mazeX][mazeY].roomType != ROOM_NORMAL
+                )
+            &&
+            tryCount < 1000
+            );
+
+        if (tryCount < 1000)
+        {
+            roomNodes[mazeX][mazeY].roomType = ROOM_MAZE;
+        }
+    }
+
+
+    int quizX;
+    int quizY;
+
+    do {
+        quizX = rand() % MAX_ROOMS_X;
+        quizY = rand() % MAX_ROOMS_Y;
+    } while (
+        !roomNodes[quizX][quizY].exists ||
+        roomNodes[quizX][quizY].roomType != ROOM_NORMAL
+        );
+
+    for (int i = 0; i < QUIZ_ROOM_COUNT; i++)
+    {
+        int mazeX;
+        int mazeY;
+
+        int tryCount = 0;
+
+        do {
+            mazeX = rand() % MAX_ROOMS_X;
+            mazeY = rand() % MAX_ROOMS_Y;
+
+            tryCount++;
+
+        } while (
+            (
+                !roomNodes[mazeX][mazeY].exists ||
+                roomNodes[mazeX][mazeY].roomType != ROOM_NORMAL
+                )
+            &&
+            tryCount < 1000
+            );
+
+        if (tryCount < 1000)
+        {
+            roomNodes[mazeX][mazeY].roomType = ROOM_QUIZ;
+        }
     }
 
     //링크 연결
@@ -319,6 +413,13 @@ void MoveToNextRoom(int direction) {
     InitProjectiles(); //이전 방의 투사체 제거
     InitMap(); //다음 맵 생성(또는 불러오기)
     currentRoom->visited = true;
+
+    if (currentRoom->roomType == ROOM_QUIZ &&
+        !currentRoom->specialCleared)
+    {
+        StartQuizStage();
+        gGameState = GAME_QUIZ;
+    }
 }
 
 void DrawMapOverlay(SDL_Renderer* renderer)
@@ -353,6 +454,14 @@ void DrawMapOverlay(SDL_Renderer* renderer)
             }
             else if (room->roomType == ROOM_BOSS) {
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            }
+            else if (room->roomType == ROOM_MAZE)
+            {
+                SDL_SetRenderDrawColor(renderer, 0, 100, 255, 255);
+            }
+            else if (room->roomType == ROOM_QUIZ)
+            {
+                SDL_SetRenderDrawColor(renderer, 0, 255, 100, 255);
             }
             else if (room->visited) {
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -406,6 +515,14 @@ void DrawMiniMap(SDL_Renderer* renderer)
             }
             else if (room->roomType == ROOM_BOSS) { //보스 방
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            }
+            else if (room->roomType == ROOM_MAZE)
+            {
+                SDL_SetRenderDrawColor(renderer, 0, 100, 255, 255);
+            }
+            else if (room->roomType == ROOM_QUIZ)
+            {
+                SDL_SetRenderDrawColor(renderer, 0, 255, 100, 255);
             }
             else if (room->visited) { //방문한 방
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

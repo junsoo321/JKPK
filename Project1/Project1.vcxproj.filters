@@ -26,7 +26,10 @@
     <ClInclude Include="include\BossPattern.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="include\BossPattern.hpp">
+    <ClInclude Include="include\Constants.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Enemy.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="include\ImageManager.hpp">
@@ -47,6 +50,15 @@
     <ClInclude Include="include\SDL.h">
       <Filter>헤더 파일\c</Filter>
     </ClInclude>
+    <ClInclude Include="include\Enemy.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameState.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\QuizStage.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="include\RoomNode.h">
       <Filter>헤더 파일\c</Filter>
     </ClInclude>
@@ -54,6 +66,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="include\MapSystem.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MazeStage.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Constants.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -80,6 +98,15 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\Boss.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameState.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\QuizeState.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MazeStage.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\Enemy.c">

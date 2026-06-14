@@ -24,6 +24,7 @@ extern int currentRoomX;
 	extern int currentRoomY;
 	extern RoomNode* currentRoom;
 	extern bool gShowFullMap;
+	extern RoomNode roomNodes[MAX_ROOMS_X][MAX_ROOMS_Y];
 
 	void MoveToNextRoom(int direction); //0:상, 1:하, 2:좌, 3:우
 	void InitRoomNodes();
