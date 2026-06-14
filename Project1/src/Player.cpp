@@ -8,6 +8,15 @@
 #include <cmath>
 #include <cstdio>
 
+// 플레이어 히트박스(28x28)가 문 rect와 겹치는지 AABB 체크
+static bool TouchesDoor(float px, float py, SDL_Rect door) {
+    if (door.w == 0 || door.h == 0) return false;
+    return px      < door.x + door.w &&
+           px + 28 > door.x          &&
+           py      < door.y + door.h &&
+           py + 28 > door.y;
+}
+
 // 플레이어 히트박스 4코너가 모두 벽 밖인지 확인
 static bool IsSafePosition(float x, float y) {
     return !IsWall(x,      y     ) &&
@@ -124,40 +133,43 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime)
         p->y = nextY;
     }
 
-    // 현재 방에 몹이 남아있다면 문이 가로막혀 방 이동 불가
+    // 현재 방에 몹이 남아있다면 방 이동 불가
     if (AreEnemiesAlive()) return;
 
-    // 우측 방 이동
-    if (p->x > SCREEN_WIDTH - 35) {
-        if (currentRoom->right && currentRoom->right->exists) {
-            MoveToNextRoom(3);
-            p->x = 50;
-            p->y = SafeSpawnY(p->x, p->y);
-        }
+    SDL_Rect dU = GetDoorRect(0), dD = GetDoorRect(1);
+    SDL_Rect dL = GetDoorRect(2), dR = GetDoorRect(3);
+
+    // 상단 문 → 새 방 하단(D door) 안쪽에 스폰
+    if (currentRoom->up && currentRoom->up->exists && TouchesDoor(p->x, p->y, dU)) {
+        MoveToNextRoom(0);
+        float spawnY = dD.h > 0 ? (float)(dD.y - 32)          : SCREEN_HEIGHT - 80.0f;
+        float spawnX = dD.w > 0 ? (float)(dD.x + dD.w / 2 - 14) : p->x;
+        p->y = spawnY;
+        p->x = SafeSpawnX(spawnX, p->y);
     }
-    // 좌측 방 이동
-    else if (p->x < 5) {
-        if (currentRoom->left && currentRoom->left->exists) {
-            MoveToNextRoom(2);
-            p->x = SCREEN_WIDTH - 80;
-            p->y = SafeSpawnY(p->x, p->y);
-        }
+    // 하단 문 → 새 방 상단(U door) 안쪽에 스폰
+    else if (currentRoom->down && currentRoom->down->exists && TouchesDoor(p->x, p->y, dD)) {
+        MoveToNextRoom(1);
+        float spawnY = dU.h > 0 ? (float)(dU.y + dU.h + 4)    : 50.0f;
+        float spawnX = dU.w > 0 ? (float)(dU.x + dU.w / 2 - 14) : p->x;
+        p->y = spawnY;
+        p->x = SafeSpawnX(spawnX, p->y);
     }
-    // 상단 방 이동
-    else if (p->y < 5) {
-        if (currentRoom->up && currentRoom->up->exists) {
-            MoveToNextRoom(0);
-            p->y = SCREEN_HEIGHT - 80;
-            p->x = SafeSpawnX(p->x, p->y);
-        }
+    // 좌측 문 → 새 방 우측(R door) 안쪽에 스폰
+    else if (currentRoom->left && currentRoom->left->exists && TouchesDoor(p->x, p->y, dL)) {
+        MoveToNextRoom(2);
+        float spawnX = dR.w > 0 ? (float)(dR.x - 32)            : SCREEN_WIDTH - 80.0f;
+        float spawnY = dR.h > 0 ? (float)(dR.y + dR.h / 2 - 14) : p->y;
+        p->x = spawnX;
+        p->y = SafeSpawnY(p->x, spawnY);
     }
-    // 하단 방 이동
-    else if (p->y > SCREEN_HEIGHT - 35) {
-        if (currentRoom->down && currentRoom->down->exists) {
-            MoveToNextRoom(1);
-            p->y = 50;
-            p->x = SafeSpawnX(p->x, p->y);
-        }
+    // 우측 문 → 새 방 좌측(L door) 안쪽에 스폰
+    else if (currentRoom->right && currentRoom->right->exists && TouchesDoor(p->x, p->y, dR)) {
+        MoveToNextRoom(3);
+        float spawnX = dL.w > 0 ? (float)(dL.x + dL.w + 4)      : 50.0f;
+        float spawnY = dL.h > 0 ? (float)(dL.y + dL.h / 2 - 14) : p->y;
+        p->x = spawnX;
+        p->y = SafeSpawnY(p->x, spawnY);
     }
 
     p->drawRect.x = (int)p->x;

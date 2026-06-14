@@ -8,47 +8,42 @@
 #include <string>
 #include <cstring>
 
-// [Textures]
-SDL_Texture* gRoomMapTextures[16] = {};
-
-SDL_Texture* gPlayerIdleTex  = nullptr;
-SDL_Texture* gPlayerWalkTex  = nullptr;
-SDL_Texture* gPlayerHurtTex  = nullptr;
-SDL_Texture* gPlayerDeathTex = nullptr;
-SDL_Texture* gWallTexture    = nullptr;
-SDL_Texture* gFloorTexture   = nullptr;
-SDL_Texture* gEnemyTexture   = nullptr;
+// [Public textures]
+SDL_Texture* gPlayerIdleTex          = nullptr;
+SDL_Texture* gPlayerWalkTex          = nullptr;
+SDL_Texture* gPlayerHurtTex          = nullptr;
+SDL_Texture* gPlayerDeathTex         = nullptr;
+SDL_Texture* gWallTexture            = nullptr;
+SDL_Texture* gFloorTexture           = nullptr;
+SDL_Texture* gEnemyTexture           = nullptr;
 SDL_Texture* gProjectileTexture      = nullptr;
 SDL_Texture* gEnemyProjectileTexture = nullptr;
 SDL_Texture* gBossProjectileTex1     = nullptr;
 SDL_Texture* gBossProjectileTex2     = nullptr;
-SDL_Texture* gMapTexture     = nullptr;
-SDL_Texture* gBossTexture    = nullptr;
-SDL_Texture* gBossMapTexture = nullptr;
-SDL_Texture* gHeartFullTex   = nullptr;
-SDL_Texture* gHeartHalfTex   = nullptr;
-SDL_Texture* gHeartEmptyTex  = nullptr;
+SDL_Texture* gMapTexture             = nullptr;
+SDL_Texture* gBossTexture            = nullptr;
+SDL_Texture* gBossMapTexture         = nullptr;
+SDL_Texture* gHeartFullTex           = nullptr;
+SDL_Texture* gHeartHalfTex           = nullptr;
+SDL_Texture* gHeartEmptyTex          = nullptr;
+TTF_Font*    gFont                   = nullptr;
 
-// base map + per-direction door overlay textures
-SDL_Texture* gMapBaseTex = nullptr;
-SDL_Texture* gDoorTexU   = nullptr;
-SDL_Texture* gDoorTexD   = nullptr;
-SDL_Texture* gDoorTexL   = nullptr;
-SDL_Texture* gDoorTexR   = nullptr;
+// [Internal - map system]
+static SDL_Texture* gMapBaseTex         = nullptr;
+static SDL_Texture* gDoorTexU           = nullptr;
+static SDL_Texture* gDoorTexD           = nullptr;
+static SDL_Texture* gDoorTexL           = nullptr;
+static SDL_Texture* gDoorTexR           = nullptr;
+static SDL_Texture* gRoomMapTextures[16] = {};
 
-// doorClear[d][r][c] = 1 if door overlay d covers tile (r,c) -> clear collision
-static int  doorClear[4][MAP_ROWS][MAP_COLS] = {};
-static bool doorClearReady = false;
-
-// baseCollision: loaded from map_collision_base.png
-static int  baseCollision[MAP_ROWS][MAP_COLS] = {};
-static bool baseCollisionReady = false;
-
-TTF_Font* gFont = nullptr; //퀴즈 출력용 폰트
+// meta PNG parsed data
+static int      metaCollision[MAP_ROWS][MAP_COLS] = {};
+static SDL_Rect doorRects[4] = {};  // 0=U 1=D 2=L 3=R  (screen coords)
+static bool     collisionReady = false;
+static bool     doorsReady     = false;
 
 // [Utilities]
-static auto AssetPath(const char* filename) -> std::string
-{
+static auto AssetPath(const char* filename) -> std::string {
     std::string path(GetImageManagerSourcePath());
     for (char& c : path) if (c == '\\') c = '/';
     size_t pos  = path.rfind('/');
@@ -58,58 +53,105 @@ static auto AssetPath(const char* filename) -> std::string
     return parentDir + "assets/" + filename;
 }
 
-// pixel color -> tile type (collision)
-static int ColorToTile(Uint8 r, Uint8 g, Uint8 b) {
-    if (r > 200 && g < 50  && b > 200) return 1; // magenta -> outer wall
-    if (r < 50  && g > 200 && b > 200) return 2; // cyan    -> obstacle
-    if (r > 200 && g > 200 && b < 50 ) return 3; // yellow  -> door (passable)
-    return 0;
+// meta PNG color rules
+static bool IsMagenta(Uint8 r, Uint8 g, Uint8 b) { return r > 200 && g < 50  && b > 200; } // #FF00FF collision: wall
+static bool IsYellow (Uint8 r, Uint8 g, Uint8 b) { return r > 200 && g > 200 && b < 50;  } // #FFFF00 collision: obstacle
+static bool IsOrange (Uint8 r, Uint8 g, Uint8 b) { return r > 200 && g > 80  && g < 180 && b < 50; } // #FF8000 door U
+static bool IsCyan   (Uint8 r, Uint8 g, Uint8 b) { return r < 50  && g > 200 && b > 200; } // #00FFFF door D
+static bool IsLime   (Uint8 r, Uint8 g, Uint8 b) { return r > 80  && r < 180 && g > 200 && b < 50; } // #80FF00 door L
+static bool IsPurple (Uint8 r, Uint8 g, Uint8 b) { return r > 80  && r < 180 && g < 50  && b > 200; } // #8000FF door R
+
+// map_base_001_collision.png: 마젠타 → 벽 충돌 타일 (타일 중앙 샘플링)
+static void ParseCollisionPNG(SDL_Surface* img) {
+    SDL_LockSurface(img);
+    Uint32* pixels = (Uint32*)img->pixels;
+    int pitch = img->pitch / 4;
+
+    memset(metaCollision, 0, sizeof(metaCollision));
+    for (int row = 0; row < MAP_ROWS; row++) {
+        for (int col = 0; col < MAP_COLS; col++) {
+            int px = (int)((col * TILE_SIZE + TILE_SIZE / 2) * (float)img->w / SCREEN_WIDTH);
+            int py = (int)((row * TILE_SIZE + TILE_SIZE / 2) * (float)img->h / SCREEN_HEIGHT);
+            if (px >= img->w) px = img->w - 1;
+            if (py >= img->h) py = img->h - 1;
+            Uint8 r, g, b, a;
+            SDL_GetRGBA(pixels[py * pitch + px], img->format, &r, &g, &b, &a);
+            if      (IsMagenta(r, g, b)) metaCollision[row][col] = 1;
+            else if (IsYellow (r, g, b)) metaCollision[row][col] = 2;
+            else                         metaCollision[row][col] = 0;
+        }
+    }
+
+    SDL_UnlockSurface(img);
+    collisionReady = true;
 }
 
-// sample color-coded collision PNG into out[][]
+// map_base_001_doors.png: 오렌지/시안/라임/보라 영역 → 문 방향별 bounding box (화면 좌표)
+static void ParseDoorsPNG(SDL_Surface* img) {
+    SDL_LockSurface(img);
+    Uint32* pixels = (Uint32*)img->pixels;
+    int pitch = img->pitch / 4;
+
+    int minX[4] = { img->w, img->w, img->w, img->w };
+    int minY[4] = { img->h, img->h, img->h, img->h };
+    int maxX[4] = { -1, -1, -1, -1 };
+    int maxY[4] = { -1, -1, -1, -1 };
+
+    for (int py = 0; py < img->h; py++) {
+        for (int px = 0; px < img->w; px++) {
+            Uint8 r, g, b, a;
+            SDL_GetRGBA(pixels[py * pitch + px], img->format, &r, &g, &b, &a);
+            int dir = -1;
+            if      (IsOrange(r, g, b)) dir = 0;
+            else if (IsCyan  (r, g, b)) dir = 1;
+            else if (IsLime  (r, g, b)) dir = 2;
+            else if (IsPurple(r, g, b)) dir = 3;
+            if (dir >= 0) {
+                if (px < minX[dir]) minX[dir] = px;
+                if (py < minY[dir]) minY[dir] = py;
+                if (px > maxX[dir]) maxX[dir] = px;
+                if (py > maxY[dir]) maxY[dir] = py;
+            }
+        }
+    }
+
+    SDL_UnlockSurface(img);
+
+    float sx = (float)SCREEN_WIDTH  / img->w;
+    float sy = (float)SCREEN_HEIGHT / img->h;
+    for (int d = 0; d < 4; d++) {
+        if (maxX[d] < 0) { doorRects[d] = {0, 0, 0, 0}; continue; }
+        doorRects[d] = {
+            (int)(minX[d] * sx),
+            (int)(minY[d] * sy),
+            (int)((maxX[d] - minX[d] + 1) * sx),
+            (int)((maxY[d] - minY[d] + 1) * sy)
+        };
+    }
+    doorsReady = true;
+}
+
+// tile center sampling for boss collision map (magenta only)
 static void SampleCollisionImage(SDL_Surface* img, int out[][MAP_COLS]) {
     SDL_LockSurface(img);
     Uint32* pixels = (Uint32*)img->pixels;
     int pitch = img->pitch / 4;
-    float sx = (float)img->w / SCREEN_WIDTH;
-    float sy = (float)img->h / SCREEN_HEIGHT;
-    for (int r = 1; r < MAP_ROWS - 1; r++) {
-        for (int c = 1; c < MAP_COLS - 1; c++) {
-            int px = (int)((c * TILE_SIZE + TILE_SIZE / 2) * sx);
-            int py = (int)((r * TILE_SIZE + TILE_SIZE / 2) * sy);
+    for (int row = 0; row < MAP_ROWS; row++) {
+        for (int col = 0; col < MAP_COLS; col++) {
+            int px = (int)((col * TILE_SIZE + TILE_SIZE / 2) * (float)img->w / SCREEN_WIDTH);
+            int py = (int)((row * TILE_SIZE + TILE_SIZE / 2) * (float)img->h / SCREEN_HEIGHT);
             if (px >= img->w) px = img->w - 1;
             if (py >= img->h) py = img->h - 1;
-            Uint8 red, green, blue, alpha;
-            SDL_GetRGBA(pixels[py * pitch + px], img->format, &red, &green, &blue, &alpha);
-            out[r][c] = ColorToTile(red, green, blue);
-        }
-    }
-    SDL_UnlockSurface(img);
-}
-
-// sample door overlay alpha channel: non-transparent tiles are recorded in doorClear[dirIdx]
-static void SampleDoorOverlay(SDL_Surface* img, int dirIdx) {
-    SDL_LockSurface(img);
-    Uint32* pixels = (Uint32*)img->pixels;
-    int pitch = img->pitch / 4;
-    float sx = (float)img->w / SCREEN_WIDTH;
-    float sy = (float)img->h / SCREEN_HEIGHT;
-    for (int r = 0; r < MAP_ROWS; r++) {
-        for (int c = 0; c < MAP_COLS; c++) {
-            int px = (int)((c * TILE_SIZE + TILE_SIZE / 2) * sx);
-            int py = (int)((r * TILE_SIZE + TILE_SIZE / 2) * sy);
-            if (px >= img->w) px = img->w - 1;
-            if (py >= img->h) py = img->h - 1;
-            Uint8 red, green, blue, alpha;
-            SDL_GetRGBA(pixels[py * pitch + px], img->format, &red, &green, &blue, &alpha);
-            doorClear[dirIdx][r][c] = (alpha > 128) ? 1 : 0;
+            Uint8 r, g, b, a;
+            SDL_GetRGBA(pixels[py * pitch + px], img->format, &r, &g, &b, &a);
+            out[row][col] = IsMagenta(r, g, b) ? 1 : 0;
         }
     }
     SDL_UnlockSurface(img);
 }
 
 // [Public]
-auto LoadAllImages(SDL_Renderer* renderer) -> void{
+auto LoadAllImages(SDL_Renderer* renderer) -> void {
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         std::cout << "SDL_image init failed: " << IMG_GetError() << std::endl;
@@ -123,79 +165,56 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void{
     };
 
     // characters / effects
-    gPlayerIdleTex       = LoadTex(AssetPath("Characters/Default/idle.png"));
-    gPlayerWalkTex       = LoadTex(AssetPath("Characters/Default/walk.png"));
-    gPlayerHurtTex       = LoadTex(AssetPath("Characters/Default/hurt.png"));
-    gPlayerDeathTex      = LoadTex(AssetPath("Characters/Default/death.png"));
-    gProjectileTexture       = LoadTex(AssetPath("projectile/semi-colon.png"));
-    gEnemyTexture            = LoadTex(AssetPath("enemy.png"));
-    gEnemyProjectileTexture  = LoadTex(AssetPath("attack.png"));
-    gBossProjectileTex1      = LoadTex(AssetPath("attack_boss_001.png"));
-    gBossProjectileTex2      = LoadTex(AssetPath("attack_boss_002.png"));
-    gBossTexture             = LoadTex(AssetPath("boss.png"));
-    gBossMapTexture          = LoadTex(AssetPath("map/map_boss.png"));
-    gWallTexture             = LoadTex(AssetPath("transparent.png"));
-    gMapTexture              = LoadTex(AssetPath("map/map_main.png")); // fallback
+    gPlayerIdleTex          = LoadTex(AssetPath("Characters/Default/idle.png"));
+    gPlayerWalkTex          = LoadTex(AssetPath("Characters/Default/walk.png"));
+    gPlayerHurtTex          = LoadTex(AssetPath("Characters/Default/hurt.png"));
+    gPlayerDeathTex         = LoadTex(AssetPath("Characters/Default/death.png"));
+    gProjectileTexture      = LoadTex(AssetPath("projectile/semi-colon.png"));
+    gEnemyTexture           = LoadTex(AssetPath("enemy.png"));
+    gEnemyProjectileTexture = LoadTex(AssetPath("attack.png"));
+    gBossProjectileTex1     = LoadTex(AssetPath("attack_boss_001.png"));
+    gBossProjectileTex2     = LoadTex(AssetPath("attack_boss_002.png"));
+    gBossTexture            = LoadTex(AssetPath("boss.png"));
+    gBossMapTexture         = LoadTex(AssetPath("map/map_boss.png"));
+    gWallTexture            = LoadTex(AssetPath("transparent.png"));
+    gMapTexture             = LoadTex(AssetPath("map/base/map_base_001.png")); // quiz fallback
 
     // heart UI
-    gHeartFullTex   = LoadTex(AssetPath("display/heart_full.png"));
-    gHeartHalfTex   = LoadTex(AssetPath("display/heart_half.png"));
-    gHeartEmptyTex  = LoadTex(AssetPath("display/heart_empty.png"));
+    gHeartFullTex  = LoadTex(AssetPath("display/heart_full.png"));
+    gHeartHalfTex  = LoadTex(AssetPath("display/heart_half.png"));
+    gHeartEmptyTex = LoadTex(AssetPath("display/heart_empty.png"));
 
-    // base map + door overlays
-    gMapBaseTex = LoadTex(AssetPath("map/map_base.png"));
+    // font
+    gFont = TTF_OpenFont(AssetPath("Pretendard-Regular.ttf").c_str(), 24);
+    if (!gFont) std::cout << "Font load failed: " << TTF_GetError() << "\n";
 
-    gFont = TTF_OpenFont( AssetPath("Pretendard-Regular.ttf").c_str(), 24);
+    // base map (map/base/map_base_001.png, fallback to map/map_base.png)
+    gMapBaseTex = LoadTex(AssetPath("map/base/map_base_001.png"));
+    if (!gMapBaseTex) gMapBaseTex = LoadTex(AssetPath("map/map_base.png"));
 
-    if (!gFont) {
-        std::cout << "Font Load Failed : " << TTF_GetError() << std::endl;
-    }
-    else {
-        std::cout << "Font Loaded Successfully" << std::endl;
-    }
-
-    // order: 0=U 1=D 2=L 3=R (matches door mask bits)
-    const char* doorFiles[4] = {
-        "map/map_door_U.png",
-        "map/map_door_D.png",
-        "map/map_door_L.png",
-        "map/map_door_R.png"
-    };
-    SDL_Texture** doorTexPtrs[4] = { &gDoorTexU, &gDoorTexD, &gDoorTexL, &gDoorTexR };
-
-    for (int d = 0; d < 4; d++) {
-        SDL_Surface* surf = IMG_Load(AssetPath(doorFiles[d]).c_str());
-        if (!surf) {
-            std::cout << "Door overlay not found: " << doorFiles[d] << "\n";
-            continue;
-        }
+    // parse collision + door PNGs separately
+    auto LoadAndParse = [](const std::string& path, void(*parseFn)(SDL_Surface*)) {
+        SDL_Surface* surf = IMG_Load(path.c_str());
+        if (!surf) { std::cout << "Meta not found: " << path << "\n"; return; }
         SDL_Surface* rgba = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
         SDL_FreeSurface(surf);
-        if (!rgba) continue;
+        if (rgba) { parseFn(rgba); SDL_FreeSurface(rgba); }
+    };
+    LoadAndParse(AssetPath("map/base/map_base_001_collision.png"), ParseCollisionPNG);
+    LoadAndParse(AssetPath("map/base/map_base_001_doors.png"),     ParseDoorsPNG);
 
-        SampleDoorOverlay(rgba, d);
-
-        *doorTexPtrs[d] = SDL_CreateTextureFromSurface(renderer, rgba);
-        if (*doorTexPtrs[d])
-            SDL_SetTextureBlendMode(*doorTexPtrs[d], SDL_BLENDMODE_BLEND);
-        SDL_FreeSurface(rgba);
-    }
-    doorClearReady = true;
-
-    // base collision map
-    SDL_Surface* csurf = IMG_Load(AssetPath("map/map_collision_base.png").c_str());
-    if (csurf) {
-        SDL_Surface* crgba = SDL_ConvertSurfaceFormat(csurf, SDL_PIXELFORMAT_RGBA32, 0);
-        SDL_FreeSurface(csurf);
-        if (crgba) {
-            SampleCollisionImage(crgba, baseCollision);
-            SDL_FreeSurface(crgba);
-            baseCollisionReady = true;
-        }
-    }
+    // door sprites
+    struct { const char* path; SDL_Texture** tex; } doors[4] = {
+        { "map/door/map_door_U.png", &gDoorTexU },
+        { "map/door/map_door_D.png", &gDoorTexD },
+        { "map/door/map_door_L.png", &gDoorTexL },
+        { "map/door/map_door_R.png", &gDoorTexR },
+    };
+    for (auto& d : doors)
+        *d.tex = LoadTex(AssetPath(d.path));
 }
 
-// boss map collision only
+// boss map collision (map_boss_collision.png → bossMapLayout)
 void LoadCollisionMapsFromImages() {
     SDL_Surface* surf = IMG_Load(AssetPath("map/map_boss_collision.png").c_str());
     if (surf) {
@@ -205,89 +224,96 @@ void LoadCollisionMapsFromImages() {
     }
 }
 
-// build collision for doorMask: copy base then clear tiles covered by active door overlays
+// build collision for doorMask: meta collision base + clear tiles in active door rects
 void LoadRoomCollisionMap(int doorMask) {
     if (collisionLoaded[doorMask]) return;
 
-    if (baseCollisionReady)
-        memcpy(mapLayouts[doorMask], baseCollision, sizeof(baseCollision));
+    if (collisionReady)
+        memcpy(mapLayouts[doorMask], metaCollision, sizeof(metaCollision));
     else
         memset(mapLayouts[doorMask], 0, sizeof(mapLayouts[doorMask]));
 
-    if (doorClearReady) {
-        for (int d = 0; d < 4; d++) {
-            if (!(doorMask & (1 << d))) continue;
-            for (int r = 0; r < MAP_ROWS; r++)
-                for (int c = 0; c < MAP_COLS; c++)
-                    if (doorClear[d][r][c])
-                        mapLayouts[doorMask][r][c] = 0;
-        }
+    for (int d = 0; d < 4; d++) {
+        if (!(doorMask & (1 << d))) continue;
+        SDL_Rect& rect = doorRects[d];
+        if (rect.w == 0 || rect.h == 0) continue;
+        int colMin = rect.x / TILE_SIZE;
+        int colMax = (rect.x + rect.w - 1) / TILE_SIZE;
+        int rowMin = rect.y / TILE_SIZE;
+        int rowMax = (rect.y + rect.h - 1) / TILE_SIZE;
+        for (int row = rowMin; row <= rowMax && row < MAP_ROWS; row++)
+            for (int col = colMin; col <= colMax && col < MAP_COLS; col++)
+                mapLayouts[doorMask][row][col] = 0;
     }
 
     collisionLoaded[doorMask] = true;
 }
 
-// compose base + door overlays into a cached render-target texture
+// compose base + door sprites into a cached render-target texture
 SDL_Texture* GetRoomMapTexture(SDL_Renderer* renderer, int doorMask) {
     if (gRoomMapTextures[doorMask]) return gRoomMapTextures[doorMask];
 
     SDL_Texture* composed = SDL_CreateTexture(
         renderer, SDL_PIXELFORMAT_RGBA8888,
         SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
-    if (!composed) return gMapTexture;
+    if (!composed) return nullptr;
 
     SDL_SetTextureBlendMode(composed, SDL_BLENDMODE_BLEND);
     SDL_SetRenderTarget(renderer, composed);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    SDL_Texture* base = gMapBaseTex ? gMapBaseTex : gMapTexture;
-    if (base) SDL_RenderCopy(renderer, base, NULL, NULL);
+    if (gMapBaseTex) SDL_RenderCopy(renderer, gMapBaseTex, NULL, NULL);
 
     SDL_Texture* doorTexs[4] = { gDoorTexU, gDoorTexD, gDoorTexL, gDoorTexR };
-    for (int d = 0; d < 4; d++)
-        if ((doorMask & (1 << d)) && doorTexs[d])
-            SDL_RenderCopy(renderer, doorTexs[d], NULL, NULL);
+    for (int d = 0; d < 4; d++) {
+        if (!(doorMask & (1 << d)) || !doorTexs[d]) continue;
+        SDL_Rect dst = doorRects[d];
+        if (dst.w == 0 || dst.h == 0) continue;
+        SDL_SetTextureBlendMode(doorTexs[d], SDL_BLENDMODE_NONE);
+        SDL_RenderCopy(renderer, doorTexs[d], NULL, &dst);
+    }
 
     SDL_SetRenderTarget(renderer, NULL);
-
     gRoomMapTextures[doorMask] = composed;
     return composed;
 }
 
+SDL_Rect GetDoorRect(int dir) {
+    return (dir >= 0 && dir < 4) ? doorRects[dir] : SDL_Rect{0, 0, 0, 0};
+}
+
 void FreeAllImages() {
-    if (gFont) {
-        TTF_CloseFont(gFont);
-        gFont = nullptr;
-    }
+    if (gFont) { TTF_CloseFont(gFont); gFont = nullptr; }
+
     for (int i = 0; i < 16; i++) {
-        if (gRoomMapTextures[i] && gRoomMapTextures[i] != gMapTexture)
-            SDL_DestroyTexture(gRoomMapTextures[i]);
+        if (gRoomMapTextures[i]) SDL_DestroyTexture(gRoomMapTextures[i]);
         gRoomMapTextures[i] = nullptr;
     }
 
-    if (gPlayerIdleTex)     { SDL_DestroyTexture(gPlayerIdleTex);     gPlayerIdleTex     = nullptr; }
-    if (gPlayerWalkTex)     { SDL_DestroyTexture(gPlayerWalkTex);     gPlayerWalkTex     = nullptr; }
-    if (gPlayerHurtTex)     { SDL_DestroyTexture(gPlayerHurtTex);     gPlayerHurtTex     = nullptr; }
-    if (gPlayerDeathTex)    { SDL_DestroyTexture(gPlayerDeathTex);    gPlayerDeathTex    = nullptr; }
-    if (gWallTexture)       { SDL_DestroyTexture(gWallTexture);       gWallTexture       = nullptr; }
-    if (gFloorTexture)      { SDL_DestroyTexture(gFloorTexture);      gFloorTexture      = nullptr; }
-    if (gEnemyTexture)      { SDL_DestroyTexture(gEnemyTexture);      gEnemyTexture      = nullptr; }
-    if (gProjectileTexture) { SDL_DestroyTexture(gProjectileTexture); gProjectileTexture = nullptr; }
-    if (gEnemyProjectileTexture) { SDL_DestroyTexture(gEnemyProjectileTexture); gEnemyProjectileTexture = nullptr; }
-    if (gBossProjectileTex1)     { SDL_DestroyTexture(gBossProjectileTex1);     gBossProjectileTex1     = nullptr; }
-    if (gBossProjectileTex2)     { SDL_DestroyTexture(gBossProjectileTex2);     gBossProjectileTex2     = nullptr; }
-    if (gMapTexture)        { SDL_DestroyTexture(gMapTexture);        gMapTexture        = nullptr; }
-    if (gBossTexture)       { SDL_DestroyTexture(gBossTexture);       gBossTexture       = nullptr; }
-    if (gBossMapTexture)    { SDL_DestroyTexture(gBossMapTexture);    gBossMapTexture    = nullptr; }
-    if (gHeartFullTex)      { SDL_DestroyTexture(gHeartFullTex);      gHeartFullTex      = nullptr; }
-    if (gHeartHalfTex)      { SDL_DestroyTexture(gHeartHalfTex);      gHeartHalfTex      = nullptr; }
-    if (gHeartEmptyTex)     { SDL_DestroyTexture(gHeartEmptyTex);     gHeartEmptyTex     = nullptr; }
-    if (gMapBaseTex)        { SDL_DestroyTexture(gMapBaseTex);        gMapBaseTex        = nullptr; }
-    if (gDoorTexU)          { SDL_DestroyTexture(gDoorTexU);          gDoorTexU          = nullptr; }
-    if (gDoorTexD)          { SDL_DestroyTexture(gDoorTexD);          gDoorTexD          = nullptr; }
-    if (gDoorTexL)          { SDL_DestroyTexture(gDoorTexL);          gDoorTexL          = nullptr; }
-    if (gDoorTexR)          { SDL_DestroyTexture(gDoorTexR);          gDoorTexR          = nullptr; }
+    auto Free = [](SDL_Texture*& t) { if (t) { SDL_DestroyTexture(t); t = nullptr; } };
+    Free(gPlayerIdleTex);
+    Free(gPlayerWalkTex);
+    Free(gPlayerHurtTex);
+    Free(gPlayerDeathTex);
+    Free(gWallTexture);
+    Free(gFloorTexture);
+    Free(gEnemyTexture);
+    Free(gProjectileTexture);
+    Free(gEnemyProjectileTexture);
+    Free(gBossProjectileTex1);
+    Free(gBossProjectileTex2);
+    Free(gMapTexture);
+    Free(gBossTexture);
+    Free(gBossMapTexture);
+    Free(gHeartFullTex);
+    Free(gHeartHalfTex);
+    Free(gHeartEmptyTex);
+    Free(gMapBaseTex);
+    Free(gDoorTexU);
+    Free(gDoorTexD);
+    Free(gDoorTexL);
+    Free(gDoorTexR);
 
     IMG_Quit();
 }

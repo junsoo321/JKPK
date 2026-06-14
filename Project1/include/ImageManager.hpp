@@ -32,22 +32,14 @@ extern SDL_Texture* gHeartEmptyTex;
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();
 
-// 보스 맵 collision 전용 (map/map_boss_collision.png → bossMapLayout)
+// 보스 맵 collision (map/map_boss_collision.png → bossMapLayout)
 void LoadCollisionMapsFromImages();
 
-// 기본 맵 + 방향별 문 오버레이 텍스처
-extern SDL_Texture* gMapBaseTex;
-extern SDL_Texture* gDoorTexU;
-extern SDL_Texture* gDoorTexD;
-extern SDL_Texture* gDoorTexL;
-extern SDL_Texture* gDoorTexR;
-
-// 도어 마스크(U=1 D=2 L=4 R=8)에 맞는 배경 텍스처를
-// base + door overlay 합성으로 생성해 캐싱 후 반환
-extern SDL_Texture* gRoomMapTextures[16];
+// 도어 마스크(U=1 D=2 L=4 R=8)에 맞는 배경 텍스처 반환 (합성 후 캐싱)
 SDL_Texture* GetRoomMapTexture(SDL_Renderer* renderer, int doorMask);
 
-// 도어 마스크에 맞는 collision을
-// map_collision_base.png + 문 오버레이 alpha에서 생성
+// 도어 마스크에 맞는 collision 생성 (meta PNG 기반)
 void LoadRoomCollisionMap(int doorMask);
-std::string AssetPath(const char* filename);
+
+// 방향별 문 rect 반환 (0=U 1=D 2=L 3=R), 미로드 시 {0,0,0,0}
+SDL_Rect GetDoorRect(int dir);
