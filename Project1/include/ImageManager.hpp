@@ -33,6 +33,8 @@ extern SDL_Texture* gButtonTex;
 extern SDL_Texture* gTitleBgTex;
 extern SDL_Texture* gMazeWallTex;
 extern SDL_Texture* gMazeFloorTex;
+extern SDL_Texture* gMazeArrowTex;
+extern SDL_Texture* gMazePlayerIconTex[5];
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();
 

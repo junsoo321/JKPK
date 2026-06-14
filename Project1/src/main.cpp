@@ -273,7 +273,7 @@ auto main(int argc, char* argv[]) -> int
         SDL_RenderSetViewport(renderer, &normalViewport);
 
         if (!isBossFight) DrawMiniMap(renderer);
-        DrawHearts(renderer, &player);
+        if (gGameState != GAME_MAZE) DrawHearts(renderer, &player);
 
         SDL_RenderPresent(renderer);
     }

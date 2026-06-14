@@ -30,6 +30,8 @@ SDL_Texture* gButtonTex              = nullptr;
 SDL_Texture* gTitleBgTex             = nullptr;
 SDL_Texture* gMazeWallTex            = nullptr;
 SDL_Texture* gMazeFloorTex           = nullptr;
+SDL_Texture* gMazeArrowTex       = nullptr;
+SDL_Texture* gMazePlayerIconTex[5] = {};
 TTF_Font*    gFont                   = nullptr;
 
 // [Internal - map system]
@@ -195,6 +197,11 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void {
     // 미로
     gMazeWallTex  = LoadTex(AssetPath("maze/maze_wall.png"));
     gMazeFloorTex = LoadTex(AssetPath("maze/maze_floor.png"));
+    gMazeArrowTex = LoadTex(AssetPath("maze/maze_arrow.png"));
+    for (int i = 0; i < 5; i++) {
+        std::string path = "maze/character_icon_" + std::to_string(i + 1) + ".png";
+        gMazePlayerIconTex[i] = LoadTex(AssetPath(path.c_str()));
+    }
 
     // font
     gFont = TTF_OpenFont(AssetPath("Pretendard-Regular.ttf").c_str(), 24);
@@ -325,6 +332,8 @@ void FreeAllImages() {
     Free(gTitleBgTex);
     Free(gMazeWallTex);
     Free(gMazeFloorTex);
+    Free(gMazeArrowTex);
+    for (int i = 0; i < 5; i++) Free(gMazePlayerIconTex[i]);
     Free(gMapBaseTex);
     Free(gDoorTexU);
     Free(gDoorTexD);

@@ -156,6 +156,33 @@ void DrawMazeStage(SDL_Renderer* renderer)
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     SDL_RenderFillRect(renderer, &playerRect);
 
+    //출구까지 직선 거리 계산 후 1/3 단계로 얼굴 아이콘 HUD 렌더링 (왼쪽 위)
+    {
+        float iconDx = gMazeStage.keyX * MAZE_TILE_SIZE + MAZE_TILE_SIZE / 2.0f
+                     - (gMazeStage.playerX + MAZE_PLAYER_SIZE / 2.0f);
+        float iconDy = gMazeStage.keyY * MAZE_TILE_SIZE + MAZE_TILE_SIZE / 2.0f
+                     - (gMazeStage.playerY + MAZE_PLAYER_SIZE / 2.0f);
+        float distToKey = sqrtf(iconDx * iconDx + iconDy * iconDy);
+        const float maxDist = sqrtf(
+            (float)(MAZE_WIDTH  * MAZE_TILE_SIZE) * (MAZE_WIDTH  * MAZE_TILE_SIZE) +
+            (float)(MAZE_HEIGHT * MAZE_TILE_SIZE) * (MAZE_HEIGHT * MAZE_TILE_SIZE));
+        float ratio = distToKey / maxDist;
+
+        // stage 0=가장 가까움 → character_icon_5(웃음), stage 4=가장 멈 → character_icon_1(울음)
+        int stage = (int)(ratio * 5);
+        if (stage > 4) stage = 4;
+        SDL_Texture* iconTex = gMazePlayerIconTex[4 - stage];
+
+        const int hudSize = 64;
+        SDL_Rect hudRect = { 10, 10, hudSize, hudSize };
+        if (iconTex) {
+            SDL_RenderCopy(renderer, iconTex, NULL, &hudRect);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255);
+            SDL_RenderFillRect(renderer, &hudRect);
+        }
+    }
+
     //플레이어 위치에서 화면 밖 열쇠까지의 삼각함수(atan2f)각도를 계산하여 상단에 가이드 화살표 드로우
     float keyWorldX = gMazeStage.keyX * MAZE_TILE_SIZE + MAZE_TILE_SIZE / 2.0f;
     float keyWorldY = gMazeStage.keyY * MAZE_TILE_SIZE + MAZE_TILE_SIZE / 2.0f;
@@ -170,17 +197,28 @@ void DrawMazeStage(SDL_Renderer* renderer)
     float arrowY = SCREEN_HEIGHT / 2.0f - 40.0f; // 캐릭터 바로 머리 위 배치
     const float size = 12.0f;
 
-    SDL_Point tri[4];
-    tri[0].x = (int)(arrowX + cosf(angle) * size);
-    tri[0].y = (int)(arrowY + sinf(angle) * size);
-    tri[1].x = (int)(arrowX + cosf(angle + 2.5f) * size);
-    tri[1].y = (int)(arrowY + sinf(angle + 2.5f) * size);
-    tri[2].x = (int)(arrowX + cosf(angle - 2.5f) * size);
-    tri[2].y = (int)(arrowY + sinf(angle - 2.5f) * size);
-    tri[3] = tri[0]; // 폴리라인 폐쇄용 복사
+    const int arrowSize = 40;
+    SDL_Rect arrowDst = {
+        (int)(arrowX - arrowSize / 2),
+        (int)(arrowY - arrowSize / 2),
+        arrowSize, arrowSize
+    };
+    float angleDeg = angle * (180.0f / 3.14159265f);
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    SDL_RenderDrawLines(renderer, tri, 4);
+    if (gMazeArrowTex) {
+        SDL_RenderCopyEx(renderer, gMazeArrowTex, NULL, &arrowDst, angleDeg, NULL, SDL_FLIP_NONE);
+    } else {
+        SDL_Point tri[4];
+        tri[0].x = (int)(arrowX + cosf(angle) * size);
+        tri[0].y = (int)(arrowY + sinf(angle) * size);
+        tri[1].x = (int)(arrowX + cosf(angle + 2.5f) * size);
+        tri[1].y = (int)(arrowY + sinf(angle + 2.5f) * size);
+        tri[2].x = (int)(arrowX + cosf(angle - 2.5f) * size);
+        tri[2].y = (int)(arrowY + sinf(angle - 2.5f) * size);
+        tri[3] = tri[0];
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+        SDL_RenderDrawLines(renderer, tri, 4);
+    }
 }
 
 bool IsMazeFinished()
