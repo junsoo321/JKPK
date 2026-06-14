@@ -5,6 +5,54 @@
 #include "Boss.hpp"
 #include "Enemy.h"
 #include <iostream>
+#include <cmath>
+#include <cstdio>
+
+// 플레이어 히트박스 4코너가 모두 벽 밖인지 확인
+static bool IsSafePosition(float x, float y) {
+    return !IsWall(x,      y     ) &&
+           !IsWall(x + 28, y     ) &&
+           !IsWall(x,      y + 28) &&
+           !IsWall(x + 28, y + 28);
+}
+
+// 좌우 방 이동 시 스폰 Y 보정: spawnX를 고정하고 preferredY에서 가장 가까운 안전한 Y 탐색
+static float SafeSpawnY(float spawnX, float preferredY) {
+    if (IsSafePosition(spawnX, preferredY)) return preferredY;
+    for (int d = TILE_SIZE; d < SCREEN_HEIGHT; d += TILE_SIZE) {
+        if (preferredY - d >= 0                  && IsSafePosition(spawnX, preferredY - d)) return preferredY - d;
+        if (preferredY + d + 28 <= SCREEN_HEIGHT && IsSafePosition(spawnX, preferredY + d)) return preferredY + d;
+    }
+    return SCREEN_HEIGHT / 2.0f;
+}
+
+// 상하 방 이동 시 스폰 X 보정: spawnY를 고정하고 preferredX에서 가장 가까운 안전한 X 탐색
+static float SafeSpawnX(float preferredX, float spawnY) {
+    if (IsSafePosition(preferredX, spawnY)) return preferredX;
+    for (int d = TILE_SIZE; d < SCREEN_WIDTH; d += TILE_SIZE) {
+        if (preferredX - d >= 0                 && IsSafePosition(preferredX - d, spawnY)) return preferredX - d;
+        if (preferredX + d + 28 <= SCREEN_WIDTH && IsSafePosition(preferredX + d, spawnY)) return preferredX + d;
+    }
+    return SCREEN_WIDTH / 2.0f;
+}
+
+// 갇혔을 때 타일 격자 기준으로 가장 가까운 안전 위치 탐색
+static bool FindNearestSafePos(float cx, float cy, float* outX, float* outY) {
+    int startCol = (int)(cx / TILE_SIZE);
+    int startRow = (int)(cy / TILE_SIZE);
+    for (int radius = 1; radius <= 60; radius++) {
+        for (int dc = -radius; dc <= radius; dc++) {
+            for (int dr = -radius; dr <= radius; dr++) {
+                if (abs(dc) != radius && abs(dr) != radius) continue;
+                float nx = (startCol + dc) * (float)TILE_SIZE;
+                float ny = (startRow + dr) * (float)TILE_SIZE;
+                if (nx < 0 || ny < 0 || nx + 28 > SCREEN_WIDTH || ny + 28 > SCREEN_HEIGHT) continue;
+                if (IsSafePosition(nx, ny)) { *outX = nx; *outY = ny; return true; }
+            }
+        }
+    }
+    return false;
+}
 
 void InitPlayer(PlayerData* p) {
     p->x = SCREEN_WIDTH / 2.0f;
@@ -30,6 +78,23 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
     //무적 확인
     if (p->isInvincible && now > p->invincibleEndTime) {
         p->isInvincible = false;
+    }
+
+    // 벽에 갇힌 경우 감지 및 R키 탈출
+    if (!IsSafePosition(p->x, p->y)) {
+        static Uint32 lastWarnTime = 0;
+        if (now - lastWarnTime > 1000) {
+            printf("[DEBUG] 플레이어가 벽에 갇혔습니다. (%.0f, %.0f) - R키를 눌러 탈출\n", p->x, p->y);
+            lastWarnTime = now;
+        }
+        if (keyboardState[SDL_SCANCODE_R]) {
+            float sx, sy;
+            if (FindNearestSafePos(p->x, p->y, &sx, &sy)) {
+                printf("[DEBUG] 탈출 성공: (%.0f, %.0f)\n", sx, sy);
+                p->x = sx;
+                p->y = sy;
+            }
+        }
     }
 
     //키 입력: 키를 누르면 즉시 최대 속도, 떼면 마찰로 서서히 감속
@@ -69,6 +134,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
         if (currentRoom->right && currentRoom->right->exists) {
             MoveToNextRoom(3);
             p->x = 50;
+            p->y = SafeSpawnY(p->x, p->y);
         }
     }
 
@@ -77,6 +143,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
         if (currentRoom->left && currentRoom->left->exists) {
             MoveToNextRoom(2);
             p->x = SCREEN_WIDTH - 80;
+            p->y = SafeSpawnY(p->x, p->y);
         }
     }
 
@@ -85,6 +152,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
         if (currentRoom->up && currentRoom->up->exists) {
             MoveToNextRoom(0);
             p->y = SCREEN_HEIGHT - 80;
+            p->x = SafeSpawnX(p->x, p->y);
         }
     }
 
@@ -93,6 +161,7 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime) {
         if (currentRoom->down && currentRoom->down->exists) {
             MoveToNextRoom(1);
             p->y = 50;
+            p->x = SafeSpawnX(p->x, p->y);
         }
     }
 

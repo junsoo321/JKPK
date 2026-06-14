@@ -32,7 +32,6 @@ auto main(int argc, char* argv[]) -> int
 
     InitRoomNodes();
     GenerateDungeon();
-    InitMap();
     LoadAllImages(renderer);
     LoadCollisionMapsFromImages();
     InitMap();
@@ -43,6 +42,7 @@ auto main(int argc, char* argv[]) -> int
     bool isRunning = true;
     SDL_Event event;
     Uint32 lastTime = SDL_GetTicks();
+    float fireTimer = 0.0f;
 
     while (isRunning) {
         //DeltaTime 계산 (이전 프레임과 현재 프레임 사이의 시간 간격)
@@ -215,11 +215,19 @@ auto main(int argc, char* argv[]) -> int
         }
         else
         {
+            int doorMask = 0;
+            if (currentRoom->up)    doorMask |= 1;
+            if (currentRoom->down)  doorMask |= 2;
+            if (currentRoom->left)  doorMask |= 4;
+            if (currentRoom->right) doorMask |= 8;
+            SDL_Texture* bgTex = (currentRoom->roomType == ROOM_BOSS)
+                ? gBossMapTexture
+                : GetRoomMapTexture(renderer, doorMask);
             DrawMap(
                 renderer,
-                gMapTexture,
+                bgTex,
                 gWallTexture,
-                gBorderTexture
+                gWallTexture
             );
         }
 

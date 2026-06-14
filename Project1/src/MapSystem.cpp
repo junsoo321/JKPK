@@ -1,5 +1,6 @@
 ﻿#include "MapSystem.hpp"
-#include "MapData.hpp" 
+#include "MapData.hpp"
+#include "ImageManager.hpp"
 #include "Constants.h"
 #include "Projectile.hpp"
 #include "Enemy.h"
@@ -18,19 +19,28 @@ extern BossData mainBoss;
 extern bool isBossFight;
 bool gShowFullMap = false;
 
-//랜덤하게 맵 패턴을 가져와서 맵을 생성하는 함수
+//방의 연결 방향으로 도어 마스크 계산 (U=1 D=2 L=4 R=8)
+static int CalcDoorMask(RoomNode* room) {
+    int mask = 0;
+    if (room->up)    mask |= 1;
+    if (room->down)  mask |= 2;
+    if (room->left)  mask |= 4;
+    if (room->right) mask |= 8;
+    return mask;
+}
+
+//도어 마스크에 맞는 collision + 배경 이미지를 사용해 맵을 생성하는 함수
 void InitMap() {
     currentRoom = &roomNodes[currentRoomX][currentRoomY];
-    //이미 생성된 맵인지 확인(방문했던 맵인지 확인)
-    if (currentRoom->visited) {
-        return;
-    }
-    int randomIdx = rand() % MAX_PATTERNS;
+    if (currentRoom->visited) return;
 
-    //맵 초기화 및 패턴 생성, 전체 월드의 테두리(벽) 생성 (여기선 tile값만 조정, 실제 출력은 아래 DrawMap에서 구현)
+    int doorMask = CalcDoorMask(currentRoom);
+
+    // 도어 마스크에 맞는 collision PNG 로드 (없으면 빈 맵)
+    LoadRoomCollisionMap(doorMask);
+
     for (int r = 0; r < MAP_ROWS; r++) {
         for (int c = 0; c < MAP_COLS; c++) {
-            //기본 바닥 설정
             int tile = 0;
 
             //월드 테두리 생성 (2: 가장자리 벽)
@@ -39,17 +49,16 @@ void InitMap() {
             if (c == 0 && currentRoomX == 0) tile = 2;
             if (c == MAP_COLS - 1 && currentRoomX == MAX_ROOMS_X - 1) tile = 2;
 
-            //맵 패턴 생성
+            //도어 마스크에 해당하는 collision 패턴 적용
             if (r > 0 && r < MAP_ROWS - 1 && c > 0 && c < MAP_COLS - 1) {
-                tile = mapLayouts[1][r][c];
+                tile = mapLayouts[doorMask][r][c];
             }
 
-            //결과물을 현재 맵(worldMap)과 월드 데이터(worldData)에 동시 저장
             currentRoom->mapData[r][c] = tile;
         }
     }
 
-    currentRoom->visited = true;//방문 표시
+    currentRoom->visited = true;
 }
 
 //벽 충돌 체크 함수
@@ -72,7 +81,8 @@ int IsWall(float x, float y) {
         return 1;
     }
 
-    return currentRoom->mapData[row][col] != 0;
+    int tile = currentRoom->mapData[row][col];
+    return tile == 1 || tile == 2; // 3(문)은 통과 가능
 }
 
 //맵 그리기 함수
