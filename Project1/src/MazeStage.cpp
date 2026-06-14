@@ -173,7 +173,7 @@ void DrawMazeStage(SDL_Renderer* renderer)
         if (stage > 4) stage = 4;
         SDL_Texture* iconTex = gMazePlayerIconTex[4 - stage];
 
-        const int hudSize = 64;
+        const int hudSize = 96;
         SDL_Rect hudRect = { 10, 10, hudSize, hudSize };
         if (iconTex) {
             SDL_RenderCopy(renderer, iconTex, NULL, &hudRect);

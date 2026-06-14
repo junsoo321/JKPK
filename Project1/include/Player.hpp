@@ -16,7 +16,7 @@ typedef struct PlayerData {
     SDL_Rect drawRect;
 
     // 애니메이션
-    int   animDir;      // 0=아래, 1=위, 2=옆
+    int   animDir;      // 0=앞(아래/row0), 1=옆(row1), 2=뒤(위/row2)
     bool  facingRight;  // 옆 방향일 때 좌우 반전 여부
     int   animFrame;
     float animTimer;

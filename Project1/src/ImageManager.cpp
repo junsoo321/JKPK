@@ -1,4 +1,4 @@
-#include "ImageManager.hpp"
+﻿#include "ImageManager.hpp"
 #include "MapData.hpp"
 #include "Constants.h"
 
@@ -9,30 +9,30 @@
 #include <cstring>
 
 // [Public textures]
-SDL_Texture* gPlayerIdleTex          = nullptr;
-SDL_Texture* gPlayerWalkTex          = nullptr;
-SDL_Texture* gPlayerHurtTex          = nullptr;
-SDL_Texture* gPlayerDeathTex         = nullptr;
-SDL_Texture* gWallTexture            = nullptr;
-SDL_Texture* gFloorTexture           = nullptr;
-SDL_Texture* gEnemyTexture           = nullptr;
-SDL_Texture* gProjectileTexture      = nullptr;
-SDL_Texture* gEnemyProjectileTexture = nullptr;
-SDL_Texture* gBossProjectileTex1     = nullptr;
-SDL_Texture* gBossProjectileTex2     = nullptr;
-SDL_Texture* gMapTexture             = nullptr;
-SDL_Texture* gBossTexture            = nullptr;
-SDL_Texture* gBossMapTexture         = nullptr;
-SDL_Texture* gHeartFullTex           = nullptr;
-SDL_Texture* gHeartHalfTex           = nullptr;
-SDL_Texture* gHeartEmptyTex          = nullptr;
-SDL_Texture* gButtonTex              = nullptr;
-SDL_Texture* gTitleBgTex             = nullptr;
-SDL_Texture* gMazeWallTex            = nullptr;
-SDL_Texture* gMazeFloorTex           = nullptr;
-SDL_Texture* gMazeArrowTex       = nullptr;
-SDL_Texture* gMazePlayerIconTex[5] = {};
-TTF_Font*    gFont                   = nullptr;
+SDL_Texture* gPlayerIdleTex             = nullptr;
+SDL_Texture* gPlayerWalkTex             = nullptr;
+SDL_Texture* gPlayerHurtTex             = nullptr;
+SDL_Texture* gPlayerDeathTex            = nullptr;
+SDL_Texture* gWallTexture               = nullptr;
+SDL_Texture* gFloorTexture              = nullptr;
+SDL_Texture* gEnemyTexture              = nullptr;
+SDL_Texture* gProjectileTexture         = nullptr;
+SDL_Texture* gEnemyProjectileTexture    = nullptr;
+SDL_Texture* gBossProjectileTex1        = nullptr;
+SDL_Texture* gBossProjectileTex2        = nullptr;
+SDL_Texture* gMapTexture                = nullptr;
+SDL_Texture* gBossTexture               = nullptr;
+SDL_Texture* gBossMapTexture            = nullptr;
+SDL_Texture* gHeartFullTex              = nullptr;
+SDL_Texture* gHeartHalfTex              = nullptr;
+SDL_Texture* gHeartEmptyTex             = nullptr;
+SDL_Texture* gButtonTex                 = nullptr;
+SDL_Texture* gTitleBgTex                = nullptr;
+SDL_Texture* gMazeWallTex               = nullptr;
+SDL_Texture* gMazeFloorTex              = nullptr;
+SDL_Texture* gMazeArrowTex              = nullptr;
+SDL_Texture* gMazePlayerIconTex[5]      = {};
+TTF_Font*    gFont                      = nullptr;
 
 // [Internal - map system]
 static SDL_Texture* gMapBaseTex         = nullptr;
@@ -40,13 +40,13 @@ static SDL_Texture* gDoorTexU           = nullptr;
 static SDL_Texture* gDoorTexD           = nullptr;
 static SDL_Texture* gDoorTexL           = nullptr;
 static SDL_Texture* gDoorTexR           = nullptr;
-static SDL_Texture* gRoomMapTextures[16] = {};
+static SDL_Texture* gRoomMapTextures[16]= {};
 
 // meta PNG parsed data
 static int      metaCollision[MAP_ROWS][MAP_COLS] = {};
-static SDL_Rect doorRects[4] = {};  // 0=U 1=D 2=L 3=R  (screen coords)
-static bool     collisionReady = false;
-static bool     doorsReady     = false;
+static SDL_Rect doorRects[4]    = {};  // 0=U 1=D 2=L 3=R  (screen coords)
+static bool     collisionReady  = false;
+static bool     doorsReady      = false;
 
 // [Utilities]
 static auto AssetPath(const char* filename) -> std::string {
@@ -67,13 +67,17 @@ static bool IsCyan   (Uint8 r, Uint8 g, Uint8 b) { return r < 50  && g > 200 && 
 static bool IsLime   (Uint8 r, Uint8 g, Uint8 b) { return r > 80  && r < 180 && g > 200 && b < 50; } // #80FF00 door L
 static bool IsPurple (Uint8 r, Uint8 g, Uint8 b) { return r > 80  && r < 180 && g < 50  && b > 200; } // #8000FF door R
 
-// map_base_001_collision.png: 마젠타 → 벽 충돌 타일 (타일 중앙 샘플링)
-static void ParseCollisionPNG(SDL_Surface* img) {
+// collision PNG → out 배열 (magenta=1 wall, yellow=2 obstacle, else=0)
+static void LoadCollisionFromPNG(const std::string& path, int out[][MAP_COLS]) {
+    SDL_Surface* surf = IMG_Load(path.c_str());
+    if (!surf) { std::cout << "Collision not found: " << path << "\n"; return; }
+    SDL_Surface* img = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(surf);
+    if (!img) return;
+
     SDL_LockSurface(img);
     Uint32* pixels = (Uint32*)img->pixels;
     int pitch = img->pitch / 4;
-
-    memset(metaCollision, 0, sizeof(metaCollision));
     for (int row = 0; row < MAP_ROWS; row++) {
         for (int col = 0; col < MAP_COLS; col++) {
             int px = (int)((col * TILE_SIZE + TILE_SIZE / 2) * (float)img->w / SCREEN_WIDTH);
@@ -82,14 +86,13 @@ static void ParseCollisionPNG(SDL_Surface* img) {
             if (py >= img->h) py = img->h - 1;
             Uint8 r, g, b, a;
             SDL_GetRGBA(pixels[py * pitch + px], img->format, &r, &g, &b, &a);
-            if      (IsMagenta(r, g, b)) metaCollision[row][col] = 1;
-            else if (IsYellow (r, g, b)) metaCollision[row][col] = 2;
-            else                         metaCollision[row][col] = 0;
+            if      (IsMagenta(r, g, b)) out[row][col] = 1;
+            else if (IsYellow (r, g, b)) out[row][col] = 2;
+            else                         out[row][col] = 0;
         }
     }
-
     SDL_UnlockSurface(img);
-    collisionReady = true;
+    SDL_FreeSurface(img);
 }
 
 // map_base_001_doors.png: 오렌지/시안/라임/보라 영역 → 문 방향별 bounding box (화면 좌표)
@@ -137,81 +140,86 @@ static void ParseDoorsPNG(SDL_Surface* img) {
     doorsReady = true;
 }
 
-// tile center sampling for boss collision map (magenta only)
-static void SampleCollisionImage(SDL_Surface* img, int out[][MAP_COLS]) {
-    SDL_LockSurface(img);
-    Uint32* pixels = (Uint32*)img->pixels;
-    int pitch = img->pitch / 4;
-    for (int row = 0; row < MAP_ROWS; row++) {
-        for (int col = 0; col < MAP_COLS; col++) {
-            int px = (int)((col * TILE_SIZE + TILE_SIZE / 2) * (float)img->w / SCREEN_WIDTH);
-            int py = (int)((row * TILE_SIZE + TILE_SIZE / 2) * (float)img->h / SCREEN_HEIGHT);
-            if (px >= img->w) px = img->w - 1;
-            if (py >= img->h) py = img->h - 1;
-            Uint8 r, g, b, a;
-            SDL_GetRGBA(pixels[py * pitch + px], img->format, &r, &g, &b, &a);
-            out[row][col] = IsMagenta(r, g, b) ? 1 : 0;
-        }
-    }
-    SDL_UnlockSurface(img);
-}
 
 // [Public]
-auto LoadAllImages(SDL_Renderer* renderer) -> void {
+auto LoadAllImages(SDL_Renderer* renderer) -> void
+{
     int imgFlags = IMG_INIT_PNG;
-    if (!(IMG_Init(imgFlags) & imgFlags)) {
+    if (!(IMG_Init(imgFlags) & imgFlags))
+    {
         std::cout << "SDL_image init failed: " << IMG_GetError() << std::endl;
         return;
     }
 
-    auto LoadTex = [&](const std::string& path) -> SDL_Texture* {
+    auto LoadTexture = [&](const std::string& path) -> SDL_Texture* {
         SDL_Texture* t = IMG_LoadTexture(renderer, path.c_str());
         if (!t) std::cout << "Load failed: " << path << " (" << IMG_GetError() << ")\n";
         return t;
     };
 
-    // characters / effects
-    gPlayerIdleTex          = LoadTex(AssetPath("Characters/Default/idle.png"));
-    gPlayerWalkTex          = LoadTex(AssetPath("Characters/Default/walk.png"));
-    gPlayerHurtTex          = LoadTex(AssetPath("Characters/Default/hurt.png"));
-    gPlayerDeathTex         = LoadTex(AssetPath("Characters/Default/death.png"));
-    gProjectileTexture      = LoadTex(AssetPath("projectile/semi-colon.png"));
-    gEnemyTexture           = LoadTex(AssetPath("enemy.png"));
-    gEnemyProjectileTexture = LoadTex(AssetPath("attack.png"));
-    gBossProjectileTex1     = LoadTex(AssetPath("attack_boss_001.png"));
-    gBossProjectileTex2     = LoadTex(AssetPath("attack_boss_002.png"));
-    gBossTexture            = LoadTex(AssetPath("boss.png"));
-    gBossMapTexture         = LoadTex(AssetPath("map/boss/map_boss.png"));
-    gWallTexture            = LoadTex(AssetPath("transparent.png"));
-    gMapTexture             = LoadTex(AssetPath("map/base/map_base_001.png")); // quiz fallback
+    // stage - base
+    gWallTexture            = LoadTexture(AssetPath("map/transparent.png"));
+    gMapTexture             = LoadTexture(AssetPath("map/base/map-base-001.png"));
 
-    // heart UI
-    gHeartFullTex  = LoadTex(AssetPath("display/heart_full.png"));
-    gHeartHalfTex  = LoadTex(AssetPath("display/heart_half.png"));
-    gHeartEmptyTex = LoadTex(AssetPath("display/heart_empty.png"));
+    // stage - boss
+    gBossMapTexture         = LoadTexture(AssetPath("map/boss/map-boss.png"));
 
-    // UI
-    gButtonTex    = LoadTex(AssetPath("ui/button.png"));
-    gTitleBgTex   = LoadTex(AssetPath("ui/main.png"));
+    // stage - maze
+    gMazeWallTex            = LoadTexture(AssetPath("map/maze/wall.png"));
+    gMazeFloorTex           = LoadTexture(AssetPath("map/maze/floor.png"));
+    gMazeArrowTex           = LoadTexture(AssetPath("map/maze/ui/arrow.png"));
 
-    // 미로
-    gMazeWallTex  = LoadTex(AssetPath("maze/maze_wall.png"));
-    gMazeFloorTex = LoadTex(AssetPath("maze/maze_floor.png"));
-    gMazeArrowTex = LoadTex(AssetPath("maze/maze_arrow.png"));
-    for (int i = 0; i < 5; i++) {
-        std::string path = "maze/character_icon_" + std::to_string(i + 1) + ".png";
-        gMazePlayerIconTex[i] = LoadTex(AssetPath(path.c_str()));
+    for (int i = 0; i < 5; i++)
+    {
+        std::string path    = "map/maze/ui/character_icon_" + std::to_string(i + 1) + ".png";
+        gMazePlayerIconTex[i] = LoadTexture(AssetPath(path.c_str()));
     }
 
+    // player
+    gPlayerIdleTex          = LoadTexture(AssetPath("player/body/default/idle.png"));
+    gPlayerWalkTex          = LoadTexture(AssetPath("player/body/default/walk.png"));
+    gPlayerHurtTex          = LoadTexture(AssetPath("player/body/default/hurt.png"));
+    gPlayerDeathTex         = LoadTexture(AssetPath("player/body/default/death.png"));
+    gProjectileTexture      = LoadTexture(AssetPath("player/projectile/semi-colon.png"));
+
+    // mob - plain
+    gEnemyTexture           = LoadTexture(AssetPath("mob/enemy.png"));
+    gEnemyProjectileTexture = LoadTexture(AssetPath("mob/projectile/default.png"));
+
+    // mob - boss
+    gBossTexture            = LoadTexture(AssetPath("mob/boss.png"));
+    gBossProjectileTex1     = LoadTexture(AssetPath("mob/projectile/boss-001.png"));
+    gBossProjectileTex2     = LoadTexture(AssetPath("mob/projectile/boss-002.png"));
+
+    // ui - hp
+    gHeartFullTex           = LoadTexture(AssetPath("ui/hp/heart_full.png"));
+    gHeartHalfTex           = LoadTexture(AssetPath("ui/hp/heart_half.png"));
+    gHeartEmptyTex          = LoadTexture(AssetPath("ui/hp/heart_empty.png"));
+
+    // ui - menu
+    gButtonTex              = LoadTexture(AssetPath("ui/menu/button.png"));
+    gTitleBgTex             = LoadTexture(AssetPath("ui/menu/main.png"));
+
     // font
-    gFont = TTF_OpenFont(AssetPath("Pretendard-Regular.ttf").c_str(), 24);
-    if (!gFont) std::cout << "Font load failed: " << TTF_GetError() << "\n";
+    gFont = TTF_OpenFont(AssetPath("ui/font/Pretendard-Regular.ttf").c_str(), 24);
+
+    if (!gFont)
+    {
+        std::cout << "Font Load Failed: " << TTF_GetError() << "\n";
+    }
 
     // base map (map/base/map_base_001.png, fallback to map/map_base.png)
-    gMapBaseTex = LoadTex(AssetPath("map/base/map_base_001.png"));
-    if (!gMapBaseTex) gMapBaseTex = LoadTex(AssetPath("map/map_base.png"));
+    gMapBaseTex = LoadTexture(AssetPath("map/base/map-base-001.png"));
+    if (!gMapBaseTex)
+    {
+        gMapBaseTex = LoadTexture(AssetPath("map/map-base-001.png"));
+    }
 
-    // parse collision + door PNGs separately
+    // base map collision
+    LoadCollisionFromPNG(AssetPath("map/base/map-base-001_collision.png"), metaCollision);
+    collisionReady = true;
+
+    // doors PNG
     auto LoadAndParse = [](const std::string& path, void(*parseFn)(SDL_Surface*)) {
         SDL_Surface* surf = IMG_Load(path.c_str());
         if (!surf) { std::cout << "Meta not found: " << path << "\n"; return; }
@@ -219,32 +227,27 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void {
         SDL_FreeSurface(surf);
         if (rgba) { parseFn(rgba); SDL_FreeSurface(rgba); }
     };
-    LoadAndParse(AssetPath("map/base/map_base_001_collision.png"), ParseCollisionPNG);
-    LoadAndParse(AssetPath("map/base/map_base_001_doors.png"),     ParseDoorsPNG);
+    LoadAndParse(AssetPath("map/base/map-base-001_doors.png"), ParseDoorsPNG);
 
     // door sprites
     struct { const char* path; SDL_Texture** tex; } doors[4] = {
-        { "map/door/map_door_U.png", &gDoorTexU },
-        { "map/door/map_door_D.png", &gDoorTexD },
-        { "map/door/map_door_L.png", &gDoorTexL },
-        { "map/door/map_door_R.png", &gDoorTexR },
+        { "map/door/door-up.png",       &gDoorTexU },
+        { "map/door/door-down.png",     &gDoorTexD },
+        { "map/door/door-left.png",     &gDoorTexL },
+        { "map/door/door-right.png",    &gDoorTexR },
     };
     for (auto& d : doors)
-        *d.tex = LoadTex(AssetPath(d.path));
+        *d.tex = LoadTexture(AssetPath(d.path));
 }
 
-// boss map collision (map_boss_collision.png → bossMapLayout)
-void LoadCollisionMapsFromImages() {
-    SDL_Surface* surf = IMG_Load(AssetPath("map/boss/map_boss_collision.png").c_str());
-    if (surf) {
-        SDL_Surface* img = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
-        SDL_FreeSurface(surf);
-        if (img) { SampleCollisionImage(img, bossMapLayout); SDL_FreeSurface(img); }
-    }
+void LoadCollisionMapsFromImages()
+{
+    LoadCollisionFromPNG(AssetPath("map/boss/map-boss_collision.png"), bossMapLayout);
 }
 
 // build collision for doorMask: meta collision base + clear tiles in active door rects
-void LoadRoomCollisionMap(int doorMask) {
+auto LoadRoomCollisionMap(int doorMask) -> void
+{
     if (collisionLoaded[doorMask]) return;
 
     if (collisionReady)
@@ -252,14 +255,19 @@ void LoadRoomCollisionMap(int doorMask) {
     else
         memset(mapLayouts[doorMask], 0, sizeof(mapLayouts[doorMask]));
 
-    for (int d = 0; d < 4; d++) {
+    for (int d = 0; d < 4; d++)
+    {
         if (!(doorMask & (1 << d))) continue;
+
         SDL_Rect& rect = doorRects[d];
+
         if (rect.w == 0 || rect.h == 0) continue;
+
         int colMin = rect.x / TILE_SIZE;
         int colMax = (rect.x + rect.w - 1) / TILE_SIZE;
         int rowMin = rect.y / TILE_SIZE;
         int rowMax = (rect.y + rect.h - 1) / TILE_SIZE;
+
         for (int row = rowMin; row <= rowMax && row < MAP_ROWS; row++)
             for (int col = colMin; col <= colMax && col < MAP_COLS; col++)
                 mapLayouts[doorMask][row][col] = 0;

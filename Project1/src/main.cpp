@@ -28,6 +28,11 @@ float gShakeAmount = 0.0f;
 BossData mainBoss;
 bool isBossFight = false;
 
+static SDL_Texture* gTransitionTex   = nullptr;
+static float        gTransitionTimer = 0.0f;
+static bool         gNeedCapture     = false;
+static const float  MAZE_TRANS_DUR   = 1.5f;
+
 auto main(int argc, char* argv[]) -> int
 {
     //SDL 라이브러리 및 게임 시스템 초기화
@@ -118,9 +123,19 @@ auto main(int argc, char* argv[]) -> int
             }
 
             //특수 스테이지(미로/퀴즈 방) 최초 진입 시 상태 초기화
-            if (currentRoom->roomType == ROOM_MAZE && !currentRoom->specialCleared && gGameState != GAME_MAZE) {
-                StartMazeStage();
-                gGameState = GAME_MAZE;
+            if (currentRoom->roomType == ROOM_MAZE && !currentRoom->specialCleared &&
+                gGameState != GAME_MAZE && gGameState != GAME_MAZE_TRANSITION) {
+                gTransitionTimer = 0.0f;
+                gNeedCapture     = true;
+                gGameState       = GAME_MAZE_TRANSITION;
+            }
+            if (gGameState == GAME_MAZE_TRANSITION && !gNeedCapture) {
+                gTransitionTimer += deltaTime;
+                if (gTransitionTimer >= MAZE_TRANS_DUR) {
+                    StartMazeStage();
+                    gGameState = GAME_MAZE;
+                    if (gTransitionTex) { SDL_DestroyTexture(gTransitionTex); gTransitionTex = nullptr; }
+                }
             }
             if (currentRoom->roomType == ROOM_QUIZ && !currentRoom->specialCleared && gGameState != GAME_QUIZ) {
                 StartQuizStage();
@@ -268,12 +283,52 @@ auto main(int argc, char* argv[]) -> int
             continue;
         }
 
+        if (gGameState == GAME_MAZE_TRANSITION && !gNeedCapture) {
+            SDL_Rect vp = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+            SDL_RenderSetViewport(renderer, &vp);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
+
+            float t = gTransitionTimer / MAZE_TRANS_DUR;
+            if (t > 1.0f) t = 1.0f;
+
+            if (gTransitionTex) {
+                float scale = 1.0f - t;
+                if (scale > 0.001f) {
+                    int w = (int)(SCREEN_WIDTH  * scale);
+                    int h = (int)(SCREEN_HEIGHT * scale);
+                    SDL_Rect dst = { SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - h / 2, w, h };
+                    SDL_RenderCopyEx(renderer, gTransitionTex, NULL, &dst, t * 720.0, NULL, SDL_FLIP_NONE);
+                }
+            }
+
+            float flicker = fabsf(sinf(gTransitionTimer * 25.0f)) * t;
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, (Uint8)(flicker * 180.0f));
+            SDL_RenderFillRect(renderer, NULL);
+
+            SDL_RenderPresent(renderer);
+            continue;
+        }
+
          //최종 화면 출력
         SDL_Rect normalViewport = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
         SDL_RenderSetViewport(renderer, &normalViewport);
 
         if (!isBossFight) DrawMiniMap(renderer);
-        if (gGameState != GAME_MAZE) DrawHearts(renderer, &player);
+        if (gGameState != GAME_MAZE && gGameState != GAME_MAZE_TRANSITION) DrawHearts(renderer, &player);
+
+        if (gGameState == GAME_MAZE_TRANSITION && gNeedCapture) {
+            SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormat(
+                0, SCREEN_WIDTH, SCREEN_HEIGHT, 24, SDL_PIXELFORMAT_RGB24);
+            if (surf) {
+                SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGB24, surf->pixels, surf->pitch);
+                if (gTransitionTex) SDL_DestroyTexture(gTransitionTex);
+                gTransitionTex = SDL_CreateTextureFromSurface(renderer, surf);
+                SDL_FreeSurface(surf);
+            }
+            gNeedCapture = false;
+        }
 
         SDL_RenderPresent(renderer);
     }

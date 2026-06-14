@@ -142,13 +142,13 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime)
     // 이동 방향 감지 (항상 실행 — 몹 유무와 무관)
     bool moving = (fabsf(p->vx) > 20.0f || fabsf(p->vy) > 20.0f);
     if (fabsf(p->vx) > fabsf(p->vy)) {
-        p->animDir = 2;
+        p->animDir = 1;  // row1: 오른쪽 옆모습 (좌이동 시 flip)
         if (p->vx > 20.0f)       p->facingRight = true;
         else if (p->vx < -20.0f) p->facingRight = false;
     } else if (p->vy < -20.0f) {
-        p->animDir = 1;
+        p->animDir = 2;  // row2: 뒷모습(위)
     } else if (moving) {
-        p->animDir = 0;
+        p->animDir = 0;  // row0: 앞모습(아래)
     }
 
     // hurt 타이머 감소 (항상 실행)
@@ -253,7 +253,7 @@ void DrawPlayer(SDL_Renderer* renderer, PlayerData* p)
     };
 
     // 왼쪽 방향이면 수평 반전
-    SDL_RendererFlip flip = (p->animDir == 2 && !p->facingRight)
+    SDL_RendererFlip flip = (p->animDir == 1 && !p->facingRight)
                           ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
     SDL_RenderCopyEx(renderer, tex, &src, &dst, 0.0, NULL, flip);
 }
