@@ -239,7 +239,7 @@ auto main(int argc, char* argv[]) -> int
             DrawBoss(renderer, &mainBoss);
         }
         else {
-            UpdateAndDrawEnemies(renderer, player.x, player.y, gEnemyTexture, deltaTime);
+            UpdateAndDrawEnemies(renderer, player.x, player.y, gEnemyTexture, deltaTime, &player);
             CheckEnemyCollision(bullets);
         }
 

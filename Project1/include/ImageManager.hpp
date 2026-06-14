@@ -30,6 +30,9 @@ extern SDL_Texture* gHeartFullTex;
 extern SDL_Texture* gHeartHalfTex;
 extern SDL_Texture* gHeartEmptyTex;
 extern SDL_Texture* gButtonTex;
+extern SDL_Texture* gTitleBgTex;
+extern SDL_Texture* gMazeWallTex;
+extern SDL_Texture* gMazeFloorTex;
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();
 

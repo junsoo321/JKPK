@@ -71,7 +71,7 @@ extern "C" {
     bool CanMove(float nextX, float nextY);
 
     //몹 출력 및 업데이트(이동,공격) 함수
-    void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, SDL_Texture* enemyTexture, float deltaTime);
+    void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, SDL_Texture* enemyTexture, float deltaTime, struct PlayerData* player);
 
     //투사체 충돌 체크 함수
     void CheckEnemyCollision(void* projectileArray);

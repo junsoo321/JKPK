@@ -34,8 +34,13 @@ void DrawTitleScreen(SDL_Renderer* renderer){
     SDL_SetRenderDrawColor(renderer, 10, 10, 10, 255);
     SDL_RenderClear(renderer);
 
-    DrawTextCenter(renderer, "폐 연구실 탈출 게임", 150);
-    DrawTextCenter(renderer, "JKPK팀", 220);
+    if (gTitleBgTex) {
+        SDL_Rect full = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+        SDL_RenderCopy(renderer, gTitleBgTex, NULL, &full);
+    } else {
+        DrawTextCenter(renderer, "폐 연구실 탈출 게임", 150);
+        DrawTextCenter(renderer, "JKPK팀", 220);
+    }
 
     DrawButton(renderer, startBtn);
     DrawButton(renderer, exitBtn);

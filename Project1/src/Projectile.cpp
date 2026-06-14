@@ -52,15 +52,13 @@ void FireProjectile(float startX, float startY, float deltaTime)
 // 타겟(플레이어) 위치 벡터 방향으로 일반 몹 투사체 스폰
 void FireEnemyProjectile(float startX, float startY, float targetX, float targetY)
 {
-    static int bossTexToggle = 0;
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!bullets[i].active) {
             bullets[i].active = true;
             bullets[i].owner = 1; // 몬스터 소유
             bullets[i].type = 0;
             bullets[i].angle = 0.0f;
-            bullets[i].texIndex = bossTexToggle;
-            bossTexToggle = 1 - bossTexToggle;
+            bullets[i].texIndex = 2; // 일반 몬스터 투사체 (attack.png)
 
             bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
             bullets[i].y = startY + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -172,10 +170,11 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime)
             else {
                 SDL_Texture* targetTexture = nullptr;
                 if (bullets[i].owner == 0) {
-                    targetTexture = gProjectileTexture;
-                }
-                else {
-                    //보스 투사체: texIndex에 따라 두 이미지 교대 사용
+                    targetTexture = gProjectileTexture;        // 플레이어: semi-colon.png
+                } else if (bullets[i].texIndex == 2) {
+                    targetTexture = gEnemyProjectileTexture;   // 일반 몬스터: attack.png
+                } else {
+                    // 보스 투사체: texIndex 0/1로 두 이미지 교대
                     targetTexture = (bullets[i].texIndex == 0) ? gBossProjectileTex1 : gBossProjectileTex2;
                     if (targetTexture == nullptr) targetTexture = gEnemyProjectileTexture;
                 }

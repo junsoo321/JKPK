@@ -1,4 +1,5 @@
 ﻿#include "Enemy.hpp"
+#include "Player.hpp"
 #include "MapSystem.hpp"
 #include "Projectile.hpp"
 #include "GameState.hpp"
@@ -106,7 +107,7 @@ bool CanMove(float nextX, float nextY)
 }
 
 //타입별 AI 동작(거리 유지, 투사체 예측 횡회피, 돌진) 연산 및 프레임 렌더링
-void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, SDL_Texture* enemyTexture, float deltaTime)
+void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, SDL_Texture* enemyTexture, float deltaTime, PlayerData* player)
 {
     Uint32 now = SDL_GetTicks();
     bool paused = (gGameState == GAME_PAUSE);
@@ -153,23 +154,26 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
                 e->nextAttackDelay = ENEMY_ATTACK_MIN + rand() % (ENEMY_ATTACK_MAX - ENEMY_ATTACK_MIN);
             }
         }
-        // 2. 자폭 타입 AI (무조건 돌진 후 타이머 폭발)
+        // 2. 자폭 타입 AI (무조건 돌진 → 근접 시 폭발)
         else if (e->type == ENEMY_SUICIDE && !paused) {
             float dx = playerX - e->x;
             float dy = playerY - e->y;
-            float len = sqrtf(dx * dx + dy * dy);
+            float dist = sqrtf(dx * dx + dy * dy);
 
-            if (len > 0.001f) { dx /= len; dy /= len; }
+            if (dist > 0.001f) { dx /= dist; dy /= dist; }
 
             float nextX = e->x + dx * SUICIDE_SPEED * deltaTime;
             float nextY = e->y + dy * SUICIDE_SPEED * deltaTime;
             if (CanMove(nextX, nextY)) { e->x = nextX; e->y = nextY; }
 
-            if (now >= e->explodeTime) {
-                float pdx = playerX - e->x;
-                float pdy = playerY - e->y;
-                if (sqrtf(pdx * pdx + pdy * pdy) < 120.0f) {
-                    // TODO: 플레이어 피격/데미지 처리 연동 유도
+            // 폭발 판정: 근접 거리 이내 또는 타이머 만료
+            bool explode = (dist < SUICIDE_EXPLOSION_RANGE) || (now >= e->explodeTime);
+            if (explode) {
+                if (dist < SUICIDE_EXPLOSION_RANGE && player && !player->isInvincible) {
+                    player->hp -= SUICIDE_EXPLOSION_DAMAGE;
+                    player->hurtTimer = 0.3f;
+                    player->isInvincible = true;
+                    player->invincibleEndTime = now + 2000;
                 }
                 e->active = false;
                 continue;
@@ -269,9 +273,24 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
         SDL_Rect enemyRect = { (int)e->x, (int)e->y, ENEMY_SIZE, ENEMY_SIZE };
 
         if (enemyTexture) {
-            if (e->type == ENEMY_NORMAL)       SDL_SetTextureColorMod(enemyTexture, 255, 255, 255);
-            else if (e->type == ENEMY_SUICIDE) SDL_SetTextureColorMod(enemyTexture, 255, 220, 80);
-            else if (e->type == ENEMY_NINJA)    SDL_SetTextureColorMod(enemyTexture, 100, 255, 100);
+            if (e->type == ENEMY_NORMAL) {
+                SDL_SetTextureColorMod(enemyTexture, 255, 255, 255);
+            }
+            else if (e->type == ENEMY_SUICIDE) {
+                float pdx = playerX - e->x;
+                float pdy = playerY - e->y;
+                float dist = sqrtf(pdx * pdx + pdy * pdy);
+                if (dist < SUICIDE_WARN_RANGE) {
+                    // 근접 시 붉은 점멸 (100ms 주기)
+                    if ((now / 100) % 2 == 0) SDL_SetTextureColorMod(enemyTexture, 255, 0,   0);
+                    else                       SDL_SetTextureColorMod(enemyTexture, 180, 0,   0);
+                } else {
+                    SDL_SetTextureColorMod(enemyTexture, 255, 220, 80);
+                }
+            }
+            else if (e->type == ENEMY_NINJA) {
+                SDL_SetTextureColorMod(enemyTexture, 100, 255, 100);
+            }
 
             SDL_RenderCopy(renderer, enemyTexture, NULL, &enemyRect);
             SDL_SetTextureColorMod(enemyTexture, 255, 255, 255);

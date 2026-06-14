@@ -27,6 +27,9 @@ SDL_Texture* gHeartFullTex           = nullptr;
 SDL_Texture* gHeartHalfTex           = nullptr;
 SDL_Texture* gHeartEmptyTex          = nullptr;
 SDL_Texture* gButtonTex              = nullptr;
+SDL_Texture* gTitleBgTex             = nullptr;
+SDL_Texture* gMazeWallTex            = nullptr;
+SDL_Texture* gMazeFloorTex           = nullptr;
 TTF_Font*    gFont                   = nullptr;
 
 // [Internal - map system]
@@ -176,7 +179,7 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void {
     gBossProjectileTex1     = LoadTex(AssetPath("attack_boss_001.png"));
     gBossProjectileTex2     = LoadTex(AssetPath("attack_boss_002.png"));
     gBossTexture            = LoadTex(AssetPath("boss.png"));
-    gBossMapTexture         = LoadTex(AssetPath("map/map_boss.png"));
+    gBossMapTexture         = LoadTex(AssetPath("map/boss/map_boss.png"));
     gWallTexture            = LoadTex(AssetPath("transparent.png"));
     gMapTexture             = LoadTex(AssetPath("map/base/map_base_001.png")); // quiz fallback
 
@@ -186,7 +189,12 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void {
     gHeartEmptyTex = LoadTex(AssetPath("display/heart_empty.png"));
 
     // UI
-    gButtonTex = LoadTex(AssetPath("ui/button.png"));
+    gButtonTex    = LoadTex(AssetPath("ui/button.png"));
+    gTitleBgTex   = LoadTex(AssetPath("ui/main.png"));
+
+    // 미로
+    gMazeWallTex  = LoadTex(AssetPath("maze/maze_wall.png"));
+    gMazeFloorTex = LoadTex(AssetPath("maze/maze_floor.png"));
 
     // font
     gFont = TTF_OpenFont(AssetPath("Pretendard-Regular.ttf").c_str(), 24);
@@ -220,7 +228,7 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void {
 
 // boss map collision (map_boss_collision.png → bossMapLayout)
 void LoadCollisionMapsFromImages() {
-    SDL_Surface* surf = IMG_Load(AssetPath("map/map_boss_collision.png").c_str());
+    SDL_Surface* surf = IMG_Load(AssetPath("map/boss/map_boss_collision.png").c_str());
     if (surf) {
         SDL_Surface* img = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
         SDL_FreeSurface(surf);
@@ -314,6 +322,9 @@ void FreeAllImages() {
     Free(gHeartHalfTex);
     Free(gHeartEmptyTex);
     Free(gButtonTex);
+    Free(gTitleBgTex);
+    Free(gMazeWallTex);
+    Free(gMazeFloorTex);
     Free(gMapBaseTex);
     Free(gDoorTexU);
     Free(gDoorTexD);

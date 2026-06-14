@@ -1,4 +1,5 @@
 ﻿#include "MazeStage.hpp"
+#include "ImageManager.hpp"
 #include "Constants.h"
 #include <SDL.h>
 #include <vector>
@@ -114,14 +115,34 @@ void DrawMazeStage(SDL_Renderer* renderer)
     SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
     SDL_RenderClear(renderer);
 
-    //카메라 오프셋이 적용된 스크롤 미로 벽 출력
-    for (int r = 0; r < MAZE_HEIGHT; r++) {
-        for (int c = 0; c < MAZE_WIDTH; c++) {
-            if (gMazeStage.maze[r][c] == 0) continue;
+    // 카메라 기준 화면에 보이는 타일 범위만 계산
+    int colStart = (int)(cameraX / MAZE_TILE_SIZE) - 1;
+    int colEnd   = colStart + (SCREEN_WIDTH  / MAZE_TILE_SIZE) + 2;
+    int rowStart = (int)(cameraY / MAZE_TILE_SIZE) - 1;
+    int rowEnd   = rowStart + (SCREEN_HEIGHT / MAZE_TILE_SIZE) + 2;
 
-            SDL_Rect wall = { (int)(c * MAZE_TILE_SIZE - cameraX), (int)(r * MAZE_TILE_SIZE - cameraY), MAZE_TILE_SIZE, MAZE_TILE_SIZE };
-            SDL_SetRenderDrawColor(renderer, 80, 120, 255, 255);
-            SDL_RenderFillRect(renderer, &wall);
+    if (colStart < 0) colStart = 0;
+    if (rowStart < 0) rowStart = 0;
+    if (colEnd   > MAZE_WIDTH)  colEnd  = MAZE_WIDTH;
+    if (rowEnd   > MAZE_HEIGHT) rowEnd  = MAZE_HEIGHT;
+
+    //카메라 오프셋이 적용된 스크롤 미로 타일 출력
+    for (int r = rowStart; r < rowEnd; r++) {
+        for (int c = colStart; c < colEnd; c++) {
+            SDL_Rect tile = { (int)(c * MAZE_TILE_SIZE - cameraX), (int)(r * MAZE_TILE_SIZE - cameraY), MAZE_TILE_SIZE, MAZE_TILE_SIZE };
+
+            if (gMazeStage.maze[r][c] == 1) {
+                if (gMazeWallTex) {
+                    SDL_RenderCopy(renderer, gMazeWallTex, NULL, &tile);
+                } else {
+                    SDL_SetRenderDrawColor(renderer, 80, 120, 255, 255);
+                    SDL_RenderFillRect(renderer, &tile);
+                }
+            } else {
+                if (gMazeFloorTex) {
+                    SDL_RenderCopy(renderer, gMazeFloorTex, NULL, &tile);
+                }
+            }
         }
     }
 
