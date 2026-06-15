@@ -106,6 +106,14 @@ bool CanMove(float nextX, float nextY)
             if (currentRoom->mapData[row][col] != 0) return false;
         }
     }
+
+    // 문(door) 영역 진입 차단 — 플레이어는 통과 가능하나 몬스터는 불가
+    SDL_Rect eRect = { (int)nextX, (int)nextY, ENEMY_SIZE, ENEMY_SIZE };
+    for (int d = 0; d < 4; d++) {
+        SDL_Rect dr = GetDoorRect(d);
+        if (dr.w > 0 && dr.h > 0 && SDL_HasIntersection(&eRect, &dr)) return false;
+    }
+
     return true;
 }
 

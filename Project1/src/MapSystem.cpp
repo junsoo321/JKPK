@@ -38,9 +38,11 @@ void InitMap() {
     if (currentRoom->visited) return;
 
     int doorMask = CalcDoorMask(currentRoom);
+    int variant  = currentRoom->layoutVariant;
+    int slot     = variant * MAX_PATTERNS + doorMask;
 
-    // 도어 마스크에 맞는 collision PNG 로드 (없으면 빈 맵)
-    LoadRoomCollisionMap(doorMask);
+    // 도어 마스크 + 변형에 맞는 collision PNG 로드
+    LoadRoomCollisionMap(doorMask, variant);
 
     for (int r = 0; r < MAP_ROWS; r++) {
         for (int c = 0; c < MAP_COLS; c++) {
@@ -52,9 +54,9 @@ void InitMap() {
             if (c == 0 && currentRoomX == 0) tile = 2;
             if (c == MAP_COLS - 1 && currentRoomX == MAX_ROOMS_X - 1) tile = 2;
 
-            //도어 마스크에 해당하는 collision 패턴 적용
+            // 도어 마스크 + 변형에 해당하는 collision 패턴 적용
             if (r > 0 && r < MAP_ROWS - 1 && c > 0 && c < MAP_COLS - 1) {
-                tile = mapLayouts[doorMask][r][c];
+                tile = mapLayouts[slot][r][c];
             }
 
             currentRoom->mapData[r][c] = tile;
@@ -83,7 +85,7 @@ int IsWall(float x, float y)
 }
 
 //인접 타일들을 사각형(AABB) 형태로 병합하여 렌더링 호출 횟수(Draw Call)를 줄이는 최적화 렌더링
-void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, SDL_Texture* borderTex)
+void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, SDL_Texture* borderTex, SDL_Texture* obstacleTex)
 {
     if (mapBg) SDL_RenderCopy(renderer, mapBg, NULL, NULL);
 
@@ -119,9 +121,12 @@ void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, S
                 }
             }
 
-            // 병합된 단일 크기대로 렌더링 수행
+            // 타입별 텍스처 선택: 1=벽, 2=장애물, 그 외=경계
             SDL_Rect rect = { c * TILE_SIZE, r * TILE_SIZE, w * TILE_SIZE, h * TILE_SIZE };
-            SDL_Texture* tex = (tileType == 2) ? borderTex : wallTex;
+            SDL_Texture* tex = nullptr;
+            if      (tileType == 2 && obstacleTex) tex = obstacleTex;
+            else if (tileType == 2)                tex = borderTex;
+            else                                   tex = wallTex;
 
             if (tex) {
                 SDL_RenderCopy(renderer, tex, NULL, &rect);
@@ -147,6 +152,7 @@ void InitRoomNodes()
             roomNodes[x][y].specialCleared = false;
 
             roomNodes[x][y].roomType = ROOM_NORMAL;
+            roomNodes[x][y].layoutVariant = 0;
         }
     }
 }
@@ -273,6 +279,14 @@ void GenerateDungeon()
             if (x < MAX_ROOMS_X - 1 && roomNodes[x + 1][y].exists) roomNodes[x][y].right = &roomNodes[x + 1][y];
         }
     }
+    // 일반 방에만 장애물 배치 변형(A/B/C) 랜덤 배정
+    for (int y = 0; y < MAX_ROOMS_Y; y++) {
+        for (int x = 0; x < MAX_ROOMS_X; x++) {
+            if (roomNodes[x][y].exists && roomNodes[x][y].roomType == ROOM_NORMAL)
+                roomNodes[x][y].layoutVariant = 1 + (rand() % NUM_COLLISION_VARIANTS);
+        }
+    }
+
     currentRoom = &roomNodes[startX][startY];
 }
 

@@ -303,7 +303,7 @@ auto main(int argc, char* argv[]) -> int
 
         //게임 상태별 월드 배경 및 오브젝트 레이어 렌더링
         if (gGameState == GAME_QUIZ) {
-            DrawMap(renderer, gMapTexture, gWallTexture, gWallTexture);
+            DrawMap(renderer, gMapTexture, gWallTexture, gWallTexture, gObstacleTex);
             DrawQuizStage(renderer);
         }
         else if (gGameState == GAME_MAZE) {
@@ -315,10 +315,18 @@ auto main(int argc, char* argv[]) -> int
             if (currentRoom->down)  doorMask |= 2;
             if (currentRoom->left)  doorMask |= 4;
             if (currentRoom->right) doorMask |= 8;
+
+            bool roomCleared =
+                (currentRoom->roomType == ROOM_START) ||
+                (currentRoom->roomType == ROOM_NORMAL && !AreEnemiesAlive()) ||
+                ((currentRoom->roomType == ROOM_MAZE || currentRoom->roomType == ROOM_QUIZ) &&
+                 currentRoom->specialCleared);
+
             SDL_Texture* bgTex = (currentRoom->roomType == ROOM_BOSS)
                 ? gBossMapTexture
-                : GetRoomMapTexture(renderer, doorMask);
-            DrawMap(renderer, bgTex, gWallTexture, gWallTexture);
+                : (roomCleared ? GetRoomMapTextureOpen(renderer, doorMask)
+                               : GetRoomMapTexture(renderer, doorMask));
+            DrawMap(renderer, bgTex, gWallTexture, gWallTexture, gObstacleTex);
         }
 
         UpdateAndDrawProjectiles(renderer, deltaTime);

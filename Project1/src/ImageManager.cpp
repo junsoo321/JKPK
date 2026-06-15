@@ -15,6 +15,7 @@ SDL_Texture* gPlayerHurtTex             = nullptr;
 SDL_Texture* gPlayerDeathTex            = nullptr;
 SDL_Texture* gWallTexture               = nullptr;
 SDL_Texture* gFloorTexture              = nullptr;
+SDL_Texture* gObstacleTex              = nullptr;
 SDL_Texture* gNormalEnemyTex           = nullptr;
 SDL_Texture* gNinjaEnemyTex            = nullptr;
 SDL_Texture* gSuicideEnemyTex          = nullptr;
@@ -38,12 +39,17 @@ SDL_Texture* gMazePlayerIconTex[5]      = {};
 TTF_Font*    gFont                      = nullptr;
 
 // [Internal - map system]
-static SDL_Texture* gMapBaseTex         = nullptr;
-static SDL_Texture* gDoorTexU           = nullptr;
-static SDL_Texture* gDoorTexD           = nullptr;
-static SDL_Texture* gDoorTexL           = nullptr;
-static SDL_Texture* gDoorTexR           = nullptr;
-static SDL_Texture* gRoomMapTextures[16]= {};
+static SDL_Texture* gMapBaseTex             = nullptr;
+static SDL_Texture* gDoorTexU               = nullptr;
+static SDL_Texture* gDoorTexD               = nullptr;
+static SDL_Texture* gDoorTexL               = nullptr;
+static SDL_Texture* gDoorTexR               = nullptr;
+static SDL_Texture* gDoorOpenTexU           = nullptr;
+static SDL_Texture* gDoorOpenTexD           = nullptr;
+static SDL_Texture* gDoorOpenTexL           = nullptr;
+static SDL_Texture* gDoorOpenTexR           = nullptr;
+static SDL_Texture* gRoomMapTextures[16]    = {};
+static SDL_Texture* gRoomMapTexturesOpen[16]= {};
 
 // meta PNG parsed data
 static int      metaCollision[MAP_ROWS][MAP_COLS] = {};
@@ -162,6 +168,7 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
 
     // stage - base
     gWallTexture            = LoadTexture(AssetPath("map/transparent.png"));
+    gObstacleTex            = LoadTexture(AssetPath("map/obstacle.png"));
     gMapTexture             = LoadTexture(AssetPath("map/base/map-base-001.png"));
 
     // stage - boss
@@ -235,7 +242,7 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     };
     LoadAndParse(AssetPath("map/base/map-base-001_doors.png"), ParseDoorsPNG);
 
-    // door sprites
+    // door sprites (closed)
     struct { const char* path; SDL_Texture** tex; } doors[4] = {
         { "map/door/door-up.png",       &gDoorTexU },
         { "map/door/door-down.png",     &gDoorTexD },
@@ -244,6 +251,16 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     };
     for (auto& d : doors)
         *d.tex = LoadTexture(AssetPath(d.path));
+
+    // door sprites (open — used when room is cleared)
+    struct { const char* path; SDL_Texture** tex; } doorsOpen[4] = {
+        { "map/door/door-open-up.png",    &gDoorOpenTexU },
+        { "map/door/door-open-down.png",  &gDoorOpenTexD },
+        { "map/door/door-open-left.png",  &gDoorOpenTexL },
+        { "map/door/door-open-right.png", &gDoorOpenTexR },
+    };
+    for (auto& d : doorsOpen)
+        *d.tex = LoadTexture(AssetPath(d.path));
 }
 
 void LoadCollisionMapsFromImages()
@@ -251,22 +268,31 @@ void LoadCollisionMapsFromImages()
     LoadCollisionFromPNG(AssetPath("map/boss/map-boss_collision.png"), bossMapLayout);
 }
 
-// build collision for doorMask: meta collision base + clear tiles in active door rects
-auto LoadRoomCollisionMap(int doorMask) -> void
+// build collision for (doorMask, variant): base or variant PNG + clear active door rects
+auto LoadRoomCollisionMap(int doorMask, int variant) -> void
 {
-    if (collisionLoaded[doorMask]) return;
+    int slot = variant * MAX_PATTERNS + doorMask;
+    if (collisionLoaded[slot]) return;
 
-    if (collisionReady)
-        memcpy(mapLayouts[doorMask], metaCollision, sizeof(metaCollision));
-    else
-        memset(mapLayouts[doorMask], 0, sizeof(mapLayouts[doorMask]));
+    if (variant == 0) {
+        // 기본 콜리전
+        if (collisionReady)
+            memcpy(mapLayouts[slot], metaCollision, sizeof(metaCollision));
+        else
+            memset(mapLayouts[slot], 0, sizeof(mapLayouts[0]));
+    } else {
+        // 변형 콜리전 A / B / C
+        char letter = (char)('A' + (variant - 1));
+        std::string varPath = std::string("map/base/map-base-001_collision-") + letter + ".png";
+        memset(mapLayouts[slot], 0, sizeof(mapLayouts[0]));
+        LoadCollisionFromPNG(AssetPath(varPath.c_str()), mapLayouts[slot]);
+    }
 
     for (int d = 0; d < 4; d++)
     {
         if (!(doorMask & (1 << d))) continue;
 
         SDL_Rect& rect = doorRects[d];
-
         if (rect.w == 0 || rect.h == 0) continue;
 
         int colMin = rect.x / TILE_SIZE;
@@ -276,10 +302,10 @@ auto LoadRoomCollisionMap(int doorMask) -> void
 
         for (int row = rowMin; row <= rowMax && row < MAP_ROWS; row++)
             for (int col = colMin; col <= colMax && col < MAP_COLS; col++)
-                mapLayouts[doorMask][row][col] = 0;
+                mapLayouts[slot][row][col] = 0;
     }
 
-    collisionLoaded[doorMask] = true;
+    collisionLoaded[slot] = true;
 }
 
 // compose base + door sprites into a cached render-target texture
@@ -312,6 +338,39 @@ SDL_Texture* GetRoomMapTexture(SDL_Renderer* renderer, int doorMask) {
     return composed;
 }
 
+// compose base + open door sprites into a cached render-target texture (cleared state)
+SDL_Texture* GetRoomMapTextureOpen(SDL_Renderer* renderer, int doorMask) {
+    if (gRoomMapTexturesOpen[doorMask]) return gRoomMapTexturesOpen[doorMask];
+
+    SDL_Texture* composed = SDL_CreateTexture(
+        renderer, SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (!composed) return nullptr;
+
+    SDL_SetTextureBlendMode(composed, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderTarget(renderer, composed);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    if (gMapBaseTex) SDL_RenderCopy(renderer, gMapBaseTex, NULL, NULL);
+
+    SDL_Texture* openTexs[4] = { gDoorOpenTexU, gDoorOpenTexD, gDoorOpenTexL, gDoorOpenTexR };
+    SDL_Texture* closedTexs[4] = { gDoorTexU, gDoorTexD, gDoorTexL, gDoorTexR };
+    for (int d = 0; d < 4; d++) {
+        if (!(doorMask & (1 << d))) continue;
+        SDL_Rect dst = doorRects[d];
+        if (dst.w == 0 || dst.h == 0) continue;
+        SDL_Texture* tex = openTexs[d] ? openTexs[d] : closedTexs[d];
+        if (!tex) continue;
+        SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE);
+        SDL_RenderCopy(renderer, tex, NULL, &dst);
+    }
+
+    SDL_SetRenderTarget(renderer, NULL);
+    gRoomMapTexturesOpen[doorMask] = composed;
+    return composed;
+}
+
 SDL_Rect GetDoorRect(int dir) {
     return (dir >= 0 && dir < 4) ? doorRects[dir] : SDL_Rect{0, 0, 0, 0};
 }
@@ -322,6 +381,8 @@ void FreeAllImages() {
     for (int i = 0; i < 16; i++) {
         if (gRoomMapTextures[i]) SDL_DestroyTexture(gRoomMapTextures[i]);
         gRoomMapTextures[i] = nullptr;
+        if (gRoomMapTexturesOpen[i]) SDL_DestroyTexture(gRoomMapTexturesOpen[i]);
+        gRoomMapTexturesOpen[i] = nullptr;
     }
 
     auto Free = [](SDL_Texture*& t) { if (t) { SDL_DestroyTexture(t); t = nullptr; } };
@@ -331,6 +392,7 @@ void FreeAllImages() {
     Free(gPlayerDeathTex);
     Free(gWallTexture);
     Free(gFloorTexture);
+    Free(gObstacleTex);
     Free(gNormalEnemyTex);
     Free(gNinjaEnemyTex);
     Free(gSuicideEnemyTex);
@@ -356,6 +418,10 @@ void FreeAllImages() {
     Free(gDoorTexD);
     Free(gDoorTexL);
     Free(gDoorTexR);
+    Free(gDoorOpenTexU);
+    Free(gDoorOpenTexD);
+    Free(gDoorOpenTexL);
+    Free(gDoorOpenTexR);
 
     IMG_Quit();
 }

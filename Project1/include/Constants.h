@@ -10,6 +10,7 @@
 #define BG_COLOR_B 35       //	배경색 (Blue)
 
 #define TILE_SIZE 10	//화면을 분할할 구역의 크기 (10의 의미 : 구역 1개 = 10x10 픽셀)
+#define NUM_COLLISION_VARIANTS 3	// 일반 방 장애물 배치 변형 수 (A, B, C)
 
 //위에서 설정한 화면 해상도와 구역 크기를 바탕으로 구역의 총 개수를 정함
 #define MAP_ROWS (SCREEN_HEIGHT/TILE_SIZE)	//세로 구역 개수 (세로 해상도 / 구역 크기)

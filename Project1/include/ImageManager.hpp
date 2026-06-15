@@ -15,6 +15,7 @@ extern SDL_Texture* gPlayerHurtTex;		// characters/Default/hurt.png
 extern SDL_Texture* gPlayerDeathTex;	// characters/Default/death.png
 extern SDL_Texture* gWallTexture;		//!!! 벽 타일 외형 이미지 변수
 extern SDL_Texture* gFloorTexture;		//!!! 바닥 타일 외형 이미지 변수
+extern SDL_Texture* gObstacleTex;		// map/obstacle.png
 extern SDL_Texture* gNormalEnemyTex;    // mob/normal.png
 extern SDL_Texture* gNinjaEnemyTex;     // mob/ninja.png
 extern SDL_Texture* gSuicideEnemyTex;   // mob/suicide.png
@@ -44,9 +45,11 @@ void LoadCollisionMapsFromImages();
 
 // 도어 마스크(U=1 D=2 L=4 R=8)에 맞는 배경 텍스처 반환 (합성 후 캐싱)
 SDL_Texture* GetRoomMapTexture(SDL_Renderer* renderer, int doorMask);
+// 클리어 상태 — 문이 열린 버전 배경 텍스처 반환 (합성 후 캐싱)
+SDL_Texture* GetRoomMapTextureOpen(SDL_Renderer* renderer, int doorMask);
 
 // 도어 마스크에 맞는 collision 생성 (meta PNG 기반)
-void LoadRoomCollisionMap(int doorMask);
+void LoadRoomCollisionMap(int doorMask, int variant);
 
 // 방향별 문 rect 반환 (0=U 1=D 2=L 3=R), 미로드 시 {0,0,0,0}
 SDL_Rect GetDoorRect(int dir);

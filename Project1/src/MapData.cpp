@@ -4,14 +4,14 @@ int worldMap[MAP_ROWS][MAP_COLS]                             = {};
 int worldData[MAX_ROOMS_X][MAX_ROOMS_Y][MAP_ROWS][MAP_COLS]  = {};
 bool visited[MAX_ROOMS_X][MAX_ROOMS_Y]                       = {};
 int bossMapLayout[MAP_ROWS][MAP_COLS]                        = {};
-bool collisionLoaded[MAX_PATTERNS]                           = {};
+bool collisionLoaded[MAX_COLLISION_SLOTS]                    = {};
 
 //맵 패턴을 미리 저장해두는 .c파일, 맵 생성 시 아래 패턴 중 하나를 랜덤하게 사용
 //현재 화면 800*600, 구역(80*60) 기준임
 //0: 바닥, 1: 벽
 //기존 40px 타일 패턴을 10px 기준으로 4배 스케일 변환 (구 1칸 = 신 4x4블록)
 
-int mapLayouts[MAX_PATTERNS][MAP_ROWS][MAP_COLS] = {
+int mapLayouts[MAX_COLLISION_SLOTS][MAP_ROWS][MAP_COLS] = {
     // [패턴 1]: 네 모서리 기둥
     {
         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},

@@ -13,6 +13,7 @@ typedef struct RoomNode {
     bool specialCleared;
 
     int roomType;
+    int layoutVariant; // 0=기본, 1=A, 2=B, 3=C (일반 방 전용 장애물 변형)
 
     int gridX;
     int gridY;
