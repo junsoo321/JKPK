@@ -81,6 +81,16 @@ void LoadEnemiesForRoom(int roomX, int roomY)
     }
 }
 
+void ResetEnemies()
+{
+    for (int x = 0; x < MAX_ROOMS_X; x++)
+        for (int y = 0; y < MAX_ROOMS_Y; y++)
+            is_enemy_created[x][y] = false;
+
+    for (int i = 0; i < MAX_ENEMIES_PER_ROOM; i++)
+        currentEnemies[i].active = false;
+}
+
 //방을 이탈할 때 현재 몹들의 상태(체력, 위치 등)를 전역 배열에 백업
 void SaveEnemiesForRoom(int roomX, int roomY)
 {
@@ -165,27 +175,53 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
                 e->nextAttackDelay = ENEMY_ATTACK_MIN + rand() % (ENEMY_ATTACK_MAX - ENEMY_ATTACK_MIN);
             }
         }
-        // 2. 자폭 타입 AI (접근 → 경고 점멸 2초 → 폭발)
+        // 2. 자폭 타입 AI
+        // Phase 1: 플레이어에게 천천히 접근
+        // Phase 2: 조우 시점 플레이어 위치를 잠금 → 전속력 돌진
+        // Phase 3: 목표 도달(또는 벽 막힘) 후 1.5초 고정 대기 → 폭발
         else if (e->type == ENEMY_SUICIDE && !paused) {
             float dx = playerX - e->x;
             float dy = playerY - e->y;
             float dist = sqrtf(dx * dx + dy * dy);
 
             if (!e->warning) {
-                // Phase 1: 현재 속도의 80%로 플레이어에게 접근
+                // Phase 1: 80% 속도로 플레이어 방향 접근
                 if (dist > 0.001f) { dx /= dist; dy /= dist; }
                 float nextX = e->x + dx * SUICIDE_SPEED * 0.8f * deltaTime;
                 float nextY = e->y + dy * SUICIDE_SPEED * 0.8f * deltaTime;
                 if (CanMove(nextX, nextY)) { e->x = nextX; e->y = nextY; }
 
-                // 경고 범위 이내 진입 시 점멸 페이즈 돌입
+                // 조우 범위 진입 시: 현재 플레이어 위치를 목표로 잠금
                 if (dist < SUICIDE_WARN_RANGE) {
-                    e->warning = true;
+                    e->warning    = true;
+                    e->moveDirX   = playerX;  // 잠금 목표 X
+                    e->moveDirY   = playerY;  // 잠금 목표 Y
+                    e->explodeTime = 0;        // 0 = 아직 미도달(돌진 중)
+                }
+            }
+            else if (e->explodeTime == 0) {
+                // Phase 2: 잠금된 목표 위치로 전속력 돌진
+                float tdx  = e->moveDirX - e->x;
+                float tdy  = e->moveDirY - e->y;
+                float tdist = sqrtf(tdx * tdx + tdy * tdy);
+
+                if (tdist > 6.0f) {
+                    tdx /= tdist; tdy /= tdist;
+                    float nextX = e->x + tdx * SUICIDE_SPEED * deltaTime;
+                    float nextY = e->y + tdy * SUICIDE_SPEED * deltaTime;
+                    if (CanMove(nextX, nextY)) {
+                        e->x = nextX; e->y = nextY;
+                    } else {
+                        // 벽에 막혀 더 이상 전진 불가 → 현재 위치에서 카운트 시작
+                        e->explodeTime = now + 1500;
+                    }
+                } else {
+                    // 목표 위치 도달 → 고정 후 카운트 시작
                     e->explodeTime = now + 1500;
                 }
             }
             else {
-                // Phase 2: 정지 + 붉은 점멸, 1.5초 후 현재 위치에서 폭발
+                // Phase 3: 고정 대기 → 폭발
                 if (now >= e->explodeTime) {
                     float centerX = e->x + ENEMY_SIZE * 0.5f;
                     float centerY = e->y + ENEMY_SIZE * 0.5f;

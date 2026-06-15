@@ -78,6 +78,7 @@ extern "C" {
 
     bool AreEnemiesAlive(void);
     void SpawnEnemyAt(float x, float y, EnemyType type);
+    void ResetEnemies();
 
 #ifdef __cplusplus //C++에서 이 헤더를 포함해도 C 언어 함수 이름을 그대로 사용할 수 있도록 설정
 }

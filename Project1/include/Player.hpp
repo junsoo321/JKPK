@@ -22,6 +22,7 @@ typedef struct PlayerData {
     int   animFrame;
     float animTimer;
     float hurtTimer;    // > 0 이면 hurt 애니메이션 재생
+    float healTimer;    // > 0 이면 초록 깜빡임 재생
     bool  isDead;
 
     // 아이템 인벤토리

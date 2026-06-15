@@ -35,6 +35,9 @@ SDL_Texture* gButtonTex                 = nullptr;
 SDL_Texture* gTitleBgTex                = nullptr;
 SDL_Texture* gPauseBoardTex             = nullptr;
 SDL_Texture* gTitleLogoTex              = nullptr;
+SDL_Texture* gBackplateTex              = nullptr;
+SDL_Texture* gGameOverTex               = nullptr;
+SDL_Texture* gGameOverLogoTex           = nullptr;
 SDL_Texture* gComputerTex               = nullptr;
 SDL_Texture* gComputerOnTex             = nullptr;
 SDL_Texture* gTableTex                  = nullptr;
@@ -44,6 +47,8 @@ SDL_Texture* gMazeArrowTex              = nullptr;
 SDL_Texture* gMazePlayerIconTex[5]      = {};
 SDL_Texture* gItemTextures[ITEM_COUNT]  = {};
 TTF_Font*    gFont                      = nullptr;
+TTF_Font*    gFallbackFont             = nullptr;
+bool         gFontHasKorean            = true;
 static std::string gCurrentFontName    = "Pretendard-Regular.ttf";
 
 // [Internal - map system]
@@ -222,6 +227,9 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     gTitleBgTex             = LoadTexture(AssetPath("ui/menu/main.png"));
     gPauseBoardTex          = LoadTexture(AssetPath("ui/pause/item-board.png"));
     gTitleLogoTex           = LoadTexture(AssetPath("ui/menu/title_logo.png"));
+    gBackplateTex           = LoadTexture(AssetPath("ui/menu/backplate.png"));
+    gGameOverTex            = LoadTexture(AssetPath("ui/menu/gameover.png"));
+    gGameOverLogoTex        = LoadTexture(AssetPath("ui/menu/gameover_logo.png"));
     gComputerTex            = LoadTexture(AssetPath("map/quiz/computer_off.png"));
     gComputerOnTex          = LoadTexture(AssetPath("map/quiz/computer_on.png"));
     gTableTex               = LoadTexture(AssetPath("map/table.png"));
@@ -233,7 +241,9 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     }
 
     // font
-    gFont = TTF_OpenFont(AssetPath("ui/font/Pretendard-Regular.ttf").c_str(), 24);
+    gFont         = TTF_OpenFont(AssetPath("ui/font/Pretendard-Regular.ttf").c_str(), 24);
+    gFallbackFont = TTF_OpenFont(AssetPath("ui/font/Pretendard-Regular.ttf").c_str(), 24);
+    gFontHasKorean = true;
 
     if (!gFont)
     {
@@ -402,9 +412,11 @@ bool ReloadFont(const char* filename) {
     std::string path = AssetPath((std::string("ui/font/") + filename).c_str());
     TTF_Font* newFont = TTF_OpenFont(path.c_str(), 24);
     if (!newFont) return false;
+
     if (gFont) TTF_CloseFont(gFont);
     gFont = newFont;
-    gCurrentFontName = filename;
+    gCurrentFontName  = filename;
+    gFontHasKorean    = TTF_GlyphIsProvided(gFont, 0xAC00) != 0;
     return true;
 }
 
@@ -413,7 +425,8 @@ SDL_Rect GetDoorRect(int dir) {
 }
 
 void FreeAllImages() {
-    if (gFont) { TTF_CloseFont(gFont); gFont = nullptr; }
+    if (gFont)         { TTF_CloseFont(gFont);         gFont         = nullptr; }
+    if (gFallbackFont) { TTF_CloseFont(gFallbackFont); gFallbackFont = nullptr; }
 
     for (int i = 0; i < 16; i++) {
         if (gRoomMapTextures[i]) SDL_DestroyTexture(gRoomMapTextures[i]);
@@ -448,6 +461,9 @@ void FreeAllImages() {
     Free(gTitleBgTex);
     Free(gPauseBoardTex);
     Free(gTitleLogoTex);
+    Free(gBackplateTex);
+    Free(gGameOverTex);
+    Free(gGameOverLogoTex);
     Free(gComputerTex);
     Free(gComputerOnTex);
     Free(gTableTex);

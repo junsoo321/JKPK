@@ -17,6 +17,7 @@
 #include "TextRenderer.hpp"
 #include "TitleScreen.hpp"
 #include "SettingsScreen.hpp"
+#include "GameOverScreen.hpp"
 #include "Item.hpp"
 #ifdef _DEBUG
 #include "DebugMenu.hpp"
@@ -118,6 +119,22 @@ auto main(int argc, char* argv[]) -> int
                 if (PauseResumeClicked(mx, my)) gGameState = GAME_NORMAL;
                 if (PauseHelpClicked(mx, my)) gGameState = GAME_HELP;
                 if (PauseQuitClicked(mx, my)) gGameState = GAME_TITLE;
+            }
+
+            // 게임오버 — 다시하기 버튼
+            if (gGameState == GAME_OVER &&
+                event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                if (GameOverRestartClicked(event.button.x, event.button.y)) {
+                    InitRoomNodes();
+                    GenerateDungeon();
+                    InitMap();
+                    InitPlayer(&player);
+                    InitProjectiles();
+                    ResetEnemies();
+                    isBossFight    = false;
+                    gShakeAmount   = 0.0f;
+                    gGameState     = GAME_HELP;
+                }
             }
 
             //도움말 및 퀴즈 단계 이벤트 전달
@@ -390,6 +407,13 @@ auto main(int argc, char* argv[]) -> int
 #endif
         }
 
+        // 플레이어 사망 판정
+        if (player.hp <= 0 &&
+            (gGameState == GAME_NORMAL || gGameState == GAME_BOSS ||
+             gGameState == GAME_QUIZ   || gGameState == GAME_MAZE)) {
+            gGameState = GAME_OVER;
+        }
+
         //화면 렌더링 시작 및 쉐이크 오프셋 계산
         int offsetX = 0, offsetY = 0;
         if (gShakeAmount > 0) {
@@ -468,10 +492,10 @@ auto main(int argc, char* argv[]) -> int
                 SDL_RenderFillRect(renderer, &tableRect);
             }
 
-            // 탁자 위 아이템 (50x50, 중앙 정렬)
+            // 탁자 위 아이템 (50x50, 책상 표면 기준 정렬)
             int it = currentRoom->tableItemType;
             if (it >= 0 && it < ITEM_COUNT && gItemTextures[it]) {
-                SDL_Rect itemRect = { SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50 };
+                SDL_Rect itemRect = { SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 37, 50, 50 };
                 SDL_RenderCopy(renderer, gItemTextures[it], NULL, &itemRect);
             }
         }
@@ -504,11 +528,16 @@ auto main(int argc, char* argv[]) -> int
 
         // 퀴즈 선택 프롬프트 오버레이 — 플레이어 포함 모든 오브젝트 위에 표시
         if (gGameState == GAME_QUIZ_PROMPT) {
-            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 160);
-            SDL_RenderFillRect(renderer, &QUIZ_OVERLAY);
-            SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
-            SDL_RenderDrawRect(renderer, &QUIZ_OVERLAY);
+            if (gBackplateTex) {
+                SDL_SetTextureBlendMode(gBackplateTex, SDL_BLENDMODE_BLEND);
+                SDL_RenderCopy(renderer, gBackplateTex, NULL, &QUIZ_OVERLAY);
+            } else {
+                SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 160);
+                SDL_RenderFillRect(renderer, &QUIZ_OVERLAY);
+                SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+                SDL_RenderDrawRect(renderer, &QUIZ_OVERLAY);
+            }
 
             SDL_Color white = { 255, 255, 255, 255 };
             DrawTextCenter(renderer, "퀴즈에 도전하시겠습니까?", 265, white);
@@ -555,6 +584,16 @@ auto main(int argc, char* argv[]) -> int
 
         if (gGameState == GAME_TITLE) {
             DrawTitleScreen(renderer);
+            SDL_RenderPresent(renderer);
+            continue;
+        }
+
+        if (gGameState == GAME_OVER) {
+            SDL_Rect vp = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+            SDL_RenderSetViewport(renderer, &vp);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
+            DrawGameOverScreen(renderer);
             SDL_RenderPresent(renderer);
             continue;
         }

@@ -78,6 +78,7 @@ void InitPlayer(PlayerData* p) {
     p->animFrame  = 0;
     p->animTimer  = 0.0f;
     p->hurtTimer  = 0.0f;
+    p->healTimer  = 0.0f;
     p->isDead     = false;
     p->itemCount  = 0;
     for (int i = 0; i < MAX_INVENTORY; i++) p->collectedItems[i] = -1;
@@ -163,8 +164,9 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime)
         p->animDir = 0;  // row0: 앞모습(아래)
     }
 
-    // hurt 타이머 감소 (항상 실행)
+    // hurt / heal 타이머 감소 (항상 실행)
     if (p->hurtTimer > 0.0f) p->hurtTimer -= deltaTime;
+    if (p->healTimer > 0.0f) p->healTimer -= deltaTime;
 
     // 애니메이션 프레임 갱신 (항상 실행)
     {
@@ -267,7 +269,13 @@ void DrawPlayer(SDL_Renderer* renderer, PlayerData* p)
     // 왼쪽 방향이면 수평 반전
     SDL_RendererFlip flip = (p->animDir == 1 && !p->facingRight)
                           ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+
+    // 회복 깜빡임: 80ms 주기로 초록 tint
+    if (p->healTimer > 0.0f && (now / 80) % 2 == 0)
+        SDL_SetTextureColorMod(tex, 80, 255, 80);
+
     SDL_RenderCopyEx(renderer, tex, &src, &dst, 0.0, NULL, flip);
+    SDL_SetTextureColorMod(tex, 255, 255, 255);
 }
 
 //화면 왼쪽 위에 하트로 HP 표시
