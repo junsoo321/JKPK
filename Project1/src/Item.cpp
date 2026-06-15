@@ -1,4 +1,4 @@
-#pragma execution_character_set("utf-8")
+﻿#pragma execution_character_set("utf-8")
 #include "Item.hpp"
 #include "Constants.h"
 #include <cstdlib>
@@ -22,6 +22,12 @@ void ApplyItem(PlayerData* player, int itemType) {
         player->healTimer = 0.6f;
         break;
     }
+    case ITEM_CIGARETTE:
+        player->hasCigarette = true;
+        break;
+    case ITEM_GLASSES:
+        player->hasGlasses = true;
+        break;
     default:
         break;
     }
@@ -36,24 +42,30 @@ const char* GetItemAssetName(int itemType) {
     case ITEM_MONSTER_ULTRA_ENERGY: return "monster-ultra-energy.png";
     case ITEM_MECHANICAL_KEYBOARD:  return "mechanical-keyboard.png";
     case ITEM_TRIANGLE_GIMBAP:      return "triangle-gimbap.png";
+    case ITEM_CIGARETTE:            return "cigeratte.png";
+    case ITEM_GLASSES:              return "glasses.png";
     default:                        return nullptr;
     }
 }
 
 const char* GetItemName(int itemType) {
     switch ((ItemType)itemType) {
-    case ITEM_MONSTER_ULTRA_ENERGY: return "energy drink";
+    case ITEM_MONSTER_ULTRA_ENERGY: return "에너지 드링크";
     case ITEM_MECHANICAL_KEYBOARD:  return "기계식 키보드";
     case ITEM_TRIANGLE_GIMBAP:      return "삼각김밥";
+    case ITEM_CIGARETTE:            return "담배";
+    case ITEM_GLASSES:              return "안경";
     default:                        return "???";
     }
 }
 
 const char* GetItemDescription(int itemType) {
     switch ((ItemType)itemType) {
-    case ITEM_MONSTER_ULTRA_ENERGY: return "faster, faster - !";
-    case ITEM_MECHANICAL_KEYBOARD:  return "Sounds Noisy, But Feels GREAT - !";
-    case ITEM_TRIANGLE_GIMBAP:      return "Bon Appetit !";
+    case ITEM_MONSTER_ULTRA_ENERGY: return "더 빨리, 더 빨리 - !";
+    case ITEM_MECHANICAL_KEYBOARD:  return "시끄러워서 죄송합니다...";
+    case ITEM_TRIANGLE_GIMBAP:      return "잘 먹겠습니다 - !";
+    case ITEM_CIGARETTE:            return "백해무익이지만 혹시 모르죠";
+    case ITEM_GLASSES:              return "보다 선명해진 세상";
     default:                        return "";
     }
 }

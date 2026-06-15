@@ -9,6 +9,7 @@ extern "C" {
 
 	void InitMap();
 	int  IsWall(float x, float y);
+	int  IsWallStrict(float x, float y); // 벽(tile==1)만 체크, 장애물(tile==2) 통과
 	void DrawMap(SDL_Renderer* renderer, SDL_Texture* mapBg, SDL_Texture* wallTex, SDL_Texture* borderTex, SDL_Texture* obstacleTex);
 
 	// 해당 방향 가장자리 문(type 3)의 중앙 픽셀 좌표 반환 (없으면 -1)

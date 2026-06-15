@@ -17,7 +17,13 @@ enum GameState
     GAME_PAUSE,
 
     GAME_OVER_FADE,
-    GAME_OVER
+    GAME_OVER,
+
+    GAME_CLEAR
 };
 
 extern GameState gGameState;
+
+// 치트 플래그 (디버그 전용)
+extern bool gCheatGodMode;
+extern bool gCheatDamage100x;

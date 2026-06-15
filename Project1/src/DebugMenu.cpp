@@ -7,6 +7,7 @@
 #include "GameState.hpp"
 #include <SDL.h>
 #include <string>
+#include <cstring>
 
 // --- Password state ---
 static const char* DEBUG_PASSWORD = "1234";
@@ -20,22 +21,26 @@ static Uint32      gWrongAt  = 0;
 
 // --- Menu state ---
 static bool   gMenuOpen     = false;
-static int    gDepth        = 0;  // 0=root, 1=map submenu, 2=mob submenu
+static int    gDepth        = 0;  // 0=root, 1=cheat submenu, 2=map submenu, 3=mob submenu
 static int    gRootIdx      = 0;
+static int    gCheatIdx     = 0;
 static int    gMapIdx       = 0;
 static int    gMobIdx       = 0;
 static Uint32 gMobWarnUntil = 0;
 
 static DebugAction gPendingAction = DEBUG_ACTION_NONE;
 
-static const char* ROOT_ITEMS[] = { "Map", "Mob" };
-static const int   ROOT_COUNT   = 2;
+static const char* ROOT_ITEMS[]  = { "Cheat", "Map", "Mob" };
+static const int   ROOT_COUNT    = 3;
 
-static const char* MAP_ITEMS[]  = { "Boss", "Maze", "Quiz", "Plain" };
-static const int   MAP_COUNT    = 4;
+static const char* CHEAT_ITEMS[] = { "무적", "공격력 100배" };
+static const int   CHEAT_COUNT   = 2;
 
-static const char* MOB_ITEMS[]  = { "Normal", "Ninja", "Suicide" };
-static const int   MOB_COUNT    = 3;
+static const char* MAP_ITEMS[]   = { "Boss", "Maze", "Quiz", "Plain" };
+static const int   MAP_COUNT     = 4;
+
+static const char* MOB_ITEMS[]   = { "Normal", "Ninja", "Suicide" };
+static const int   MOB_COUNT     = 3;
 
 // --- Password helpers ---
 static void OpenPassword() {
@@ -113,11 +118,25 @@ void DebugMenuHandleEvent(SDL_Event& event) {
             if      (key == SDLK_UP)    gRootIdx = (gRootIdx - 1 + ROOT_COUNT) % ROOT_COUNT;
             else if (key == SDLK_DOWN)  gRootIdx = (gRootIdx + 1) % ROOT_COUNT;
             else if (key == SDLK_RIGHT) {
-                if      (gRootIdx == 0) { gDepth = 1; gMapIdx = 0; }
-                else if (gRootIdx == 1) { gDepth = 2; gMobIdx = 0; gMobWarnUntil = 0; }
+                if      (gRootIdx == 0) { gDepth = 1; gCheatIdx = 0; }
+                else if (gRootIdx == 1) { gDepth = 2; gMapIdx = 0; }
+                else if (gRootIdx == 2) { gDepth = 3; gMobIdx = 0; gMobWarnUntil = 0; }
             }
             else if (key == SDLK_LEFT || key == SDLK_ESCAPE) { gMenuOpen = false; }
         } else if (gDepth == 1) {
+            // Cheat 서브메뉴
+            if      (key == SDLK_UP)   gCheatIdx = (gCheatIdx - 1 + CHEAT_COUNT) % CHEAT_COUNT;
+            else if (key == SDLK_DOWN) gCheatIdx = (gCheatIdx + 1) % CHEAT_COUNT;
+            else if (key == SDLK_RIGHT) {
+                static const DebugAction CHEAT_ACTIONS[2] = {
+                    DEBUG_ACTION_CHEAT_INVINCIBLE, DEBUG_ACTION_CHEAT_DAMAGE_100X
+                };
+                gPendingAction = CHEAT_ACTIONS[gCheatIdx];
+                // 메뉴 닫지 않고 유지 (토글 확인용)
+            }
+            else if (key == SDLK_LEFT)   { gDepth = 0; }
+            else if (key == SDLK_ESCAPE) { gMenuOpen = false; }
+        } else if (gDepth == 2) {
             if      (key == SDLK_UP)   gMapIdx = (gMapIdx - 1 + MAP_COUNT) % MAP_COUNT;
             else if (key == SDLK_DOWN) gMapIdx = (gMapIdx + 1) % MAP_COUNT;
             else if (key == SDLK_RIGHT) {
@@ -130,7 +149,7 @@ void DebugMenuHandleEvent(SDL_Event& event) {
             }
             else if (key == SDLK_LEFT)   { gDepth = 0; }
             else if (key == SDLK_ESCAPE) { gMenuOpen = false; }
-        } else if (gDepth == 2) {
+        } else if (gDepth == 3) {
             if      (key == SDLK_UP)   gMobIdx = (gMobIdx - 1 + MOB_COUNT) % MOB_COUNT;
             else if (key == SDLK_DOWN) gMobIdx = (gMobIdx + 1) % MOB_COUNT;
             else if (key == SDLK_RIGHT) {
@@ -189,17 +208,24 @@ void DebugMenuRender(SDL_Renderer* renderer) {
     // -- Navigation menu --
     if (!gMenuOpen) return;
 
-    const char** items  = (gDepth == 0) ? ROOT_ITEMS : (gDepth == 1) ? MAP_ITEMS : MOB_ITEMS;
-    int          count  = (gDepth == 0) ? ROOT_COUNT  : (gDepth == 1) ? MAP_COUNT : MOB_COUNT;
-    int          selIdx = (gDepth == 0) ? gRootIdx    : (gDepth == 1) ? gMapIdx   : gMobIdx;
+    const char** items  = nullptr;
+    int          count  = 0;
+    int          selIdx = 0;
 
-    bool showWarn = (gDepth == 2) && (gGameState != GAME_NORMAL);
-    bool showTimedWarn = (gDepth == 2) && (SDL_GetTicks() < gMobWarnUntil);
+    if      (gDepth == 0) { items = ROOT_ITEMS;  count = ROOT_COUNT;  selIdx = gRootIdx;  }
+    else if (gDepth == 1) { items = CHEAT_ITEMS; count = CHEAT_COUNT; selIdx = gCheatIdx; }
+    else if (gDepth == 2) { items = MAP_ITEMS;   count = MAP_COUNT;   selIdx = gMapIdx;   }
+    else                  { items = MOB_ITEMS;   count = MOB_COUNT;   selIdx = gMobIdx;   }
+
+    bool showMobWarn      = (gDepth == 3) && (gGameState != GAME_NORMAL);
+    bool showTimedMobWarn = (gDepth == 3) && (SDL_GetTicks() < gMobWarnUntil);
 
     const int ITEM_H  = 32;
-    const int BOX_W   = 280;
-    const int WARN_H  = showWarn ? 28 : 0;
-    const int BOX_H   = 52 + count * ITEM_H + 8 + WARN_H;
+    const int BOX_W   = 300;
+    const int WARN_H  = showMobWarn ? 28 : 0;
+    // Cheat 서브메뉴는 ON/OFF 상태 표시 줄 추가
+    const int CHEAT_STATUS_H = (gDepth == 1) ? 28 : 0;
+    const int BOX_H   = 52 + count * ITEM_H + 8 + WARN_H + CHEAT_STATUS_H;
 
     SDL_Rect box = {
         SCREEN_WIDTH  / 2 - BOX_W / 2,
@@ -218,23 +244,34 @@ void DebugMenuRender(SDL_Renderer* renderer) {
 
     SDL_Color white  = { 255, 255, 255, 255 };
     SDL_Color yellow = { 255, 220,  50, 255 };
+    SDL_Color green  = {  80, 220,  80, 255 };
     SDL_Color gray   = { 160, 160, 160, 255 };
     SDL_Color red    = { 255,  60,  60, 255 };
 
     const char* title = (gDepth == 0) ? "[DEBUG MENU]"
-                      : (gDepth == 1) ? "[DEBUG] > Map"
+                      : (gDepth == 1) ? "[DEBUG] > Cheat"
+                      : (gDepth == 2) ? "[DEBUG] > Map"
                       :                 "[DEBUG] > Mob";
     DrawTextCenter(renderer, title, box.y + 12, white);
 
     for (int i = 0; i < count; i++) {
         bool sel = (i == selIdx);
         std::string label = sel ? "> " : "  ";
-        label += items[i];
-        DrawTextCenter(renderer, label, box.y + 48 + i * ITEM_H, sel ? yellow : white);
+
+        // Cheat 서브메뉴에서 ON/OFF 표시
+        if (gDepth == 1) {
+            bool on = (i == 0) ? gCheatGodMode : gCheatDamage100x;
+            label += items[i];
+            label += on ? "  [ON]" : "  [OFF]";
+            DrawTextCenter(renderer, label.c_str(), box.y + 48 + i * ITEM_H, sel ? yellow : (on ? green : white));
+        } else {
+            label += items[i];
+            DrawTextCenter(renderer, label.c_str(), box.y + 48 + i * ITEM_H, sel ? yellow : white);
+        }
     }
 
-    if (showWarn) {
-        const char* warnMsg = showTimedWarn
+    if (showMobWarn) {
+        const char* warnMsg = showTimedMobWarn
             ? "! 일반 맵에서만 사용 가능 !"
             : "[ 일반 맵에서만 사용 가능 ]";
         DrawTextCenter(renderer, warnMsg, box.y + 48 + count * ITEM_H + 4, red);

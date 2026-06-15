@@ -163,7 +163,7 @@ void FireProjectile_PHASE3(float startX, float startY, float targetX, float targ
 }
 
 // 퍼즈 상태 스크리닝, 투사체 속도/크기 예외 연산, 화면 외곽 이탈 및 벽 충돌 소멸 판정 처리
-void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime)
+void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime, bool glassesActive)
 {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (bullets[i].active) {
@@ -172,7 +172,11 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime)
             if (bullets[i].type == 1) currentSpeed = 150.0f;
             else if (bullets[i].owner == 1) currentSpeed = BOSS_PROJECTILE_SPEED;
             else currentSpeed = PROJECTILE_SPEED * bullets[i].speedMult;
-            int currentSize = (bullets[i].type == 1) ? (PROJECTILE_SIZE * 2) : PROJECTILE_SIZE;
+
+            bool isNormalEnemyBullet = (bullets[i].owner == 1 && bullets[i].type != 1 && bullets[i].texIndex >= 2);
+            int currentSize = (bullets[i].type == 1) ? (PROJECTILE_SIZE * 2)
+                            : (glassesActive && isNormalEnemyBullet) ? (int)(PROJECTILE_SIZE * 1.5f)
+                            : PROJECTILE_SIZE;
 
         // 일시정지가 아닐 때만 프레임 역학 이동 및 충돌 수명 검사 연산 통합 처리
         if (gGameState != GAME_PAUSE) {
@@ -188,13 +192,13 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime)
                 continue;
             }
 
-            // 2. 일반 투사체 타일맵 벽 충돌 검사 (초록 기믹 구체는 벽 통과)
+            // 2. 일반 투사체 타일맵 벽 충돌 검사 (초록 기믹 구체·장애물은 통과)
             if (bullets[i].type != 1) {
                 float px = bullets[i].x;
                 float py = bullets[i].y;
                 float ps = (float)(currentSize - 1);
-                if (IsWall(px, py) || IsWall(px + ps, py) ||
-                    IsWall(px, py + ps) || IsWall(px + ps, py + ps)) {
+                if (IsWallStrict(px, py) || IsWallStrict(px + ps, py) ||
+                    IsWallStrict(px, py + ps) || IsWallStrict(px + ps, py + ps)) {
                     bullets[i].active = false;
                     continue;
                 }

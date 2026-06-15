@@ -11,6 +11,8 @@ typedef struct PlayerData {
     float vy;
     float speed;
     float projectileSpeedMult;
+    bool  hasCigarette;         // 공격 주기 0.5~1.5배 주기 변동
+    bool  hasGlasses;           // 일반 몬스터 투사체 크기 1.5배
     int   hp;
     bool  isInvincible;
     Uint32 invincibleEndTime;

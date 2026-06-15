@@ -7,6 +7,8 @@ enum ItemType {
     ITEM_MONSTER_ULTRA_ENERGY = 0,  // 이동속도 +30%
     ITEM_MECHANICAL_KEYBOARD,       // 투사체 속도 +20%
     ITEM_TRIANGLE_GIMBAP,           // 소모성 — 최대 체력의 절반 회복
+    ITEM_CIGARETTE,                 // 공격 주기 0.5~1.5배 주기 변동
+    ITEM_GLASSES,                   // 일반 몬스터 투사체 크기 1.5배
     ITEM_COUNT
 };
 

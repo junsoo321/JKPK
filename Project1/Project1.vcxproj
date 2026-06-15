@@ -27,6 +27,7 @@
     <ClCompile Include="src\GameState.cpp" />
     <ClCompile Include="src\HelpScreen.cpp" />
     <ClCompile Include="src\GameOverScreen.cpp" />
+    <ClCompile Include="src\ClearScreen.cpp" />
     <ClCompile Include="src\ImageManager.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MapData.cpp" />
@@ -52,6 +53,7 @@
     <ClInclude Include="include\GameState.hpp" />
     <ClInclude Include="include\HelpScreen.hpp" />
     <ClInclude Include="include\GameOverScreen.hpp" />
+    <ClInclude Include="include\ClearScreen.hpp" />
     <ClInclude Include="include\ImageManager.hpp" />
     <ClInclude Include="include\MapData.hpp" />
     <ClInclude Include="include\MapSystem.hpp" />

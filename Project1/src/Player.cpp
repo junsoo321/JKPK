@@ -70,6 +70,8 @@ void InitPlayer(PlayerData* p) {
     p->vy = 0.0f;
     p->speed = PLAYER_SPEED;
     p->projectileSpeedMult = 1.0f;
+    p->hasCigarette        = false;
+    p->hasGlasses          = false;
     p->hp = PLAYER_HP;
     p->isInvincible = false;
     p->invincibleEndTime = 0;
@@ -312,9 +314,16 @@ bool CheckCollision(PlayerData* p, void* bulletArray, void* bossData)
     for (int b = 0; b < MAX_PROJECTILES; b++) {
         if (!localBullets[b].active || localBullets[b].owner == 0) continue;
 
+        // 안경 아이템: 일반 몬스터 투사체(보스 제외) 히트박스 1.5배
+        bool isNormalEnemyBullet = (localBullets[b].owner == 1 &&
+                                    localBullets[b].type != 1 &&
+                                    localBullets[b].texIndex >= 2);
+        int bSize = (p->hasGlasses && isNormalEnemyBullet)
+                    ? (int)(PROJECTILE_SIZE * 1.5f) : PROJECTILE_SIZE;
+
         // AABB 충돌 조건 충족 시
-        if (localBullets[b].x < p->x + PLAYER_SIZE && localBullets[b].x + PROJECTILE_SIZE > p->x &&
-            localBullets[b].y < p->y + PLAYER_SIZE && localBullets[b].y + PROJECTILE_SIZE > p->y) {
+        if (localBullets[b].x < p->x + PLAYER_SIZE && localBullets[b].x + bSize > p->x &&
+            localBullets[b].y < p->y + PLAYER_SIZE && localBullets[b].y + bSize > p->y) {
 
             // 기믹용 초록 투사체(type == 1)는 무적 상태를 무시하고 데미지 없이 흡수 처리
             if (localBullets[b].type == 1) {

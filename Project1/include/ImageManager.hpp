@@ -40,6 +40,8 @@ extern SDL_Texture* gTitleLogoTex;  // ui/menu/title_logo.png (투명 배경 제
 extern SDL_Texture* gBackplateTex;    // ui/menu/backplate.png
 extern SDL_Texture* gGameOverTex;     // ui/menu/gameover.png
 extern SDL_Texture* gGameOverLogoTex; // ui/menu/gameover_logo.png
+extern SDL_Texture* gClearTex;        // ui/menu/clear.png
+extern SDL_Texture* gClearLogoTex;    // ui/menu/clear_logo.png
 extern SDL_Texture* gComputerTex;    // map/quiz/computer_off.png
 extern SDL_Texture* gComputerOnTex;  // map/quiz/computer_on.png
 extern SDL_Texture* gTableTex;       // map/table.png

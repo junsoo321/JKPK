@@ -33,7 +33,7 @@
 #define MAZE_PLAYER_SIZE 24
 
 //퀴즈맵
-#define QUIZ_ROOM_COUNT 3 //전채 맵 중 퀴즈맵의 개수
+#define QUIZ_ROOM_COUNT 1 //전채 맵 중 퀴즈맵의 개수
 
 //플레이어 설정
 #define MAX_INVENTORY 32        // 최대 보유 아이템 수

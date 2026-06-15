@@ -66,6 +66,16 @@ void InitMap() {
     currentRoom->visited = true;
 }
 
+// 투사체 전용 — 벽(tile==1)만 막음, 장애물(tile==2)은 통과
+int IsWallStrict(float x, float y)
+{
+    int col = (int)(x / TILE_SIZE);
+    int row = (int)(y / TILE_SIZE);
+    if (row < 0 || row >= MAP_ROWS) return 1;
+    if (col < 0 || col >= MAP_COLS) return 1;
+    return currentRoom->mapData[row][col] == 1;
+}
+
 //플레이어, 몹, 투사체의 벽 충돌 처리 (보스전 격리벽 연산 포함)
 int IsWall(float x, float y)
 {

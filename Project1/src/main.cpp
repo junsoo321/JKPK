@@ -1,6 +1,7 @@
 ﻿#pragma execution_character_set("utf-8")
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <cmath>
 #include "Constants.h"
 #include "MapSystem.hpp"
 #include "MapData.hpp"
@@ -18,6 +19,7 @@
 #include "TitleScreen.hpp"
 #include "SettingsScreen.hpp"
 #include "GameOverScreen.hpp"
+#include "ClearScreen.hpp"
 #include "Item.hpp"
 #ifdef _DEBUG
 #include "DebugMenu.hpp"
@@ -137,6 +139,14 @@ auto main(int argc, char* argv[]) -> int
                 }
             }
 
+            // 클리어 — 종료 버튼
+            if (gGameState == GAME_CLEAR &&
+                event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                if (ClearExitClicked(event.button.x, event.button.y)) {
+                    isRunning = false;
+                }
+            }
+
             //도움말 및 퀴즈 단계 이벤트 전달
             if (gGameState == GAME_HELP) HandleHelpEvent(event);
             if (gGameState == GAME_QUIZ) HandleQuizEvent(event);
@@ -178,6 +188,12 @@ auto main(int argc, char* argv[]) -> int
                 DebugAction dbgAct = DebugMenuGetAction();
                 if (dbgAct != DEBUG_ACTION_NONE) {
                     switch (dbgAct) {
+                    case DEBUG_ACTION_CHEAT_INVINCIBLE:
+                        gCheatGodMode = !gCheatGodMode;
+                        break;
+                    case DEBUG_ACTION_CHEAT_DAMAGE_100X:
+                        gCheatDamage100x = !gCheatDamage100x;
+                        break;
                     case DEBUG_ACTION_MAP_BOSS:
                         isBossFight = false;
                         currentRoom->roomType = ROOM_BOSS;
@@ -297,11 +313,9 @@ auto main(int argc, char* argv[]) -> int
             if (!isBossFight && currentRoom->roomType == ROOM_BOSS) {
                 isBossFight = true;
                 InitBoss(&mainBoss);
-                for (int r = 0; r < MAP_ROWS; r++) {
-                    for (int c = 0; c < MAP_COLS; c++) {
-                        currentRoom->mapData[r][c] = (r == 0 || r == MAP_ROWS - 1 || c == 0 || c == MAP_COLS - 1) ? 1 : 0;
-                    }
-                }
+                for (int r = 0; r < MAP_ROWS; r++)
+                    for (int c = 0; c < MAP_COLS; c++)
+                        currentRoom->mapData[r][c] = bossMapLayout[r][c];
                 player.x = SCREEN_WIDTH / 2.0f;
                 player.y = SCREEN_HEIGHT - (TILE_SIZE * 9.0f);
             }
@@ -368,7 +382,13 @@ auto main(int argc, char* argv[]) -> int
 
             //플레이어 공격 연사력 타이머 처리 및 투사체 발사
             fireTimer += deltaTime;
-            if ((gGameState == GAME_NORMAL || gGameState == GAME_BOSS) && keyState[SDL_SCANCODE_SPACE] && fireTimer >= FIRE_DELAY) {
+            float effectiveFireDelay = FIRE_DELAY;
+            if (player.hasCigarette) {
+                // 공격 주기를 sin 파형으로 0.5~1.5배 사이 변동 (주기 약 3.1초)
+                float mult = 1.0f + 0.5f * sinf((float)SDL_GetTicks() / 1000.0f * 2.0f);
+                effectiveFireDelay = FIRE_DELAY * mult;
+            }
+            if ((gGameState == GAME_NORMAL || gGameState == GAME_BOSS) && keyState[SDL_SCANCODE_SPACE] && fireTimer >= effectiveFireDelay) {
                 FireProjectile(player.x, player.y, deltaTime, player.projectileSpeedMult);
                 fireTimer = 0.0f; //타이머 초기화
             }
@@ -383,7 +403,8 @@ auto main(int argc, char* argv[]) -> int
                     if (bullets[i].active && bullets[i].owner == 0) {
                         SDL_Rect bRect = { (int)bullets[i].x, (int)bullets[i].y, PROJECTILE_SIZE, PROJECTILE_SIZE };
                         if (!mainBoss.isInvincible && SDL_HasIntersection(&bRect, &mainBoss.drawRect)) {
-                            mainBoss.hp -= PLAYER_BULLET_DAMAGE;
+                            int dmg = gCheatDamage100x ? PLAYER_BULLET_DAMAGE * 100 : PLAYER_BULLET_DAMAGE;
+                            mainBoss.hp -= dmg;
                             if (mainBoss.hp < 0) mainBoss.hp = 0;
                             mainBoss.visualHp = (float)mainBoss.hp;
                             mainBoss.hitTimer = 0.1f;
@@ -391,6 +412,12 @@ auto main(int argc, char* argv[]) -> int
                         }
                     }
                 }
+            }
+
+            // 무적 치트 — 매 프레임 타이머 갱신
+            if (gCheatGodMode) {
+                player.isInvincible      = true;
+                player.invincibleEndTime = SDL_GetTicks() + 5000;
             }
 
             //플레이어 피격 처리 및 무적 타이머 설정
@@ -412,6 +439,11 @@ auto main(int argc, char* argv[]) -> int
             (gGameState == GAME_NORMAL || gGameState == GAME_BOSS ||
              gGameState == GAME_QUIZ   || gGameState == GAME_MAZE)) {
             gGameState = GAME_OVER;
+        }
+
+        // 보스 사망 판정 → 클리어 화면
+        if (isBossFight && mainBoss.state == B_DEAD && gGameState != GAME_CLEAR) {
+            gGameState = GAME_CLEAR;
         }
 
         //화면 렌더링 시작 및 쉐이크 오프셋 계산
@@ -500,7 +532,7 @@ auto main(int argc, char* argv[]) -> int
             }
         }
 
-        UpdateAndDrawProjectiles(renderer, deltaTime);
+        UpdateAndDrawProjectiles(renderer, deltaTime, player.hasGlasses);
 
         if (isBossFight) {
             DrawBoss(renderer, &mainBoss);
@@ -594,6 +626,16 @@ auto main(int argc, char* argv[]) -> int
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
             DrawGameOverScreen(renderer);
+            SDL_RenderPresent(renderer);
+            continue;
+        }
+
+        if (gGameState == GAME_CLEAR) {
+            SDL_Rect vp = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+            SDL_RenderSetViewport(renderer, &vp);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
+            DrawClearScreen(renderer);
             SDL_RenderPresent(renderer);
             continue;
         }

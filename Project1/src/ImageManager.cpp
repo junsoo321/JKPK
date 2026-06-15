@@ -38,6 +38,8 @@ SDL_Texture* gTitleLogoTex              = nullptr;
 SDL_Texture* gBackplateTex              = nullptr;
 SDL_Texture* gGameOverTex               = nullptr;
 SDL_Texture* gGameOverLogoTex           = nullptr;
+SDL_Texture* gClearTex                  = nullptr;
+SDL_Texture* gClearLogoTex              = nullptr;
 SDL_Texture* gComputerTex               = nullptr;
 SDL_Texture* gComputerOnTex             = nullptr;
 SDL_Texture* gTableTex                  = nullptr;
@@ -230,6 +232,8 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     gBackplateTex           = LoadTexture(AssetPath("ui/menu/backplate.png"));
     gGameOverTex            = LoadTexture(AssetPath("ui/menu/gameover.png"));
     gGameOverLogoTex        = LoadTexture(AssetPath("ui/menu/gameover_logo.png"));
+    gClearTex               = LoadTexture(AssetPath("ui/menu/clear.png"));
+    gClearLogoTex           = LoadTexture(AssetPath("ui/menu/clear_logo.png"));
     gComputerTex            = LoadTexture(AssetPath("map/quiz/computer_off.png"));
     gComputerOnTex          = LoadTexture(AssetPath("map/quiz/computer_on.png"));
     gTableTex               = LoadTexture(AssetPath("map/table.png"));
@@ -464,6 +468,8 @@ void FreeAllImages() {
     Free(gBackplateTex);
     Free(gGameOverTex);
     Free(gGameOverLogoTex);
+    Free(gClearTex);
+    Free(gClearLogoTex);
     Free(gComputerTex);
     Free(gComputerOnTex);
     Free(gTableTex);
