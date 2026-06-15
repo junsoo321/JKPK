@@ -234,11 +234,6 @@ void GenerateDungeon()
         }
     }
 
-    int mazeX, mazeY;
-    do {
-        mazeX = rand() % MAX_ROOMS_X; mazeY = rand() % MAX_ROOMS_Y;
-    } while (!roomNodes[mazeX][mazeY].exists || roomNodes[mazeX][mazeY].roomType != ROOM_NORMAL);
-
     // 실제 설정 개수만큼 미로 스페셜 방 할당
     for (int i = 0; i < MAZE_ROOM_COUNT; i++) {
         int mazeX, mazeY, tryCount = 0;

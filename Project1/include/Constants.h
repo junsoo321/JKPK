@@ -28,7 +28,7 @@
 #define ROOM_QUIZ 4
 
 //미로맵
-#define MAZE_ROOM_COUNT 3 //전체 맵 중 미로맵의 개수
+#define MAZE_ROOM_COUNT 1 //전체 맵 중 미로맵의 개수
 #define MAZE_TILE_SIZE 32 
 #define MAZE_PLAYER_SIZE 24
 

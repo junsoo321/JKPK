@@ -53,9 +53,9 @@ void DrawTitleScreen(SDL_Renderer* renderer){
     DrawButton(renderer, settingsBtn);
     DrawButton(renderer, exitBtn);
 
-    DrawText(renderer, "게임시작",   startBtn.x    + 45, startBtn.y    + 15);
-    DrawText(renderer, "환경설정",   settingsBtn.x + 45, settingsBtn.y + 15);
-    DrawText(renderer, "종료",       exitBtn.x     + 75, exitBtn.y     + 15);
+    DrawTextInRect(renderer, "게임시작", startBtn);
+    DrawTextInRect(renderer, "환경설정", settingsBtn);
+    DrawTextInRect(renderer, "종료",     exitBtn);
 }
 
 bool TitleStartClicked(int x, int y){

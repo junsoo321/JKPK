@@ -39,3 +39,24 @@ void DrawTextCenter(SDL_Renderer* renderer, const std::string& text, int y, SDL_
 
     DrawText(renderer, text, x, y, color);
 }
+
+int GetTextWidth(const std::string& text)
+{
+    if (!gFont) return 0;
+    int w = 0, h = 0;
+    TTF_SizeUTF8(gFont, text.c_str(), &w, &h);
+    return w;
+}
+
+void DrawTextInRect(SDL_Renderer* renderer, const std::string& text, SDL_Rect rect, SDL_Color color)
+{
+    if (!gFont) return;
+
+    int textW = 0, textH = 0;
+    TTF_SizeUTF8(gFont, text.c_str(), &textW, &textH);
+
+    int x = rect.x + (rect.w - textW) / 2;
+    int y = rect.y + (rect.h - textH) / 2;
+
+    DrawText(renderer, text, x, y, color);
+}

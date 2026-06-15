@@ -39,6 +39,11 @@ static float        gTransitionTimer = 0.0f;
 static bool         gNeedCapture     = false;
 static const float  MAZE_TRANS_DUR   = 1.5f;
 
+// 퀴즈 선택 프롬프트 오버레이 레이아웃
+static const SDL_Rect QUIZ_OVERLAY   = { 150, 210, 500, 200 };
+static const SDL_Rect QUIZ_YES_BTN   = { 210, 355, 160,  45 };
+static const SDL_Rect QUIZ_NO_BTN    = { 430, 355, 160,  45 };
+
 auto main(int argc, char* argv[]) -> int
 {
     //SDL 라이브러리 및 게임 시스템 초기화
@@ -119,13 +124,18 @@ auto main(int argc, char* argv[]) -> int
             if (gGameState == GAME_HELP) HandleHelpEvent(event);
             if (gGameState == GAME_QUIZ) HandleQuizEvent(event);
 
-            // 퀴즈 선택 프롬프트: Y=도전 N=포기(즉시 클리어)
-            if (gGameState == GAME_QUIZ_PROMPT && event.type == SDL_KEYDOWN) {
-                if (event.key.keysym.sym == SDLK_y) {
+            // 퀴즈 선택 프롬프트: Yes=도전 No=포기(즉시 클리어)
+            if (gGameState == GAME_QUIZ_PROMPT &&
+                event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                int mx = event.button.x, my = event.button.y;
+                auto inBtn = [](int x, int y, const SDL_Rect& r) {
+                    return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+                };
+                if (inBtn(mx, my, QUIZ_YES_BTN)) {
                     StartQuizStage();
                     gGameState = GAME_QUIZ;
                 }
-                else if (event.key.keysym.sym == SDLK_n) {
+                else if (inBtn(mx, my, QUIZ_NO_BTN)) {
                     currentRoom->specialCleared = true;
                     gGameState = GAME_NORMAL;
                 }
@@ -288,8 +298,11 @@ auto main(int argc, char* argv[]) -> int
                         std::cout << "[QUIZ] HP -10" << std::endl;
                         std::cout << "Current HP : " << player.hp << std::endl;
                     } else {
-                        currentRoom->rewardAvailable = true;
-                        currentRoom->tableItemType   = rand() % ITEM_COUNT;
+                        int picked = PickUncollectedItem(&player);
+                        if (picked != ITEM_NONE) {
+                            currentRoom->rewardAvailable = true;
+                            currentRoom->tableItemType   = picked;
+                        }
                     }
                     currentRoom->specialCleared = true;
                     gGameState = GAME_NORMAL;
@@ -299,19 +312,29 @@ auto main(int argc, char* argv[]) -> int
             //미로 스테이지 완료 판정
             if (gGameState == GAME_MAZE) {
                 if (IsMazeFinished()) {
-                    currentRoom->specialCleared  = true;
-                    currentRoom->rewardAvailable = true;
-                    currentRoom->tableItemType   = rand() % ITEM_COUNT;
+                    currentRoom->specialCleared = true;
+                    int picked = PickUncollectedItem(&player);
+                    if (picked != ITEM_NONE) {
+                        currentRoom->rewardAvailable = true;
+                        currentRoom->tableItemType   = picked;
+                    }
                     gGameState = GAME_NORMAL;
                 }
             }
 
-            // 일반방 클리어 — 적이 모두 쓰러진 순간 보상 플래그 설정 (수령 후 재생성 방지)
+            // 일반방 클리어 — 30% 확률, 미획득 아이템만 배치 (한 번만 판정)
             if (gGameState == GAME_NORMAL && currentRoom->roomType == ROOM_NORMAL &&
                 !currentRoom->rewardAvailable && !currentRoom->rewardCollected &&
                 !AreEnemiesAlive()) {
-                currentRoom->rewardAvailable = true;
-                currentRoom->tableItemType   = rand() % ITEM_COUNT;
+                currentRoom->rewardCollected = true; // 재판정 방지
+                if (rand() % 10 < 3) {
+                    int picked = PickUncollectedItem(&player);
+                    if (picked != ITEM_NONE) {
+                        currentRoom->rewardAvailable = true;
+                        currentRoom->rewardCollected = false; // 실제 수령 시 다시 false로
+                        currentRoom->tableItemType   = picked;
+                    }
+                }
             }
 
             // 탁자 보상 수령 — 탁자에 닿으면 획득 (이동 차단으로 overlap 직전에 멈추므로 4px 확장 판정)
@@ -329,7 +352,7 @@ auto main(int argc, char* argv[]) -> int
             //플레이어 공격 연사력 타이머 처리 및 투사체 발사
             fireTimer += deltaTime;
             if ((gGameState == GAME_NORMAL || gGameState == GAME_BOSS) && keyState[SDL_SCANCODE_SPACE] && fireTimer >= FIRE_DELAY) {
-                FireProjectile(player.x, player.y, deltaTime);
+                FireProjectile(player.x, player.y, deltaTime, player.projectileSpeedMult);
                 fireTimer = 0.0f; //타이머 초기화
             }
 
@@ -483,16 +506,35 @@ auto main(int argc, char* argv[]) -> int
         if (gGameState == GAME_QUIZ_PROMPT) {
             SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 160);
-            SDL_Rect overlay = { 180, 210, 440, 150 };
-            SDL_RenderFillRect(renderer, &overlay);
+            SDL_RenderFillRect(renderer, &QUIZ_OVERLAY);
             SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
-            SDL_RenderDrawRect(renderer, &overlay);
+            SDL_RenderDrawRect(renderer, &QUIZ_OVERLAY);
 
-            SDL_Color white  = { 255, 255, 255, 255 };
-            SDL_Color yellow = { 255, 230,  80, 255 };
-            DrawTextCenter(renderer, "퀴즈에 도전하시겠습니까?", 235, white);
-            DrawTextCenter(renderer, "[Y]  도전하기",            285, yellow);
-            DrawTextCenter(renderer, "[N]  포기하기 (즉시 클리어)", 320, yellow);
+            SDL_Color white = { 255, 255, 255, 255 };
+            DrawTextCenter(renderer, "퀴즈에 도전하시겠습니까?", 265, white);
+
+            // Yes / No 버튼
+            int mx, my;
+            SDL_GetMouseState(&mx, &my);
+            auto drawBtn = [&](const SDL_Rect& r, const char* label) {
+                bool hov = mx >= r.x && mx < r.x + r.w && my >= r.y && my < r.y + r.h;
+                if (gButtonTex) {
+                    SDL_RenderCopy(renderer, gButtonTex, NULL, &r);
+                    if (hov) {
+                        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+                        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 60);
+                        SDL_RenderFillRect(renderer, &r);
+                    }
+                } else {
+                    SDL_SetRenderDrawColor(renderer, hov ? 120 : 80, hov ? 120 : 80, hov ? 120 : 80, 255);
+                    SDL_RenderFillRect(renderer, &r);
+                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                    SDL_RenderDrawRect(renderer, &r);
+                }
+                DrawTextInRect(renderer, label, r, white);
+            };
+            drawBtn(QUIZ_YES_BTN, "Yes");
+            drawBtn(QUIZ_NO_BTN,  "No");
         }
 
         //일시정지 메뉴, 도움말, 타이틀 렌더링

@@ -15,7 +15,7 @@ void InitProjectiles()
 }
 
 // 마우스 좌표 기준 단위 벡터(방향) 연산 후 플레이어 투사체 스폰
-void FireProjectile(float startX, float startY, float deltaTime)
+void FireProjectile(float startX, float startY, float deltaTime, float speedMult)
 {
     Uint32 currentTime = SDL_GetTicks();
     if (currentTime - lastFireTime < (Uint32)FIRE_DELAY) return;
@@ -29,6 +29,7 @@ void FireProjectile(float startX, float startY, float deltaTime)
             bullets[i].owner = 0; // 플레이어 소유
             bullets[i].type = 0;
             bullets[i].angle = 0.0f;
+            bullets[i].speedMult = speedMult;
 
             // 플레이어 중앙 기준 오프셋 정렬 스폰
             bullets[i].x = startX + (PLAYER_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -58,6 +59,7 @@ void FireEnemyProjectile(float startX, float startY, float targetX, float target
             bullets[i].owner = 1; // 몬스터 소유
             bullets[i].type = 0;
             bullets[i].angle = 0.0f;
+            bullets[i].speedMult = 1.0f;
             bullets[i].texIndex = 2; // 일반 몬스터 투사체 (attack.png)
 
             bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -85,11 +87,12 @@ void FireEnemyProjectileEx(float startX, float startY, float targetX, float targ
 {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!bullets[i].active) {
-            bullets[i].active   = true;
-            bullets[i].owner    = 1;
-            bullets[i].type     = 0;
-            bullets[i].angle    = 0.0f;
-            bullets[i].texIndex = texIndex;
+            bullets[i].active    = true;
+            bullets[i].owner     = 1;
+            bullets[i].type      = 0;
+            bullets[i].angle     = 0.0f;
+            bullets[i].speedMult = 1.0f;
+            bullets[i].texIndex  = texIndex;
 
             bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
             bullets[i].y = startY + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -109,11 +112,12 @@ void FireBossProjectile(float startX, float startY, float targetX, float targetY
 {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (!bullets[i].active) {
-            bullets[i].active   = true;
-            bullets[i].owner    = 1;
-            bullets[i].type     = 0;
-            bullets[i].angle    = 0.0f;
-            bullets[i].texIndex = texIndex;
+            bullets[i].active    = true;
+            bullets[i].owner     = 1;
+            bullets[i].type      = 0;
+            bullets[i].angle     = 0.0f;
+            bullets[i].speedMult = 1.0f;
+            bullets[i].texIndex  = texIndex;
 
             bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
             bullets[i].y = startY + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
@@ -167,7 +171,7 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime)
             float currentSpeed;
             if (bullets[i].type == 1) currentSpeed = 150.0f;
             else if (bullets[i].owner == 1) currentSpeed = BOSS_PROJECTILE_SPEED;
-            else currentSpeed = PROJECTILE_SPEED;
+            else currentSpeed = PROJECTILE_SPEED * bullets[i].speedMult;
             int currentSize = (bullets[i].type == 1) ? (PROJECTILE_SIZE * 2) : PROJECTILE_SIZE;
 
         // 일시정지가 아닐 때만 프레임 역학 이동 및 충돌 수명 검사 연산 통합 처리

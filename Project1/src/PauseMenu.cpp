@@ -4,6 +4,7 @@
 #include "ImageManager.hpp"
 #include "Item.hpp"
 #include "Constants.h"
+#include <algorithm>
 
 // 버튼 위치 — 보드(y 15~215) 아래
 SDL_Rect resumeBtn = { 300, 340, 200, 50 };
@@ -12,7 +13,7 @@ SDL_Rect quitBtn   = { 300, 480, 200, 50 };
 
 // 아이템 보드 레이아웃 상수
 static const int BOARD_X       = 150;
-static const int BOARD_Y       = 45;
+static const int BOARD_Y       = 90;
 static const int BOARD_W       = 500;
 static const int BOARD_H       = 200;
 static const int ICON_SIZE     = 40;
@@ -111,7 +112,10 @@ void DrawPauseMenu(SDL_Renderer* renderer, const PlayerData* player)
         const char* name = GetItemName(type);
         const char* desc = GetItemDescription(type);
 
-        const int TW = 220, TH = 62;
+        const int PAD = 14;
+        int textW = std::max(GetTextWidth(name), GetTextWidth(desc));
+        int TW = std::max(180, textW + PAD * 2);
+        const int TH = 62;
         SDL_Rect ir   = IconRect(hoveredIdx);
         int tx = ir.x + ir.w / 2 - TW / 2;
         int ty = ir.y - TH - 6;

@@ -69,6 +69,7 @@ void InitPlayer(PlayerData* p) {
     p->vx = 0.0f;
     p->vy = 0.0f;
     p->speed = PLAYER_SPEED;
+    p->projectileSpeedMult = 1.0f;
     p->hp = PLAYER_HP;
     p->isInvincible = false;
     p->invincibleEndTime = 0;

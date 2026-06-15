@@ -26,13 +26,22 @@ static void ScanFonts() {
     std::string pattern = dir + "*.ttf";
     for (char& c : pattern) if (c == '/') c = '\\';
 
-    WIN32_FIND_DATAA fd;
-    HANDLE hFind = FindFirstFileA(pattern.c_str(), &fd);
+    // UTF-8 경로 → Wide 변환 후 FindFirstFileW 사용 (한글 파일명 지원)
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, pattern.c_str(), -1, nullptr, 0);
+    std::wstring wpattern(wlen, 0);
+    MultiByteToWideChar(CP_UTF8, 0, pattern.c_str(), -1, &wpattern[0], wlen);
+
+    WIN32_FIND_DATAW fd;
+    HANDLE hFind = FindFirstFileW(wpattern.c_str(), &fd);
     if (hFind == INVALID_HANDLE_VALUE) return;
     do {
-        if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-            gFontNames.push_back(fd.cFileName);
-    } while (FindNextFileA(hFind, &fd));
+        if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+            int len = WideCharToMultiByte(CP_UTF8, 0, fd.cFileName, -1, nullptr, 0, nullptr, nullptr);
+            std::string utf8name(len - 1, 0);
+            WideCharToMultiByte(CP_UTF8, 0, fd.cFileName, -1, &utf8name[0], len, nullptr, nullptr);
+            gFontNames.push_back(utf8name);
+        }
+    } while (FindNextFileW(hFind, &fd));
     FindClose(hFind);
 
     std::sort(gFontNames.begin(), gFontNames.end());

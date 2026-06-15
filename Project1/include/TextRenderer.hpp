@@ -29,3 +29,18 @@ void DrawTextCenter(
         255
     }
 );
+
+int GetTextWidth(const std::string& text);
+
+void DrawTextInRect(
+    SDL_Renderer* renderer,
+    const std::string& text,
+    SDL_Rect rect,
+    SDL_Color color =
+    {
+        255,
+        255,
+        255,
+        255
+    }
+);

@@ -8,7 +8,8 @@
 typedef struct {
     float x, y;
     float dirX, dirY;
-    float angle; //회전 각도 (도 단위)
+    float angle;     //회전 각도 (도 단위)
+    float speedMult; //투사체 속도 배율 (기본 1.0f, 아이템으로 증가)
     bool active;
     int owner;    //발사 대상 정보 (플레이어 : 0, 몹 : 1)
     int type;
@@ -21,7 +22,7 @@ extern "C" {
     extern Projectile bullets[MAX_PROJECTILES]; //투사체 정보 저장 배열(외부에서 참조 허용)
 
     void InitProjectiles(); //투사체 초기화
-    void FireProjectile(float startX, float startY, float deltaTime); //플레이어 투사체 발사
+    void FireProjectile(float startX, float startY, float deltaTime, float speedMult); //플레이어 투사체 발사
     void FireEnemyProjectile(float startX, float startY, float targetX, float targetY);                          //일반 몹 투사체 (texIndex=2)
     void FireEnemyProjectileEx(float startX, float startY, float targetX, float targetY, int texIndex); //texIndex 지정 몹 투사체
     void FireBossProjectile(float startX, float startY, float targetX, float targetY, int texIndex);             //보스 투사체

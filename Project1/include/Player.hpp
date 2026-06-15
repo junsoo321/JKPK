@@ -10,6 +10,7 @@ typedef struct PlayerData {
     float vx;
     float vy;
     float speed;
+    float projectileSpeedMult;
     int   hp;
     bool  isInvincible;
     Uint32 invincibleEndTime;

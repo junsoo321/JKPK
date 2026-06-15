@@ -5,6 +5,7 @@
 //                    3) assets/player/item/ 에 PNG 에셋 추가  4) ImageManager.cpp에서 자동 로드됨
 enum ItemType {
     ITEM_MONSTER_ULTRA_ENERGY = 0,  // 이동속도 +30%
+    ITEM_MECHANICAL_KEYBOARD,       // 투사체 속도 +20%
     ITEM_COUNT
 };
 
@@ -12,6 +13,9 @@ enum ItemType {
 
 // 아이템 효과 적용 + 인벤토리 기록
 void ApplyItem(PlayerData* player, int itemType);
+
+// 아직 획득하지 않은 아이템 중 랜덤 선택 (없으면 ITEM_NONE)
+int PickUncollectedItem(const PlayerData* player);
 
 // 에셋 파일명 반환 (assets/player/item/ 상대 경로)
 const char* GetItemAssetName(int itemType);
