@@ -32,6 +32,7 @@ extern SDL_Texture* gHeartHalfTex;
 extern SDL_Texture* gHeartEmptyTex;
 extern SDL_Texture* gButtonTex;
 extern SDL_Texture* gTitleBgTex;
+extern SDL_Texture* gTitleLogoTex;  // ui/menu/title_logo.png (투명 배경 제목 이미지)
 extern SDL_Texture* gComputerTex;    // map/quiz/computer_off.png
 extern SDL_Texture* gComputerOnTex;  // map/quiz/computer_on.png
 extern SDL_Texture* gMazeWallTex;

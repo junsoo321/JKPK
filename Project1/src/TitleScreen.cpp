@@ -42,6 +42,13 @@ void DrawTitleScreen(SDL_Renderer* renderer){
         DrawTextCenter(renderer, "JKPK팀", 220);
     }
 
+    // 제목 로고 — 실제 이미지 크기를 쿼리해 상단 정중앙에 배치
+    if (gTitleLogoTex) {
+        SDL_Rect logoDst = { SCREEN_WIDTH / 2 - 250, 30, 500, 200 };
+        SDL_SetTextureBlendMode(gTitleLogoTex, SDL_BLENDMODE_BLEND);
+        SDL_RenderCopy(renderer, gTitleLogoTex, nullptr, &logoDst);
+    }
+
     DrawButton(renderer, startBtn);
     DrawButton(renderer, exitBtn);
 

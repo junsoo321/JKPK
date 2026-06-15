@@ -32,6 +32,7 @@ SDL_Texture* gHeartHalfTex              = nullptr;
 SDL_Texture* gHeartEmptyTex             = nullptr;
 SDL_Texture* gButtonTex                 = nullptr;
 SDL_Texture* gTitleBgTex                = nullptr;
+SDL_Texture* gTitleLogoTex              = nullptr;
 SDL_Texture* gComputerTex               = nullptr;
 SDL_Texture* gComputerOnTex             = nullptr;
 SDL_Texture* gMazeWallTex               = nullptr;
@@ -214,6 +215,7 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     // ui - menu
     gButtonTex              = LoadTexture(AssetPath("ui/menu/button.png"));
     gTitleBgTex             = LoadTexture(AssetPath("ui/menu/main.png"));
+    gTitleLogoTex           = LoadTexture(AssetPath("ui/menu/title_logo.png"));
     gComputerTex            = LoadTexture(AssetPath("map/quiz/computer_off.png"));
     gComputerOnTex          = LoadTexture(AssetPath("map/quiz/computer_on.png"));
 
@@ -413,6 +415,7 @@ void FreeAllImages() {
     Free(gHeartEmptyTex);
     Free(gButtonTex);
     Free(gTitleBgTex);
+    Free(gTitleLogoTex);
     Free(gComputerTex);
     Free(gComputerOnTex);
     Free(gMazeWallTex);
