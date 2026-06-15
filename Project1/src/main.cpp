@@ -16,6 +16,7 @@
 #include "HelpScreen.hpp"
 #include "TextRenderer.hpp"
 #include "TitleScreen.hpp"
+#include "Item.hpp"
 #ifdef _DEBUG
 #include "DebugMenu.hpp"
 #endif
@@ -275,6 +276,9 @@ auto main(int argc, char* argv[]) -> int
                         player.hp -= 10;
                         std::cout << "[QUIZ] HP -10" << std::endl;
                         std::cout << "Current HP : " << player.hp << std::endl;
+                    } else {
+                        currentRoom->rewardAvailable = true;
+                        currentRoom->tableItemType   = rand() % ITEM_COUNT;
                     }
                     currentRoom->specialCleared = true;
                     gGameState = GAME_NORMAL;
@@ -284,8 +288,30 @@ auto main(int argc, char* argv[]) -> int
             //미로 스테이지 완료 판정
             if (gGameState == GAME_MAZE) {
                 if (IsMazeFinished()) {
-                    currentRoom->specialCleared = true;
+                    currentRoom->specialCleared  = true;
+                    currentRoom->rewardAvailable = true;
+                    currentRoom->tableItemType   = rand() % ITEM_COUNT;
                     gGameState = GAME_NORMAL;
+                }
+            }
+
+            // 일반방 클리어 — 적이 모두 쓰러진 순간 보상 플래그 설정 (수령 후 재생성 방지)
+            if (gGameState == GAME_NORMAL && currentRoom->roomType == ROOM_NORMAL &&
+                !currentRoom->rewardAvailable && !currentRoom->rewardCollected &&
+                !AreEnemiesAlive()) {
+                currentRoom->rewardAvailable = true;
+                currentRoom->tableItemType   = rand() % ITEM_COUNT;
+            }
+
+            // 탁자 보상 수령 — 탁자에 닿으면 획득 (이동 차단으로 overlap 직전에 멈추므로 4px 확장 판정)
+            if (gGameState == GAME_NORMAL && currentRoom->rewardAvailable) {
+                SDL_Rect playerR = { (int)player.x, (int)player.y, PLAYER_SIZE, PLAYER_SIZE };
+                SDL_Rect tableR  = { SCREEN_WIDTH / 2 - 41, SCREEN_HEIGHT / 2 - 41, 83, 83 };
+                if (SDL_HasIntersection(&playerR, &tableR)) {
+                    ApplyItem(&player, currentRoom->tableItemType);
+                    currentRoom->rewardAvailable = false;
+                    currentRoom->rewardCollected = true;
+                    currentRoom->tableItemType   = ITEM_NONE;
                 }
             }
 
@@ -399,6 +425,23 @@ auto main(int argc, char* argv[]) -> int
             }
         }
 
+        // 보상 탁자 — 클리어 후 맵 중앙에 표시
+        if (gGameState == GAME_NORMAL && currentRoom->rewardAvailable) {
+            SDL_Rect tableRect = { SCREEN_WIDTH / 2 - 37, SCREEN_HEIGHT / 2 - 37, 75, 75 };
+            if (gTableTex) SDL_RenderCopy(renderer, gTableTex, NULL, &tableRect);
+            else {
+                SDL_SetRenderDrawColor(renderer, 139, 90, 43, 255);
+                SDL_RenderFillRect(renderer, &tableRect);
+            }
+
+            // 탁자 위 아이템 (50x50, 중앙 정렬)
+            int it = currentRoom->tableItemType;
+            if (it >= 0 && it < ITEM_COUNT && gItemTextures[it]) {
+                SDL_Rect itemRect = { SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50 };
+                SDL_RenderCopy(renderer, gItemTextures[it], NULL, &itemRect);
+            }
+        }
+
         UpdateAndDrawProjectiles(renderer, deltaTime);
 
         if (isBossFight) {
@@ -443,7 +486,7 @@ auto main(int argc, char* argv[]) -> int
 
         //일시정지 메뉴, 도움말, 타이틀 렌더링
         if (gGameState == GAME_PAUSE) {
-            DrawPauseMenu(renderer);
+            DrawPauseMenu(renderer, &player);
         }
         if (gGameState == GAME_HELP) {
             DrawHelpScreen(renderer);

@@ -78,6 +78,8 @@ void InitPlayer(PlayerData* p) {
     p->animTimer  = 0.0f;
     p->hurtTimer  = 0.0f;
     p->isDead     = false;
+    p->itemCount  = 0;
+    for (int i = 0; i < MAX_INVENTORY; i++) p->collectedItems[i] = -1;
 }
 
 //키보드 입력 기반 이동, 4꼭짓점 벽 충돌, 방 클리어 시 상하좌우 개방 구역 이동 판정
@@ -126,6 +128,15 @@ void UpdatePlayer(PlayerData* p, const Uint8* keyboardState, float deltaTime)
     bool canMove = true;
     if (IsWall(nextX, nextY) || IsWall(nextX + 28, nextY) || IsWall(nextX, nextY + 28) || IsWall(nextX + 28, nextY + 28)) {
         canMove = false;
+    }
+
+    // 보상 탁자 충돌 — rewardAvailable 동안 통행 불가
+    if (canMove && currentRoom && currentRoom->rewardAvailable) {
+        SDL_Rect nextR  = { (int)nextX, (int)nextY, PLAYER_SIZE, PLAYER_SIZE };
+        SDL_Rect tableR = { SCREEN_WIDTH / 2 - 37, SCREEN_HEIGHT / 2 - 37, 75, 75 };
+        if (SDL_HasIntersection(&nextR, &tableR)) {
+            canMove = false;
+        }
     }
 
     if (canMove) {

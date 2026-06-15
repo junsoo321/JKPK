@@ -36,6 +36,7 @@
 #define QUIZ_ROOM_COUNT 3 //전채 맵 중 퀴즈맵의 개수
 
 //플레이어 설정
+#define MAX_INVENTORY 32        // 최대 보유 아이템 수
 #define PLAYER_SIZE 36				//	히트박스 크기 — 실제 캐릭터 도트 영역(3x 기준 36×42)에 맞춤
 #define CHAR_FRAME_SIZE 32			//	스프라이트 시트 한 프레임 크기 (px)
 #define PLAYER_RENDER_OFFSET_X 30	//	스프라이트를 히트박스 기준으로 좌측으로 당기는 오프셋 (10px * 3)

@@ -150,6 +150,9 @@ void InitRoomNodes()
             roomNodes[x][y].visited = false;
             roomNodes[x][y].discovered = false;
             roomNodes[x][y].specialCleared = false;
+            roomNodes[x][y].rewardAvailable = false;
+            roomNodes[x][y].rewardCollected = false;
+            roomNodes[x][y].tableItemType   = -1;
 
             roomNodes[x][y].roomType = ROOM_NORMAL;
             roomNodes[x][y].layoutVariant = 0;

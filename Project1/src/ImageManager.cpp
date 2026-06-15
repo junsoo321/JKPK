@@ -1,6 +1,7 @@
 ﻿#include "ImageManager.hpp"
 #include "MapData.hpp"
 #include "Constants.h"
+#include "Item.hpp"
 
 #include <SDL_image.h>
 #include <SDL_ttf.h>
@@ -32,13 +33,16 @@ SDL_Texture* gHeartHalfTex              = nullptr;
 SDL_Texture* gHeartEmptyTex             = nullptr;
 SDL_Texture* gButtonTex                 = nullptr;
 SDL_Texture* gTitleBgTex                = nullptr;
+SDL_Texture* gPauseBoardTex             = nullptr;
 SDL_Texture* gTitleLogoTex              = nullptr;
 SDL_Texture* gComputerTex               = nullptr;
 SDL_Texture* gComputerOnTex             = nullptr;
+SDL_Texture* gTableTex                  = nullptr;
 SDL_Texture* gMazeWallTex               = nullptr;
 SDL_Texture* gMazeFloorTex              = nullptr;
 SDL_Texture* gMazeArrowTex              = nullptr;
 SDL_Texture* gMazePlayerIconTex[5]      = {};
+SDL_Texture* gItemTextures[ITEM_COUNT]  = {};
 TTF_Font*    gFont                      = nullptr;
 
 // [Internal - map system]
@@ -215,9 +219,17 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     // ui - menu
     gButtonTex              = LoadTexture(AssetPath("ui/menu/button.png"));
     gTitleBgTex             = LoadTexture(AssetPath("ui/menu/main.png"));
+    gPauseBoardTex          = LoadTexture(AssetPath("ui/pause/item-board.png"));
     gTitleLogoTex           = LoadTexture(AssetPath("ui/menu/title_logo.png"));
     gComputerTex            = LoadTexture(AssetPath("map/quiz/computer_off.png"));
     gComputerOnTex          = LoadTexture(AssetPath("map/quiz/computer_on.png"));
+    gTableTex               = LoadTexture(AssetPath("map/table.png"));
+
+    // items
+    for (int i = 0; i < ITEM_COUNT; i++) {
+        const char* name = GetItemAssetName(i);
+        if (name) gItemTextures[i] = LoadTexture(AssetPath((std::string("player/item/") + name).c_str()));
+    }
 
     // font
     gFont = TTF_OpenFont(AssetPath("ui/font/Pretendard-Regular.ttf").c_str(), 24);
@@ -415,13 +427,16 @@ void FreeAllImages() {
     Free(gHeartEmptyTex);
     Free(gButtonTex);
     Free(gTitleBgTex);
+    Free(gPauseBoardTex);
     Free(gTitleLogoTex);
     Free(gComputerTex);
     Free(gComputerOnTex);
+    Free(gTableTex);
     Free(gMazeWallTex);
     Free(gMazeFloorTex);
     Free(gMazeArrowTex);
     for (int i = 0; i < 5; i++) Free(gMazePlayerIconTex[i]);
+    for (int i = 0; i < ITEM_COUNT; i++) Free(gItemTextures[i]);
     Free(gMapBaseTex);
     Free(gDoorTexU);
     Free(gDoorTexD);

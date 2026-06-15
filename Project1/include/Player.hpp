@@ -22,6 +22,10 @@ typedef struct PlayerData {
     float animTimer;
     float hurtTimer;    // > 0 이면 hurt 애니메이션 재생
     bool  isDead;
+
+    // 아이템 인벤토리
+    int collectedItems[MAX_INVENTORY];
+    int itemCount;
 } PlayerData;
 
 #ifdef __cplusplus

@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <string>
+#include "Item.hpp"
 
 // return current project execution directory
 inline auto GetImageManagerSourcePath() -> const char* { return __FILE__; }
@@ -32,13 +33,16 @@ extern SDL_Texture* gHeartHalfTex;
 extern SDL_Texture* gHeartEmptyTex;
 extern SDL_Texture* gButtonTex;
 extern SDL_Texture* gTitleBgTex;
+extern SDL_Texture* gPauseBoardTex;  // ui/pause/item_board.png
 extern SDL_Texture* gTitleLogoTex;  // ui/menu/title_logo.png (투명 배경 제목 이미지)
 extern SDL_Texture* gComputerTex;    // map/quiz/computer_off.png
 extern SDL_Texture* gComputerOnTex;  // map/quiz/computer_on.png
+extern SDL_Texture* gTableTex;       // map/table.png
 extern SDL_Texture* gMazeWallTex;
 extern SDL_Texture* gMazeFloorTex;
 extern SDL_Texture* gMazeArrowTex;
 extern SDL_Texture* gMazePlayerIconTex[5];
+extern SDL_Texture* gItemTextures[ITEM_COUNT];  // player/item/*.png
 
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();
