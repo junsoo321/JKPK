@@ -153,13 +153,34 @@ auto main(int argc, char* argv[]) -> int
                         gGameState = GAME_MAZE;
                         break;
                     case DEBUG_ACTION_MAP_QUIZ:
+                    {
                         isBossFight = false;
                         currentRoom->roomType = ROOM_QUIZ;
                         currentRoom->specialCleared = false;
                         LoadEnemiesForRoom(currentRoomX, currentRoomY);
-                        StartQuizStage();
-                        gGameState = GAME_QUIZ;
+                        gGameState = GAME_NORMAL;
+
+                        // 플레이어가 컴퓨터 오브젝트와 겹치면 바깥으로 10px 밀어냄
+                        SDL_Rect compRect   = { SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 - 50, 100, 100 };
+                        SDL_Rect playerRect = { (int)player.x, (int)player.y, PLAYER_SIZE, PLAYER_SIZE };
+                        if (SDL_HasIntersection(&playerRect, &compRect)) {
+                            float compCX = SCREEN_WIDTH  / 2.0f;
+                            float compCY = SCREEN_HEIGHT / 2.0f;
+                            float dirX = player.x + PLAYER_SIZE / 2.0f - compCX;
+                            float dirY = player.y + PLAYER_SIZE / 2.0f - compCY;
+                            float len  = sqrtf(dirX * dirX + dirY * dirY);
+                            if (len < 0.001f) { dirX = 0.0f; dirY = -1.0f; len = 1.0f; }
+                            dirX /= len; dirY /= len;
+
+                            // 겹침이 해소될 때까지 1px씩 밀고, 추가로 10px 여유
+                            while (SDL_HasIntersection(&playerRect, &compRect)) {
+                                player.x += dirX; player.y += dirY;
+                                playerRect.x = (int)player.x; playerRect.y = (int)player.y;
+                            }
+                            player.x += dirX * 60.0f; player.y += dirY * 60.0f;
+                        }
                         break;
+                    }
                     case DEBUG_ACTION_MAP_PLAIN:
                         isBossFight = false;
                         currentRoom->roomType = ROOM_NORMAL;
@@ -225,7 +246,7 @@ auto main(int argc, char* argv[]) -> int
             if (currentRoom->roomType == ROOM_QUIZ && !currentRoom->specialCleared &&
                 gGameState == GAME_NORMAL) {
                 static const SDL_Rect COMPUTER_RECT = {
-                    SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50
+                    SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 - 50, 100, 100
                 };
                 SDL_Rect playerRect = { (int)player.x, (int)player.y, PLAYER_SIZE, PLAYER_SIZE };
                 if (SDL_HasIntersection(&playerRect, &COMPUTER_RECT)) {
@@ -325,7 +346,6 @@ auto main(int argc, char* argv[]) -> int
         //게임 상태별 월드 배경 및 오브젝트 레이어 렌더링
         if (gGameState == GAME_QUIZ) {
             DrawMap(renderer, gMapTexture, gWallTexture, gWallTexture, gObstacleTex);
-            DrawQuizStage(renderer);
         }
         else if (gGameState == GAME_QUIZ_PROMPT) {
             // 배경 맵 렌더 (팝업 오버레이는 DrawPlayer 이후에 그림)
@@ -337,7 +357,7 @@ auto main(int argc, char* argv[]) -> int
             DrawMap(renderer, GetRoomMapTexture(renderer, doorMask), gWallTexture, gWallTexture, gObstacleTex);
 
             // 컴퓨터 오브젝트 (on 상태)
-            SDL_Rect compRect = { SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50 };
+            SDL_Rect compRect = { SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 - 50, 100, 100 };
             SDL_Texture* compTex = gComputerOnTex ? gComputerOnTex : gComputerTex;
             if (compTex) SDL_RenderCopy(renderer, compTex, NULL, &compRect);
             else {
@@ -371,7 +391,7 @@ auto main(int argc, char* argv[]) -> int
         // 퀴즈방 컴퓨터 오브젝트 렌더 (미클리어 상태의 GAME_NORMAL)
         if (gGameState == GAME_NORMAL &&
             currentRoom->roomType == ROOM_QUIZ && !currentRoom->specialCleared) {
-            SDL_Rect compRect = { SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50 };
+            SDL_Rect compRect = { SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 - 50, 100, 100 };
             if (gComputerTex) SDL_RenderCopy(renderer, gComputerTex, NULL, &compRect);
             else {
                 SDL_SetRenderDrawColor(renderer, 80, 160, 255, 255);
@@ -398,6 +418,11 @@ auto main(int argc, char* argv[]) -> int
 
         if (gGameState != GAME_MAZE) {
             DrawPlayer(renderer, &player);
+        }
+
+        // 퀴즈 스테이지 UI — 플레이어 포함 모든 오브젝트 위에 표시
+        if (gGameState == GAME_QUIZ) {
+            DrawQuizStage(renderer);
         }
 
         // 퀴즈 선택 프롬프트 오버레이 — 플레이어 포함 모든 오브젝트 위에 표시
