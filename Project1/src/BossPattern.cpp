@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+static int sBossTexToggle = 0;
+
 //특정 각도 방향으로 보스의 투사체를 발사하는 함수
 void FireBossAngle(float startX, float startY, float angleDegree) { //[시작x좌표][시작y좌표][발사할 각도]
     //각도(Degree)를 삼각함수용 라디안(Radian)으로 변환 (원주율 매크로 M_PI 활용)
@@ -20,7 +22,8 @@ void FireBossAngle(float startX, float startY, float angleDegree) { //[시작x�
     float tY = startY + sinf(rad) * 100.0f;
 
     //계산된 목표 지점(tX, tY)을 향해 실제 투사체를 생성하고 발사
-    FireBossProjectile(startX, startY, tX, tY, 0);
+    FireBossProjectile(startX, startY, tX, tY, sBossTexToggle);
+    sBossTexToggle ^= 1;
 }
 
 //2페이즈 탄막 구현 함수
@@ -88,7 +91,8 @@ void Pattern_Idle(BossData* b, PlayerData* player, Uint32 currentTime, float del
     //원거리 공격 쿨이 지났는지 검사
     if (currentTime - b->lastFireTick > (Uint32)(BOSS_ATTACK_SPEED * 1000.0f)) {
         //플레이어의 좌표를 향해 조준 사격 투사체 생성
-        FireEnemyProjectile(b->x + BOSS_SIZE / 2, b->y + BOSS_SIZE / 2, player->x, player->y);
+        FireBossProjectile(b->x + BOSS_SIZE / 2, b->y + BOSS_SIZE / 2, player->x, player->y, sBossTexToggle);
+        sBossTexToggle ^= 1;
         b->lastFireTick = currentTime; //마지막 발사 시간을 현재 시간으로 갱신하여 쿨타임 리셋
     }
 

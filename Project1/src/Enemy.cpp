@@ -110,7 +110,7 @@ bool CanMove(float nextX, float nextY)
 }
 
 //타입별 AI 동작(거리 유지, 투사체 예측 횡회피, 돌진) 연산 및 프레임 렌더링
-void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, SDL_Texture* enemyTexture, float deltaTime, PlayerData* player)
+void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, float deltaTime, PlayerData* player)
 {
     Uint32 now = SDL_GetTicks();
     bool paused = (gGameState == GAME_PAUSE);
@@ -298,7 +298,7 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
         if      (e->type == ENEMY_NORMAL)  drawTex = gNormalEnemyTex;
         else if (e->type == ENEMY_NINJA)   drawTex = gNinjaEnemyTex;
         else if (e->type == ENEMY_SUICIDE) drawTex = gSuicideEnemyTex;
-        if (!drawTex) drawTex = enemyTexture;
+        if (!drawTex) drawTex = nullptr;
 
         if (drawTex) {
             // 자폭 몬스터: 근접 시 붉은 점멸 경고
@@ -364,4 +364,32 @@ bool AreEnemiesAlive(void)
 bool CanSpawnEnemy(float x, float y)
 {
     return CanMove(x, y);
+}
+
+void SpawnEnemyAt(float x, float y, EnemyType type)
+{
+    Uint32 now = SDL_GetTicks();
+    for (int i = 0; i < MAX_ENEMIES_PER_ROOM; i++) {
+        if (!currentEnemies[i].active) {
+            Enemy* e = &currentEnemies[i];
+            *e = {};
+            e->active             = true;
+            e->x                  = x;
+            e->y                  = y;
+            e->type               = type;
+            e->spawnTime          = now;
+            e->speed              = ENEMY_SPEED;
+            e->state              = NINJA_IDLE;
+            e->stateStartTime     = now;
+            e->lastAttackTime     = now;
+            e->nextAttackDelay    = ENEMY_ATTACK_MIN + (rand() % (ENEMY_ATTACK_MAX - ENEMY_ATTACK_MIN));
+            e->nextMoveDecisionTime = now + (rand() % 500);
+            e->explodeTime        = now + 5000;
+            e->skillCooldownEnd   = now + 2000 + (rand() % 1000);
+            e->nextDodgeTime      = now + 5000;
+            e->dirX               = (float)((rand() % 3) - 1);
+            e->dirY               = (float)((rand() % 3) - 1);
+            break;
+        }
+    }
 }

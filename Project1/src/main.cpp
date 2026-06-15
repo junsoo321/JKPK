@@ -156,6 +156,27 @@ auto main(int argc, char* argv[]) -> int
                         LoadEnemiesForRoom(currentRoomX, currentRoomY);
                         gGameState = GAME_NORMAL;
                         break;
+                    case DEBUG_ACTION_SPAWN_NORMAL:
+                    case DEBUG_ACTION_SPAWN_NINJA:
+                    case DEBUG_ACTION_SPAWN_SUICIDE:
+                    {
+                        EnemyType spawnType = (dbgAct == DEBUG_ACTION_SPAWN_NORMAL) ? ENEMY_NORMAL
+                                            : (dbgAct == DEBUG_ACTION_SPAWN_NINJA)  ? ENEMY_NINJA
+                                            :                                          ENEMY_SUICIDE;
+                        static const float DIRS[8][2] = {
+                            { 1.0f, 0.0f }, { 0.0f, 1.0f }, { -1.0f, 0.0f }, { 0.0f, -1.0f },
+                            { 0.707f, 0.707f }, { -0.707f, 0.707f }, { 0.707f, -0.707f }, { -0.707f, -0.707f }
+                        };
+                        const float DIST = 200.0f;
+                        int startDir = rand() % 8;
+                        for (int d = 0; d < 8; d++) {
+                            int idx = (startDir + d) % 8;
+                            float sx = player.x + DIRS[idx][0] * DIST;
+                            float sy = player.y + DIRS[idx][1] * DIST;
+                            if (CanMove(sx, sy)) { SpawnEnemyAt(sx, sy, spawnType); break; }
+                        }
+                        break;
+                    }
                     default: break;
                     }
                 }
@@ -306,7 +327,7 @@ auto main(int argc, char* argv[]) -> int
             DrawBoss(renderer, &mainBoss);
         }
         else {
-            UpdateAndDrawEnemies(renderer, player.x, player.y, gEnemyTexture, deltaTime, &player);
+            UpdateAndDrawEnemies(renderer, player.x, player.y, deltaTime, &player);
             CheckEnemyCollision(bullets);
         }
 

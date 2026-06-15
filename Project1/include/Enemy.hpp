@@ -71,12 +71,13 @@ extern "C" {
     bool CanMove(float nextX, float nextY);
 
     //몹 출력 및 업데이트(이동,공격) 함수
-    void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, SDL_Texture* enemyTexture, float deltaTime, struct PlayerData* player);
+    void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, float deltaTime, struct PlayerData* player);
 
     //투사체 충돌 체크 함수
     void CheckEnemyCollision(void* projectileArray);
 
     bool AreEnemiesAlive(void);
+    void SpawnEnemyAt(float x, float y, EnemyType type);
 
 #ifdef __cplusplus //C++에서 이 헤더를 포함해도 C 언어 함수 이름을 그대로 사용할 수 있도록 설정
 }

@@ -15,7 +15,6 @@ SDL_Texture* gPlayerHurtTex             = nullptr;
 SDL_Texture* gPlayerDeathTex            = nullptr;
 SDL_Texture* gWallTexture               = nullptr;
 SDL_Texture* gFloorTexture              = nullptr;
-SDL_Texture* gEnemyTexture              = nullptr;
 SDL_Texture* gNormalEnemyTex           = nullptr;
 SDL_Texture* gNinjaEnemyTex            = nullptr;
 SDL_Texture* gSuicideEnemyTex          = nullptr;
@@ -187,10 +186,9 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     gProjectileTexture      = LoadTexture(AssetPath("player/projectile/semi-colon.png"));
 
     // mob - plain
-    gEnemyTexture           = LoadTexture(AssetPath("mob/enemy.png"));
-    gNormalEnemyTex         = LoadTexture(AssetPath("mob/enemy/normal.png"));
-    gNinjaEnemyTex          = LoadTexture(AssetPath("mob/enemy/ninja.png"));
-    gSuicideEnemyTex        = LoadTexture(AssetPath("mob/enemy/suicide.png"));
+    gNormalEnemyTex         = LoadTexture(AssetPath("mob/normal.png"));
+    gNinjaEnemyTex          = LoadTexture(AssetPath("mob/ninja.png"));
+    gSuicideEnemyTex        = LoadTexture(AssetPath("mob/suicide.png"));
     gEnemyProjectileTexture = LoadTexture(AssetPath("mob/projectile/default.png"));
     gNinjaProjectileTex     = LoadTexture(AssetPath("mob/projectile/ninja.png"));
 
@@ -333,7 +331,6 @@ void FreeAllImages() {
     Free(gPlayerDeathTex);
     Free(gWallTexture);
     Free(gFloorTexture);
-    Free(gEnemyTexture);
     Free(gNormalEnemyTex);
     Free(gNinjaEnemyTex);
     Free(gSuicideEnemyTex);
