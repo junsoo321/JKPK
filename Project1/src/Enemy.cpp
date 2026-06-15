@@ -165,29 +165,43 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
                 e->nextAttackDelay = ENEMY_ATTACK_MIN + rand() % (ENEMY_ATTACK_MAX - ENEMY_ATTACK_MIN);
             }
         }
-        // 2. 자폭 타입 AI (무조건 돌진 → 근접 시 폭발)
+        // 2. 자폭 타입 AI (접근 → 경고 점멸 2초 → 폭발)
         else if (e->type == ENEMY_SUICIDE && !paused) {
             float dx = playerX - e->x;
             float dy = playerY - e->y;
             float dist = sqrtf(dx * dx + dy * dy);
 
-            if (dist > 0.001f) { dx /= dist; dy /= dist; }
+            if (!e->warning) {
+                // Phase 1: 현재 속도의 80%로 플레이어에게 접근
+                if (dist > 0.001f) { dx /= dist; dy /= dist; }
+                float nextX = e->x + dx * SUICIDE_SPEED * 0.8f * deltaTime;
+                float nextY = e->y + dy * SUICIDE_SPEED * 0.8f * deltaTime;
+                if (CanMove(nextX, nextY)) { e->x = nextX; e->y = nextY; }
 
-            float nextX = e->x + dx * SUICIDE_SPEED * deltaTime;
-            float nextY = e->y + dy * SUICIDE_SPEED * deltaTime;
-            if (CanMove(nextX, nextY)) { e->x = nextX; e->y = nextY; }
-
-            // 폭발 판정: 근접 거리 이내 또는 타이머 만료
-            bool explode = (dist < SUICIDE_EXPLOSION_RANGE) || (now >= e->explodeTime);
-            if (explode) {
-                if (dist < SUICIDE_EXPLOSION_RANGE && player && !player->isInvincible) {
-                    player->hp -= SUICIDE_EXPLOSION_DAMAGE;
-                    player->hurtTimer = 0.3f;
-                    player->isInvincible = true;
-                    player->invincibleEndTime = now + 2000;
+                // 경고 범위 이내 진입 시 점멸 페이즈 돌입
+                if (dist < SUICIDE_WARN_RANGE) {
+                    e->warning = true;
+                    e->explodeTime = now + 1500;
                 }
-                e->active = false;
-                continue;
+            }
+            else {
+                // Phase 2: 정지 + 붉은 점멸, 1.5초 후 현재 위치에서 폭발
+                if (now >= e->explodeTime) {
+                    float centerX = e->x + ENEMY_SIZE * 0.5f;
+                    float centerY = e->y + ENEMY_SIZE * 0.5f;
+                    float pCX = playerX + PLAYER_SIZE * 0.5f;
+                    float pCY = playerY + PLAYER_SIZE * 0.5f;
+                    if (player && !player->isInvincible &&
+                        fabsf(pCX - centerX) < SUICIDE_EXPLOSION_HALF &&
+                        fabsf(pCY - centerY) < SUICIDE_EXPLOSION_HALF) {
+                        player->hp -= SUICIDE_EXPLOSION_DAMAGE;
+                        player->hurtTimer = 0.3f;
+                        player->isInvincible = true;
+                        player->invincibleEndTime = now + 2000;
+                    }
+                    e->active = false;
+                    continue;
+                }
             }
         }
         // 3. 닌자 타입 AI (거리 유지 + 플레이어 총알 벡터 예측 횡회피 + 3초 주기 칼날 돌진)
@@ -321,15 +335,10 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
                 SDL_SetTextureBlendMode(drawTex, SDL_BLENDMODE_BLEND);
                 SDL_SetTextureAlphaMod(drawTex, alpha);
             }
-            // 자폭 몬스터: 근접 시 붉은 점멸 경고
-            if (e->type == ENEMY_SUICIDE) {
-                float pdx = playerX - e->x;
-                float pdy = playerY - e->y;
-                float dist = sqrtf(pdx * pdx + pdy * pdy);
-                if (dist < SUICIDE_WARN_RANGE) {
-                    if ((now / 100) % 2 == 0) SDL_SetTextureColorMod(drawTex, 255, 80,  80);
-                    else                       SDL_SetTextureColorMod(drawTex, 180, 40,  40);
-                }
+            // 자폭 몬스터: 경고 페이즈 진입 후 붉은 점멸 (warning 플래그 기준)
+            if (e->type == ENEMY_SUICIDE && e->warning) {
+                if ((now / 100) % 2 == 0) SDL_SetTextureColorMod(drawTex, 255, 80,  80);
+                else                       SDL_SetTextureColorMod(drawTex, 180, 40,  40);
             }
             SDL_RenderCopy(renderer, drawTex, NULL, &enemyRect);
             SDL_SetTextureColorMod(drawTex, 255, 255, 255);

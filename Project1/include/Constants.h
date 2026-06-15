@@ -62,7 +62,7 @@
 #define ENEMY_SPEED 250.0f		//적 속도
 #define SUICIDE_SPEED 400.0f	//자폭몹 속도
 #define SUICIDE_WARN_RANGE 150.0f      // 붉은 점멸 시작 거리 (px)
-#define SUICIDE_EXPLOSION_RANGE 80.0f  // 폭발 판정 거리 (px)
+#define SUICIDE_EXPLOSION_HALF  50.0f  // 폭발 판정 AABB 반변 (100×100 박스, 중심 기준 ±50px)
 #define SUICIDE_EXPLOSION_DAMAGE 40    // 폭발 데미지
 #define NINJA_SPEED 320.0f		//닌자몹 속도
 #define ENEMY_SIZE 50           //적 렌더 크기 (스프라이트 전체)
