@@ -3,6 +3,7 @@
 enum GameState
 {
     GAME_TITLE,
+    GAME_SETTINGS,
     GAME_STORY,
     GAME_HELP,
 

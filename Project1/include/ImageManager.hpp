@@ -47,6 +47,13 @@ extern SDL_Texture* gItemTextures[ITEM_COUNT];  // player/item/*.png
 auto LoadAllImages(SDL_Renderer* renderer) -> void;
 void FreeAllImages();
 
+// 폰트 디렉터리 절대경로 반환 (끝에 / 포함)
+std::string GetFontDirPath();
+// 현재 로드된 폰트 파일명 반환
+const char* GetCurrentFontName();
+// 폰트 교체 — assets/ui/font/<filename> 로드, 성공 시 true
+bool ReloadFont(const char* filename);
+
 // 보스 맵 collision (map/map_boss_collision.png → bossMapLayout)
 void LoadCollisionMapsFromImages();
 

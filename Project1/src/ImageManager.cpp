@@ -44,6 +44,7 @@ SDL_Texture* gMazeArrowTex              = nullptr;
 SDL_Texture* gMazePlayerIconTex[5]      = {};
 SDL_Texture* gItemTextures[ITEM_COUNT]  = {};
 TTF_Font*    gFont                      = nullptr;
+static std::string gCurrentFontName    = "Pretendard-Regular.ttf";
 
 // [Internal - map system]
 static SDL_Texture* gMapBaseTex             = nullptr;
@@ -387,6 +388,24 @@ SDL_Texture* GetRoomMapTextureOpen(SDL_Renderer* renderer, int doorMask) {
     SDL_SetRenderTarget(renderer, NULL);
     gRoomMapTexturesOpen[doorMask] = composed;
     return composed;
+}
+
+std::string GetFontDirPath() {
+    return AssetPath("ui/font/");
+}
+
+const char* GetCurrentFontName() {
+    return gCurrentFontName.c_str();
+}
+
+bool ReloadFont(const char* filename) {
+    std::string path = AssetPath((std::string("ui/font/") + filename).c_str());
+    TTF_Font* newFont = TTF_OpenFont(path.c_str(), 24);
+    if (!newFont) return false;
+    if (gFont) TTF_CloseFont(gFont);
+    gFont = newFont;
+    gCurrentFontName = filename;
+    return true;
 }
 
 SDL_Rect GetDoorRect(int dir) {

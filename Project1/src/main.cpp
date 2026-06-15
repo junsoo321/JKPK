@@ -16,6 +16,7 @@
 #include "HelpScreen.hpp"
 #include "TextRenderer.hpp"
 #include "TitleScreen.hpp"
+#include "SettingsScreen.hpp"
 #include "Item.hpp"
 #ifdef _DEBUG
 #include "DebugMenu.hpp"
@@ -79,8 +80,9 @@ auto main(int argc, char* argv[]) -> int
 
             if (event.type == SDL_KEYDOWN) {
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    if (gGameState == GAME_NORMAL) gGameState = GAME_PAUSE;
-                    else if (gGameState == GAME_PAUSE) gGameState = GAME_NORMAL;
+                    if (gGameState == GAME_NORMAL)   gGameState = GAME_PAUSE;
+                    else if (gGameState == GAME_PAUSE)    gGameState = GAME_NORMAL;
+                    else if (gGameState == GAME_SETTINGS) gGameState = GAME_TITLE;
                 }
                 else if (event.key.keysym.sym == SDLK_m) {
                     gShowFullMap = !gShowFullMap;
@@ -91,8 +93,17 @@ auto main(int argc, char* argv[]) -> int
             if (gGameState == GAME_TITLE && event.type == SDL_MOUSEBUTTONDOWN) {
                 int mx = event.button.x;
                 int my = event.button.y;
-                if (TitleStartClicked(mx, my)) gGameState = GAME_HELP;
-                if (TitleExitClicked(mx, my)) isRunning = false;
+                if (TitleStartClicked(mx, my))    gGameState = GAME_HELP;
+                if (TitleSettingsClicked(mx, my)) { InitSettingsScreen(); gGameState = GAME_SETTINGS; }
+                if (TitleExitClicked(mx, my))     isRunning = false;
+            }
+
+            if (gGameState == GAME_SETTINGS) {
+                HandleSettingsEvent(event);
+                if (event.type == SDL_MOUSEBUTTONDOWN) {
+                    int mx = event.button.x, my = event.button.y;
+                    if (SettingsBackClicked(mx, my)) gGameState = GAME_TITLE;
+                }
             }
 
             //일시정지(PAUSE) 메뉴 마우스 클릭 처리
@@ -490,6 +501,14 @@ auto main(int argc, char* argv[]) -> int
         }
         if (gGameState == GAME_HELP) {
             DrawHelpScreen(renderer);
+        }
+
+        if (gGameState == GAME_SETTINGS) {
+            SDL_SetRenderDrawColor(renderer, 10, 10, 18, 255);
+            SDL_RenderClear(renderer);
+            DrawSettingsScreen(renderer);
+            SDL_RenderPresent(renderer);
+            continue;
         }
 
         if (gGameState == GAME_TITLE) {

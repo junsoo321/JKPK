@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="src\Boss.cpp" />
     <ClCompile Include="src\Item.cpp" />
+    <ClCompile Include="src\SettingsScreen.cpp" />
     <ClCompile Include="src\BossPattern.cpp" />
     <ClCompile Include="src\Enemy.cpp" />
     <ClCompile Include="src\GameState.cpp" />
@@ -43,6 +44,7 @@
   <ItemGroup>
     <ClInclude Include="include\Boss.hpp" />
     <ClInclude Include="include\Item.hpp" />
+    <ClInclude Include="include\SettingsScreen.hpp" />
     <ClInclude Include="include\BossPattern.hpp" />
     <ClInclude Include="include\Constants.h" />
     <ClInclude Include="include\Enemy.hpp" />

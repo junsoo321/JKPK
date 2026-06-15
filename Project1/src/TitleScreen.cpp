@@ -1,12 +1,13 @@
-﻿#pragma execution_character_set("utf-8")
+#pragma execution_character_set("utf-8")
 #include "TitleScreen.hpp"
 #include "Constants.h"
 #include "TextRenderer.hpp"
 #include "ImageManager.hpp"
 #include <SDL.h>
 
-SDL_Rect startBtn = { 300, 300, 200, 60 };
-SDL_Rect exitBtn  = { 300, 380, 200, 60 };
+SDL_Rect startBtn    = { 300, 265, 200, 60 };
+SDL_Rect settingsBtn = { 300, 345, 200, 60 };
+SDL_Rect exitBtn     = { 300, 425, 200, 60 };
 
 static void DrawButton(SDL_Renderer* renderer, SDL_Rect rect)
 {
@@ -42,7 +43,6 @@ void DrawTitleScreen(SDL_Renderer* renderer){
         DrawTextCenter(renderer, "JKPK팀", 220);
     }
 
-    // 제목 로고 — 실제 이미지 크기를 쿼리해 상단 정중앙에 배치
     if (gTitleLogoTex) {
         SDL_Rect logoDst = { SCREEN_WIDTH / 2 - 250, 30, 500, 200 };
         SDL_SetTextureBlendMode(gTitleLogoTex, SDL_BLENDMODE_BLEND);
@@ -50,21 +50,25 @@ void DrawTitleScreen(SDL_Renderer* renderer){
     }
 
     DrawButton(renderer, startBtn);
+    DrawButton(renderer, settingsBtn);
     DrawButton(renderer, exitBtn);
 
-    DrawText(renderer, "게임시작", startBtn.x + 55, startBtn.y + 15);
-    DrawText(renderer, "종료",     exitBtn.x  + 75, exitBtn.y  + 15);
+    DrawText(renderer, "게임시작",   startBtn.x    + 45, startBtn.y    + 15);
+    DrawText(renderer, "환경설정",   settingsBtn.x + 45, settingsBtn.y + 15);
+    DrawText(renderer, "종료",       exitBtn.x     + 75, exitBtn.y     + 15);
 }
+
 bool TitleStartClicked(int x, int y){
-    return x >= startBtn.x &&
-        x <= startBtn.x + startBtn.w &&
-        y >= startBtn.y &&
-        y <= startBtn.y + startBtn.h;
+    return x >= startBtn.x && x <= startBtn.x + startBtn.w &&
+           y >= startBtn.y && y <= startBtn.y + startBtn.h;
+}
+
+bool TitleSettingsClicked(int x, int y){
+    return x >= settingsBtn.x && x <= settingsBtn.x + settingsBtn.w &&
+           y >= settingsBtn.y && y <= settingsBtn.y + settingsBtn.h;
 }
 
 bool TitleExitClicked(int x, int y){
-    return x >= exitBtn.x &&
-        x <= exitBtn.x + exitBtn.w &&
-        y >= exitBtn.y &&
-        y <= exitBtn.y + exitBtn.h;
+    return x >= exitBtn.x && x <= exitBtn.x + exitBtn.w &&
+           y >= exitBtn.y && y <= exitBtn.y + exitBtn.h;
 }
