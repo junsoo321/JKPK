@@ -184,95 +184,101 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
         }
         // 3. 닌자 타입 AI (거리 유지 + 플레이어 총알 벡터 예측 횡회피 + 3초 주기 칼날 돌진)
         else if (e->type == ENEMY_NINJA && !paused) {
-            float dx = playerX - e->x;
-            float dy = playerY - e->y;
-            float len = sqrtf(dx * dx + dy * dy);
+            // 돌진 예고 중에는 이동·회피 정지
+            if (e->state == NINJA_IDLE) {
+                float dx = playerX - e->x;
+                float dy = playerY - e->y;
+                float len = sqrtf(dx * dx + dy * dy);
 
-            if (len > 0.001f) { dx /= len; dy /= len; }
+                if (len > 0.001f) { dx /= len; dy /= len; }
 
-            float nextX = e->x;
-            float nextY = e->y;
+                float nextX = e->x;
+                float nextY = e->y;
 
-            if (len > NINJA_KEEP_DISTANCE) {
-                nextX += dx * e->speed * deltaTime;
-                nextY += dy * e->speed * deltaTime;
+                if (len > NINJA_KEEP_DISTANCE) {
+                    nextX += dx * e->speed * deltaTime;
+                    nextY += dy * e->speed * deltaTime;
+                }
+                else if (len < NINJA_KEEP_DISTANCE * 0.8f) {
+                    nextX -= dx * e->speed * deltaTime;
+                    nextY -= dy * e->speed * deltaTime;
+                }
+                if (CanMove(nextX, nextY)) { e->x = nextX; e->y = nextY; }
+
+                // 플레이어 탄환 실시간 벡터 투영 회피 연산
+                for (int b = 0; b < MAX_PROJECTILES; b++) {
+                    if (!bullets[b].active || bullets[b].owner != 0) continue;
+
+                    float bx = bullets[b].x; float by = bullets[b].y;
+                    float vx = bullets[b].dirX; float vy = bullets[b].dirY;
+                    float ex = e->x + ENEMY_SIZE * 0.5f; float ey = e->y + ENEMY_SIZE * 0.5f;
+
+                    float toEnemyX = ex - bx;
+                    float toEnemyY = ey - by;
+                    float projection = toEnemyX * vx + toEnemyY * vy;
+
+                    if (projection < 0.0f || projection > 250.0f) continue;
+
+                    float closestX = bx + vx * projection;
+                    float closestY = by + vy * projection;
+                    float missX = ex - closestX;
+                    float missY = ey - closestY;
+
+                    if (sqrtf(missX * missX + missY * missY) > 20.0f) continue;
+                    if (now - e->lastEmergencyDodgeTime < 3000) continue;
+
+                    // 조건 충족 시 수직 벡터 방향으로 긴급 구르기 수행
+                    e->lastEmergencyDodgeTime = now;
+                    e->isDodging = true;
+                    e->isInvincible = true;
+                    e->dodgeEndTime = now + 1500;
+
+                    float dodgeX = -vy; float dodgeY = vx;
+                    if (rand() % 2) { dodgeX *= -1.0f; dodgeY *= -1.0f; }
+
+                    float dodgeDistance = 180.0f;
+                    float newX = e->x + dodgeX * dodgeDistance;
+                    float newY = e->y + dodgeY * dodgeDistance;
+
+                    if (CanMove(newX, newY)) { e->x = newX; e->y = newY; }
+                    break;
+                }
+
+                if (e->isDodging && now >= e->dodgeEndTime) {
+                    e->isDodging = false;
+                    e->isInvincible = false;
+                }
             }
-            else if (len < NINJA_KEEP_DISTANCE * 0.8f) {
-                nextX -= dx * e->speed * deltaTime;
-                nextY -= dy * e->speed * deltaTime;
-            }
-            if (CanMove(nextX, nextY)) { e->x = nextX; e->y = nextY; }
 
-            // 플레이어 탄환 실시간 벡터 투영 회피 연산
-            for (int b = 0; b < MAX_PROJECTILES; b++) {
-                if (!bullets[b].active || bullets[b].owner != 0) continue;
-
-                float bx = bullets[b].x; float by = bullets[b].y;
-                float vx = bullets[b].dirX; float vy = bullets[b].dirY;
-                float ex = e->x + ENEMY_SIZE * 0.5f; float ey = e->y + ENEMY_SIZE * 0.5f;
-
-                float toEnemyX = ex - bx;
-                float toEnemyY = ey - by;
-                float projection = toEnemyX * vx + toEnemyY * vy;
-
-                if (projection < 0.0f || projection > 250.0f) continue;
-
-                float closestX = bx + vx * projection;
-                float closestY = by + vy * projection;
-                float missX = ex - closestX;
-                float missY = ey - closestY;
-
-                if (sqrtf(missX * missX + missY * missY) > 20.0f) continue;
-                if (now - e->lastEmergencyDodgeTime < 3000) continue;
-
-                // 조건 충족 시 수직 벡터 방향으로 긴급 구르기 수행
-                e->lastEmergencyDodgeTime = now;
-                e->isDodging = true;
-                e->isInvincible = true;
-                e->dodgeEndTime = now + 1500;
-
-                float dodgeX = -vy; float dodgeY = vx;
-                if (rand() % 2) { dodgeX *= -1.0f; dodgeY *= -1.0f; }
-
-                float dodgeDistance = 180.0f;
-                float newX = e->x + dodgeX * dodgeDistance;
-                float newY = e->y + dodgeY * dodgeDistance;
-
-                if (CanMove(newX, newY)) { e->x = newX; e->y = newY; }
-                break;
-            }
-
-            if (e->isDodging && now >= e->dodgeEndTime) {
-                e->isDodging = false;
-                e->isInvincible = false;
-            }
-
-            // 레이캐스트 스타일 단기 선형 후퇴 검증 방식의 칼날 돌진 공격
-            if (now - e->lastAttackTime >= 3000) {
+            // 돌진 예고: 3초 쿨타임 후 방향 고정 + 깜빡임 시작 (0.8초)
+            if (e->state == NINJA_IDLE && now - e->lastAttackTime >= 3000) {
                 float dashDx = playerX - e->x;
                 float dashDy = playerY - e->y;
                 float dashLen = sqrtf(dashDx * dashDx + dashDy * dashDy);
-
-                if (dashLen > 0.001f) {
-                    dashDx /= dashLen; dashDy /= dashLen;
-                    float dashDist = NINJA_DASH_DISTANCE * 1.5f;
-
-                    while (dashDist > 10) {
-                        float dashX = e->x + dashDx * dashDist;
-                        float dashY = e->y + dashDy * dashDist;
-
-                        if (CanMove(dashX, dashY)) {
-                            e->x = dashX; e->y = dashY;
-                            break;
-                        }
-                        dashDist -= 20; // 벽에 막힐 경우 도달할 수 있는 최대 거리까지 양보 연산
+                if (dashLen > 0.001f) { dashDx /= dashLen; dashDy /= dashLen; }
+                e->dirX = dashDx;
+                e->dirY = dashDy;
+                e->state = NINJA_DASH_PREPARE;
+                e->stateStartTime = now;
+            }
+            // 예고 종료 후 실제 돌진 실행
+            else if (e->state == NINJA_DASH_PREPARE && now - e->stateStartTime >= 800) {
+                float dashDist = NINJA_DASH_DISTANCE * 1.5f;
+                while (dashDist > 10) {
+                    float dashX = e->x + e->dirX * dashDist;
+                    float dashY = e->y + e->dirY * dashDist;
+                    if (CanMove(dashX, dashY)) {
+                        e->x = dashX; e->y = dashY;
+                        break;
                     }
+                    dashDist -= 20; // 벽에 막힐 경우 도달할 수 있는 최대 거리까지 양보 연산
                 }
+                e->state = NINJA_IDLE;
                 e->lastAttackTime = now;
             }
 
-            // 3방향 확산탄: 2.5초마다 플레이어 방향 ±15도로 발사
-            if (now >= e->skillCooldownEnd) {
+            // 3방향 확산탄: 2.5초마다 플레이어 방향 ±15도로 발사 (예고 중에는 발사 안 함)
+            if (e->state == NINJA_IDLE && now >= e->skillCooldownEnd) {
                 float cx = playerX + PLAYER_SIZE * 0.5f;
                 float cy = playerY + PLAYER_SIZE * 0.5f;
                 float bx = e->x + ENEMY_SIZE * 0.5f;
@@ -301,6 +307,12 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
         if (!drawTex) drawTex = nullptr;
 
         if (drawTex) {
+            // 닌자 돌진 예고: 반투명 + 빠른 깜빡임
+            if (e->type == ENEMY_NINJA && e->state == NINJA_DASH_PREPARE) {
+                Uint8 alpha = ((now / 80) % 2 == 0) ? 50 : 200;
+                SDL_SetTextureBlendMode(drawTex, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureAlphaMod(drawTex, alpha);
+            }
             // 자폭 몬스터: 근접 시 붉은 점멸 경고
             if (e->type == ENEMY_SUICIDE) {
                 float pdx = playerX - e->x;
@@ -313,6 +325,7 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
             }
             SDL_RenderCopy(renderer, drawTex, NULL, &enemyRect);
             SDL_SetTextureColorMod(drawTex, 255, 255, 255);
+            SDL_SetTextureAlphaMod(drawTex, 255);
         }
         else {
             if      (e->type == ENEMY_NORMAL)  SDL_SetRenderDrawColor(renderer, 255,   0,   0, 255);

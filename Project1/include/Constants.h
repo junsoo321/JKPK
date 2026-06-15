@@ -52,7 +52,7 @@
 #define MAX_PROJECTILES 5000			//	한번에 존재 가능한 총 투사체 개수
 #define PROJECTILE_SPEED 280.0f			//	투사체 속도(날아가는 속도)
 #define BOSS_PROJECTILE_SPEED 250.0f	//	보스 투사체 속도
-#define PROJECTILE_SIZE 42				//	투사체 크기
+#define PROJECTILE_SIZE 30				//	투사체 크기
 #define FIRE_DELAY 0.27f				//	공격속도 (ms)
 #define PROJECTILE_SPIN_SPEED 360.0f	//	투사체 회전 속도 (도/초)
 
