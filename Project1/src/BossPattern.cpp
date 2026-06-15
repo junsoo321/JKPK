@@ -20,7 +20,7 @@ void FireBossAngle(float startX, float startY, float angleDegree) { //[시작x�
     float tY = startY + sinf(rad) * 100.0f;
 
     //계산된 목표 지점(tX, tY)을 향해 실제 투사체를 생성하고 발사
-    FireEnemyProjectile(startX, startY, tX, tY);
+    FireBossProjectile(startX, startY, tX, tY, 0);
 }
 
 //2페이즈 탄막 구현 함수
@@ -376,7 +376,7 @@ void Pattern_Phase3Main(BossData* b, PlayerData* player, float deltaTime) {
         SDL_Rect bRect = { (int)b->x, (int)b->y, BOSS_SIZE, BOSS_SIZE };
         SDL_Rect pRect = { (int)player->x, (int)player->y, PLAYER_SIZE, PLAYER_SIZE };
         if (SDL_HasIntersection(&bRect, &pRect) && !player->isInvincible) {
-            player->hp -= BOSS_MELEE_DAMAGE * 1.5f; //피격시 근접공격 데미지의 1.5배 입힘
+            player->hp -= BOSS_MELEE_DAMAGE * 1.5f; // 피격시 근접공격 데미지의 1.5배 입힘
             player->isInvincible = true;
             player->invincibleEndTime = SDL_GetTicks() + 1500;
         }

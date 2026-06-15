@@ -4,6 +4,7 @@
 #include "Projectile.hpp"
 #include "GameState.hpp"
 #include "MapData.hpp"
+#include "ImageManager.hpp"
 #include <stdlib.h>
 #include <math.h>
 
@@ -55,6 +56,8 @@ void LoadEnemiesForRoom(int roomX, int roomY)
                 currentEnemies[i].state = NINJA_IDLE;
                 currentEnemies[i].stateStartTime = SDL_GetTicks();
                 currentEnemies[i].warning = false;
+                if (currentEnemies[i].type == ENEMY_NINJA)
+                    currentEnemies[i].skillCooldownEnd = SDL_GetTicks() + 2000 + (rand() % 1000);
                 currentEnemies[i].speed = ENEMY_SPEED;
                 currentEnemies[i].lastAttackTime = SDL_GetTicks();
                 currentEnemies[i].nextAttackDelay = ENEMY_ATTACK_MIN + (rand() % (ENEMY_ATTACK_MAX - ENEMY_ATTACK_MIN));
@@ -267,52 +270,54 @@ void UpdateAndDrawEnemies(SDL_Renderer* renderer, float playerX, float playerY, 
                 }
                 e->lastAttackTime = now;
             }
+
+            // 3방향 확산탄: 2.5초마다 플레이어 방향 ±15도로 발사
+            if (now >= e->skillCooldownEnd) {
+                float cx = playerX + PLAYER_SIZE * 0.5f;
+                float cy = playerY + PLAYER_SIZE * 0.5f;
+                float bx = e->x + ENEMY_SIZE * 0.5f;
+                float by = e->y + ENEMY_SIZE * 0.5f;
+                float dx = cx - bx, dy = cy - by;
+                float d  = sqrtf(dx * dx + dy * dy);
+                if (d > 0.001f) { dx /= d; dy /= d; }
+
+                for (int s = -1; s <= 1; s++) {
+                    float a  = atan2f(dy, dx) + s * 0.2618f; // 15도 간격
+                    float tx = bx + cosf(a) * 100.0f;
+                    float ty = by + sinf(a) * 100.0f;
+                    FireEnemyProjectileEx(e->x, e->y, tx, ty, 3);
+                }
+                e->skillCooldownEnd = now + 2500;
+            }
         }
 
         // 렌더 출력부
         SDL_Rect enemyRect = { (int)e->x, (int)e->y, ENEMY_SIZE, ENEMY_SIZE };
 
-        if (enemyTexture) {
-            if (e->type == ENEMY_NORMAL) {
-                SDL_SetTextureColorMod(enemyTexture, 255, 255, 255);
-            }
-            else if (e->type == ENEMY_SUICIDE) {
+        SDL_Texture* drawTex = nullptr;
+        if      (e->type == ENEMY_NORMAL)  drawTex = gNormalEnemyTex;
+        else if (e->type == ENEMY_NINJA)   drawTex = gNinjaEnemyTex;
+        else if (e->type == ENEMY_SUICIDE) drawTex = gSuicideEnemyTex;
+        if (!drawTex) drawTex = enemyTexture;
+
+        if (drawTex) {
+            // 자폭 몬스터: 근접 시 붉은 점멸 경고
+            if (e->type == ENEMY_SUICIDE) {
                 float pdx = playerX - e->x;
                 float pdy = playerY - e->y;
                 float dist = sqrtf(pdx * pdx + pdy * pdy);
                 if (dist < SUICIDE_WARN_RANGE) {
-                    // 근접 시 붉은 점멸 (100ms 주기)
-                    if ((now / 100) % 2 == 0) SDL_SetTextureColorMod(enemyTexture, 255, 0,   0);
-                    else                       SDL_SetTextureColorMod(enemyTexture, 180, 0,   0);
-                } else {
-                    SDL_SetTextureColorMod(enemyTexture, 255, 220, 80);
+                    if ((now / 100) % 2 == 0) SDL_SetTextureColorMod(drawTex, 255, 80,  80);
+                    else                       SDL_SetTextureColorMod(drawTex, 180, 40,  40);
                 }
             }
-            else if (e->type == ENEMY_NINJA) {
-                SDL_SetTextureColorMod(enemyTexture, 100, 255, 100);
-            }
-
-            SDL_RenderCopy(renderer, enemyTexture, NULL, &enemyRect);
-            SDL_SetTextureColorMod(enemyTexture, 255, 255, 255);
+            SDL_RenderCopy(renderer, drawTex, NULL, &enemyRect);
+            SDL_SetTextureColorMod(drawTex, 255, 255, 255);
         }
         else {
-            if (e->type == ENEMY_NORMAL) {
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-            }
-            else if (e->type == ENEMY_SUICIDE) {
-                Uint32 remain = e->explodeTime - SDL_GetTicks();
-                if (remain < 2000) {
-                    int interval = remain > 1000 ? 150 : 70;
-                    if ((SDL_GetTicks() / interval) % 2) SDL_SetTextureColorMod(enemyTexture, 255, 255, 0);
-                    else                                 SDL_SetTextureColorMod(enemyTexture, 255, 100, 0);
-                }
-                else {
-                    SDL_SetTextureColorMod(enemyTexture, 255, 255, 255);
-                }
-            }
-            else {
-                SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-            }
+            if      (e->type == ENEMY_NORMAL)  SDL_SetRenderDrawColor(renderer, 255,   0,   0, 255);
+            else if (e->type == ENEMY_SUICIDE) SDL_SetRenderDrawColor(renderer, 255, 200,   0, 255);
+            else                               SDL_SetRenderDrawColor(renderer,   0, 255, 255, 255);
             SDL_RenderFillRect(renderer, &enemyRect);
         }
     }

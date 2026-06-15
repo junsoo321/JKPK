@@ -80,6 +80,9 @@
     <ClInclude Include="include\TitleScreen.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="include\DebugMenu.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="include\Constants.h">
       <Filter>헤더 파일\c</Filter>
     </ClInclude>
@@ -140,6 +143,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="src\TitleScreen.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DebugMenu.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

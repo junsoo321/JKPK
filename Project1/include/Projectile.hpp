@@ -22,7 +22,9 @@ extern "C" {
 
     void InitProjectiles(); //투사체 초기화
     void FireProjectile(float startX, float startY, float deltaTime); //플레이어 투사체 발사
-    void FireEnemyProjectile(float startX, float startY, float targetX, float targetY); //몹 투사체 발사
+    void FireEnemyProjectile(float startX, float startY, float targetX, float targetY);                          //일반 몹 투사체 (texIndex=2)
+    void FireEnemyProjectileEx(float startX, float startY, float targetX, float targetY, int texIndex); //texIndex 지정 몹 투사체
+    void FireBossProjectile(float startX, float startY, float targetX, float targetY, int texIndex);             //보스 투사체
     void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime); //투사체 출력 및 충돌 처리
     void FireProjectile_PHASE3(float startX, float startY, float targetX, float targetY, float speed);
 

@@ -15,11 +15,15 @@ extern SDL_Texture* gPlayerHurtTex;		// characters/Default/hurt.png
 extern SDL_Texture* gPlayerDeathTex;	// characters/Default/death.png
 extern SDL_Texture* gWallTexture;		//!!! 벽 타일 외형 이미지 변수
 extern SDL_Texture* gFloorTexture;		//!!! 바닥 타일 외형 이미지 변수
-extern SDL_Texture* gEnemyTexture;
+extern SDL_Texture* gEnemyTexture;       // fallback
+extern SDL_Texture* gNormalEnemyTex;    // mob/enemy/normal.png
+extern SDL_Texture* gNinjaEnemyTex;     // mob/enemy/ninja.png
+extern SDL_Texture* gSuicideEnemyTex;   // mob/enemy/suicide.png
 extern SDL_Texture* gProjectileTexture;
-extern SDL_Texture* gEnemyProjectileTexture;
-extern SDL_Texture* gBossProjectileTex1;
-extern SDL_Texture* gBossProjectileTex2;
+extern SDL_Texture* gEnemyProjectileTexture;  // mob/projectile/default.png  (texIndex 2)
+extern SDL_Texture* gNinjaProjectileTex;       // mob/projectile/ninja.png    (texIndex 3)
+extern SDL_Texture* gBossProjectileTex1;       // mob/projectile/boss-001.png (texIndex 0)
+extern SDL_Texture* gBossProjectileTex2;       // mob/projectile/boss-002.png (texIndex 1)
 extern SDL_Texture* gMapTexture;		//!!! 맵 배경 이미지 변수
 extern SDL_Texture* gBossTexture;
 extern SDL_Texture* gBossMapTexture;	// map/map_boss.png

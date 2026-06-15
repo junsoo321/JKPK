@@ -15,6 +15,9 @@
 #include "HelpScreen.hpp"
 #include "TextRenderer.hpp"
 #include "TitleScreen.hpp"
+#ifdef _DEBUG
+#include "DebugMenu.hpp"
+#endif
 #include <iostream>
 #include <stdlib.h>
 #include <time.h>
@@ -102,6 +105,10 @@ auto main(int argc, char* argv[]) -> int
             //도움말 및 퀴즈 단계 이벤트 전달
             if (gGameState == GAME_HELP) HandleHelpEvent(event);
             if (gGameState == GAME_QUIZ) HandleQuizEvent(event);
+#ifdef _DEBUG
+            if (gGameState == GAME_NORMAL || gGameState == GAME_BOSS || gGameState == GAME_MAZE)
+                DebugMenuHandleEvent(event);
+#endif
         }
 
         //화면 흔들림 효과 감쇠 처리
@@ -113,6 +120,48 @@ auto main(int argc, char* argv[]) -> int
         //일시정지 상태가 아닐 때만 게임 월드(플레이어, 적, 스테이지) 업데이트
         if (gGameState != GAME_PAUSE) {
             const Uint8* keyState = SDL_GetKeyboardState(NULL);
+
+#ifdef _DEBUG
+            {
+                DebugAction dbgAct = DebugMenuGetAction();
+                if (dbgAct != DEBUG_ACTION_NONE) {
+                    switch (dbgAct) {
+                    case DEBUG_ACTION_MAP_BOSS:
+                        isBossFight = false;
+                        currentRoom->roomType = ROOM_BOSS;
+                        gGameState = GAME_NORMAL;
+                        break;
+                    case DEBUG_ACTION_MAP_MAZE:
+                        isBossFight = false;
+                        currentRoom->roomType = ROOM_MAZE;
+                        currentRoom->specialCleared = false;
+                        LoadEnemiesForRoom(currentRoomX, currentRoomY);
+                        StartMazeStage();
+                        gGameState = GAME_MAZE;
+                        break;
+                    case DEBUG_ACTION_MAP_QUIZ:
+                        isBossFight = false;
+                        currentRoom->roomType = ROOM_QUIZ;
+                        currentRoom->specialCleared = false;
+                        LoadEnemiesForRoom(currentRoomX, currentRoomY);
+                        StartQuizStage();
+                        gGameState = GAME_QUIZ;
+                        break;
+                    case DEBUG_ACTION_MAP_PLAIN:
+                        isBossFight = false;
+                        currentRoom->roomType = ROOM_NORMAL;
+                        currentRoom->specialCleared = false;
+                        currentRoom->visited = false;
+                        InitMap();
+                        LoadEnemiesForRoom(currentRoomX, currentRoomY);
+                        gGameState = GAME_NORMAL;
+                        break;
+                    default: break;
+                    }
+                }
+            }
+            if (!DebugMenuIsMenuOpen()) {
+#endif
 
              //게임 상태(State)에 따른 플레이어 및 미로 스테이지 이동 업데이트
             if (gGameState == GAME_NORMAL || gGameState == GAME_BOSS) {
@@ -213,6 +262,9 @@ auto main(int argc, char* argv[]) -> int
                     player.invincibleEndTime = now + BOSS_PLAYER_INVINCIBLE_TIME;
                 }
             }
+#ifdef _DEBUG
+            } // !DebugMenuIsMenuOpen()
+#endif
         }
 
         //화면 렌더링 시작 및 쉐이크 오프셋 계산
@@ -330,6 +382,9 @@ auto main(int argc, char* argv[]) -> int
             gNeedCapture = false;
         }
 
+#ifdef _DEBUG
+        DebugMenuRender(renderer);
+#endif
         SDL_RenderPresent(renderer);
     }
 

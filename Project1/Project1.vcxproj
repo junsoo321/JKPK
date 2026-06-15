@@ -37,6 +37,7 @@
     <ClCompile Include="src\TextRenderer.cpp" />
     <ClCompile Include="src\TitleScreen.cpp" />
     <ClCompile Include="src\UIState.cpp" />
+    <ClCompile Include="src\DebugMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Boss.hpp" />

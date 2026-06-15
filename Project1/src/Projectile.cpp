@@ -80,6 +80,54 @@ void FireEnemyProjectile(float startX, float startY, float targetX, float target
     }
 }
 
+// texIndex 지정 몹 투사체 스폰 (FireEnemyProjectile의 확장판)
+void FireEnemyProjectileEx(float startX, float startY, float targetX, float targetY, int texIndex)
+{
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
+        if (!bullets[i].active) {
+            bullets[i].active   = true;
+            bullets[i].owner    = 1;
+            bullets[i].type     = 0;
+            bullets[i].angle    = 0.0f;
+            bullets[i].texIndex = texIndex;
+
+            bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
+            bullets[i].y = startY + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
+
+            float diffX = targetX - bullets[i].x;
+            float diffY = targetY - bullets[i].y;
+            float dist  = sqrtf(diffX * diffX + diffY * diffY);
+            if (dist < 0.1f) { bullets[i].dirX = 0; bullets[i].dirY = 1; }
+            else { bullets[i].dirX = diffX / dist; bullets[i].dirY = diffY / dist; }
+            break;
+        }
+    }
+}
+
+// 보스 투사체 스폰 (texIndex: 0=boss-001, 1=boss-002)
+void FireBossProjectile(float startX, float startY, float targetX, float targetY, int texIndex)
+{
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
+        if (!bullets[i].active) {
+            bullets[i].active   = true;
+            bullets[i].owner    = 1;
+            bullets[i].type     = 0;
+            bullets[i].angle    = 0.0f;
+            bullets[i].texIndex = texIndex;
+
+            bullets[i].x = startX + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
+            bullets[i].y = startY + (ENEMY_SIZE / 2.0f) - (PROJECTILE_SIZE / 2.0f);
+
+            float diffX = targetX - bullets[i].x;
+            float diffY = targetY - bullets[i].y;
+            float dist  = sqrtf(diffX * diffX + diffY * diffY);
+            if (dist < 0.1f) { bullets[i].dirX = 0; bullets[i].dirY = 1; }
+            else { bullets[i].dirX = diffX / dist; bullets[i].dirY = diffY / dist; }
+            break;
+        }
+    }
+}
+
 // 보스 3페이즈용 특수 기믹(흡수 가능한 초록색 대형 투사체, type = 1) 스폰
 void FireProjectile_PHASE3(float startX, float startY, float targetX, float targetY, float speed)
 {
@@ -172,11 +220,14 @@ void UpdateAndDrawProjectiles(SDL_Renderer* renderer, float deltaTime)
                 if (bullets[i].owner == 0) {
                     targetTexture = gProjectileTexture;        // 플레이어: semi-colon.png
                 } else if (bullets[i].texIndex == 2) {
-                    targetTexture = gEnemyProjectileTexture;   // 일반 몬스터: attack.png
+                    targetTexture = gEnemyProjectileTexture;   // 일반 몬스터: default.png
+                } else if (bullets[i].texIndex == 3) {
+                    targetTexture = gNinjaProjectileTex;       // 닌자: ninja.png
+                    if (!targetTexture) targetTexture = gEnemyProjectileTexture;
                 } else {
                     // 보스 투사체: texIndex 0/1로 두 이미지 교대
                     targetTexture = (bullets[i].texIndex == 0) ? gBossProjectileTex1 : gBossProjectileTex2;
-                    if (targetTexture == nullptr) targetTexture = gEnemyProjectileTexture;
+                    if (!targetTexture) targetTexture = gEnemyProjectileTexture;
                 }
                 if (targetTexture != nullptr) {
                     SDL_RenderCopyEx(renderer, targetTexture, NULL, &bRect, angle, NULL, SDL_FLIP_NONE);
