@@ -32,6 +32,8 @@ extern SDL_Texture* gHeartHalfTex;
 extern SDL_Texture* gHeartEmptyTex;
 extern SDL_Texture* gButtonTex;
 extern SDL_Texture* gTitleBgTex;
+extern SDL_Texture* gComputerTex;    // map/quiz/computer_off.png
+extern SDL_Texture* gComputerOnTex;  // map/quiz/computer_on.png
 extern SDL_Texture* gMazeWallTex;
 extern SDL_Texture* gMazeFloorTex;
 extern SDL_Texture* gMazeArrowTex;

@@ -9,6 +9,7 @@ enum GameState
     GAME_NORMAL,
     GAME_MAZE_TRANSITION,
     GAME_MAZE,
+    GAME_QUIZ_PROMPT,
     GAME_QUIZ,
     GAME_BOSS,
 

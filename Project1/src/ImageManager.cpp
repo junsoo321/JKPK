@@ -32,6 +32,8 @@ SDL_Texture* gHeartHalfTex              = nullptr;
 SDL_Texture* gHeartEmptyTex             = nullptr;
 SDL_Texture* gButtonTex                 = nullptr;
 SDL_Texture* gTitleBgTex                = nullptr;
+SDL_Texture* gComputerTex               = nullptr;
+SDL_Texture* gComputerOnTex             = nullptr;
 SDL_Texture* gMazeWallTex               = nullptr;
 SDL_Texture* gMazeFloorTex              = nullptr;
 SDL_Texture* gMazeArrowTex              = nullptr;
@@ -212,6 +214,8 @@ auto LoadAllImages(SDL_Renderer* renderer) -> void
     // ui - menu
     gButtonTex              = LoadTexture(AssetPath("ui/menu/button.png"));
     gTitleBgTex             = LoadTexture(AssetPath("ui/menu/main.png"));
+    gComputerTex            = LoadTexture(AssetPath("map/quiz/computer_off.png"));
+    gComputerOnTex          = LoadTexture(AssetPath("map/quiz/computer_on.png"));
 
     // font
     gFont = TTF_OpenFont(AssetPath("ui/font/Pretendard-Regular.ttf").c_str(), 24);
@@ -409,6 +413,8 @@ void FreeAllImages() {
     Free(gHeartEmptyTex);
     Free(gButtonTex);
     Free(gTitleBgTex);
+    Free(gComputerTex);
+    Free(gComputerOnTex);
     Free(gMazeWallTex);
     Free(gMazeFloorTex);
     Free(gMazeArrowTex);

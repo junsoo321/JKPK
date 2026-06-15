@@ -310,11 +310,7 @@ void MoveToNextRoom(int direction)
     LoadEnemiesForRoom(currentRoomX, currentRoomY);  // 그 후 스폰 (정확한 mapData 사용)
     currentRoom->visited = true;
 
-    // 만약 이동한 곳이 클리어하지 않은 퀴즈방이라면 퀴즈 스테이지 즉시 개시
-    if (currentRoom->roomType == ROOM_QUIZ && !currentRoom->specialCleared) {
-        StartQuizStage();
-        gGameState = GAME_QUIZ;
-    }
+    // 퀴즈방은 맵 중앙 컴퓨터에 접촉해야 시작 (자동 개시 없음)
 }
 
 // M키를 눌렀을 때 화면 전체를 덮어 전체 방들의 연결 상태와 종류를 보여주는 전체 지도 오버레이 렌더링

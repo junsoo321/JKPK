@@ -1,4 +1,5 @@
-﻿#include <SDL.h>
+﻿#pragma execution_character_set("utf-8")
+#include <SDL.h>
 #include <SDL_ttf.h>
 #include "Constants.h"
 #include "MapSystem.hpp"
@@ -105,6 +106,18 @@ auto main(int argc, char* argv[]) -> int
             //도움말 및 퀴즈 단계 이벤트 전달
             if (gGameState == GAME_HELP) HandleHelpEvent(event);
             if (gGameState == GAME_QUIZ) HandleQuizEvent(event);
+
+            // 퀴즈 선택 프롬프트: Y=도전 N=포기(즉시 클리어)
+            if (gGameState == GAME_QUIZ_PROMPT && event.type == SDL_KEYDOWN) {
+                if (event.key.keysym.sym == SDLK_y) {
+                    StartQuizStage();
+                    gGameState = GAME_QUIZ;
+                }
+                else if (event.key.keysym.sym == SDLK_n) {
+                    currentRoom->specialCleared = true;
+                    gGameState = GAME_NORMAL;
+                }
+            }
 #ifdef _DEBUG
             if (gGameState == GAME_NORMAL || gGameState == GAME_BOSS || gGameState == GAME_MAZE)
                 DebugMenuHandleEvent(event);
@@ -188,6 +201,7 @@ auto main(int argc, char* argv[]) -> int
             if (gGameState == GAME_NORMAL || gGameState == GAME_BOSS) {
                 UpdatePlayer(&player, keyState, deltaTime);
             }
+            // GAME_QUIZ_PROMPT 중에는 플레이어 이동 없음
             else if (gGameState == GAME_MAZE) {
                 UpdateMazeStage(keyState, deltaTime);
             }
@@ -207,9 +221,16 @@ auto main(int argc, char* argv[]) -> int
                     if (gTransitionTex) { SDL_DestroyTexture(gTransitionTex); gTransitionTex = nullptr; }
                 }
             }
-            if (currentRoom->roomType == ROOM_QUIZ && !currentRoom->specialCleared && gGameState != GAME_QUIZ) {
-                StartQuizStage();
-                gGameState = GAME_QUIZ;
+            // 퀴즈방: 컴퓨터 오브젝트에 플레이어가 닿으면 선택 프롬프트 표시
+            if (currentRoom->roomType == ROOM_QUIZ && !currentRoom->specialCleared &&
+                gGameState == GAME_NORMAL) {
+                static const SDL_Rect COMPUTER_RECT = {
+                    SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50
+                };
+                SDL_Rect playerRect = { (int)player.x, (int)player.y, PLAYER_SIZE, PLAYER_SIZE };
+                if (SDL_HasIntersection(&playerRect, &COMPUTER_RECT)) {
+                    gGameState = GAME_QUIZ_PROMPT;
+                }
             }
 
             //보스 방 진입 시 보스 데이터 초기화 및 격리벽 생성
@@ -306,6 +327,24 @@ auto main(int argc, char* argv[]) -> int
             DrawMap(renderer, gMapTexture, gWallTexture, gWallTexture, gObstacleTex);
             DrawQuizStage(renderer);
         }
+        else if (gGameState == GAME_QUIZ_PROMPT) {
+            // 배경 맵 렌더 (팝업 오버레이는 DrawPlayer 이후에 그림)
+            int doorMask = 0;
+            if (currentRoom->up)    doorMask |= 1;
+            if (currentRoom->down)  doorMask |= 2;
+            if (currentRoom->left)  doorMask |= 4;
+            if (currentRoom->right) doorMask |= 8;
+            DrawMap(renderer, GetRoomMapTexture(renderer, doorMask), gWallTexture, gWallTexture, gObstacleTex);
+
+            // 컴퓨터 오브젝트 (on 상태)
+            SDL_Rect compRect = { SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50 };
+            SDL_Texture* compTex = gComputerOnTex ? gComputerOnTex : gComputerTex;
+            if (compTex) SDL_RenderCopy(renderer, compTex, NULL, &compRect);
+            else {
+                SDL_SetRenderDrawColor(renderer, 80, 160, 255, 255);
+                SDL_RenderFillRect(renderer, &compRect);
+            }
+        }
         else if (gGameState == GAME_MAZE) {
             DrawMazeStage(renderer);
         }
@@ -329,6 +368,17 @@ auto main(int argc, char* argv[]) -> int
             DrawMap(renderer, bgTex, gWallTexture, gWallTexture, gObstacleTex);
         }
 
+        // 퀴즈방 컴퓨터 오브젝트 렌더 (미클리어 상태의 GAME_NORMAL)
+        if (gGameState == GAME_NORMAL &&
+            currentRoom->roomType == ROOM_QUIZ && !currentRoom->specialCleared) {
+            SDL_Rect compRect = { SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50 };
+            if (gComputerTex) SDL_RenderCopy(renderer, gComputerTex, NULL, &compRect);
+            else {
+                SDL_SetRenderDrawColor(renderer, 80, 160, 255, 255);
+                SDL_RenderFillRect(renderer, &compRect);
+            }
+        }
+
         UpdateAndDrawProjectiles(renderer, deltaTime);
 
         if (isBossFight) {
@@ -348,6 +398,22 @@ auto main(int argc, char* argv[]) -> int
 
         if (gGameState != GAME_MAZE) {
             DrawPlayer(renderer, &player);
+        }
+
+        // 퀴즈 선택 프롬프트 오버레이 — 플레이어 포함 모든 오브젝트 위에 표시
+        if (gGameState == GAME_QUIZ_PROMPT) {
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 160);
+            SDL_Rect overlay = { 180, 210, 440, 150 };
+            SDL_RenderFillRect(renderer, &overlay);
+            SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+            SDL_RenderDrawRect(renderer, &overlay);
+
+            SDL_Color white  = { 255, 255, 255, 255 };
+            SDL_Color yellow = { 255, 230,  80, 255 };
+            DrawTextCenter(renderer, "퀴즈에 도전하시겠습니까?", 235, white);
+            DrawTextCenter(renderer, "[Y]  도전하기",            285, yellow);
+            DrawTextCenter(renderer, "[N]  포기하기 (즉시 클리어)", 320, yellow);
         }
 
         //일시정지 메뉴, 도움말, 타이틀 렌더링
